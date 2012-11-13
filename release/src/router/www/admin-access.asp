@@ -12,8 +12,8 @@
 <meta http-equiv='content-type' content='text/html;charset=utf-8'>
 <meta name='robots' content='noindex,nofollow'>
 <title>[<% ident(); %>] Admin: Access</title>
-<link rel='stylesheet' type='text/css' href='tomato.css'>
-<link rel='stylesheet' type='text/css' href='color.css' id='guicss'>
+
+<link rel='stylesheet' type='text/css' href='sabai.css' id='guicss'>
 <script type='text/javascript' src='tomato.js'></script>
 
 <!-- / / / -->
@@ -29,7 +29,7 @@ textarea {
 
 <script type='text/javascript'>
 
-//	<% nvram("http_enable,https_enable,http_lanport,https_lanport,remote_management,remote_mgt_https,web_wl_filter,web_css,ttb_css,sshd_eas,sshd_pass,sshd_remote,telnetd_eas,http_wanport,sshd_authkeys,sshd_port,sshd_rport,sshd_forwarding,telnetd_port,rmgt_sip,https_crt_cn,https_crt_save,lan_ipaddr,ne_shlimit,sshd_motd"); %>
+//	<% nvram("vpn_service,http_enable,https_enable,http_lanport,https_lanport,remote_management,remote_mgt_https,web_wl_filter,web_css,sshd_eas,sshd_pass,sshd_remote,telnetd_eas,http_wanport,sshd_authkeys,sshd_port,sshd_rport,sshd_forwarding,telnetd_port,rmgt_sip,https_crt_cn,https_crt_save,lan_ipaddr,ne_shlimit,http_username"); %>
 
 changed = 0;
 tdup = parseInt('<% psup("telnetd"); %>');
@@ -38,7 +38,7 @@ sdup = parseInt('<% psup("dropbear"); %>');
 shlimit = nvram.ne_shlimit.split(',');
 if (shlimit.length != 3) shlimit = [0,3,60];
 
-var xmenus = [['Status', 'status'], ['Bandwidth', 'bwm'], ['IP Traffic', 'ipt'], ['Tools', 'tools'], ['Basic', 'basic'],
+var xmenus = [['Status', 'status'], ['Bandwidth', 'bwm'], ['Tools', 'tools'], ['Basic', 'basic'],
 	['Advanced', 'advanced'], ['Port Forwarding', 'forward'], ['QoS', 'qos'],
 /* USB-BEGIN */
 	['USB and NAS', 'nas'],
@@ -67,20 +67,11 @@ function verifyFields(focused, quiet)
 	var a, b, c;
 	var i;
 
-	var o = (E('_web_css').value == 'online');
-	var p = nvram.ttb_css;
-	elem.display(PR('_ttb_css'), o);
-
 	try {
 		a = E('_web_css').value;
-		if (a == 'online') {
-			E('guicss').href = 'ext/' + p + '.css';
+		if (a != nvram.web_css) {
+			E('guicss').href = a + '.css';
 			nvram.web_css = a;
-		} else {
-			if (a != nvram.web_css) {
-				E('guicss').href = a + '.css';
-				nvram.web_css = a;
-			}
 		}
 	}
 	catch (ex) {
@@ -219,7 +210,6 @@ function save()
 	fom.sshd_eas.value = E('_f_sshd_eas').checked ? 1 : 0;
 	fom.sshd_pass.value = E('_f_sshd_pass').checked ? 1 : 0;
 	fom.sshd_remote.value = E('_f_sshd_remote').checked ? 1 : 0;
-	fom.sshd_motd.value = E('_f_sshd_motd').checked ? 1 : 0;
 	fom.sshd_forwarding.value = E('_f_sshd_forwarding').checked ? 1 : 0;
 
 	fom.rmgt_sip.value = fom.f_rmgt_sip.value.split(/\s*,\s*/).join(',');
@@ -227,12 +217,12 @@ function save()
 	fom.ne_shlimit.value = ((E('_f_limit_ssh').checked ? 1 : 0) | (E('_f_limit_telnet').checked ? 2 : 0)) +
 		',' + E('_f_limit_hit').value + ',' + E('_f_limit_sec').value;
 
-	a = [];
-	for (var i = 0; i < xmenus.length; ++i) {
-		b = xmenus[i][1];
-		if (E('_f_mx_' + b).checked) a.push(b);
-	}
-	fom.web_mx.value = a.join(',');
+//	a = [];
+//	for (var i = 0; i < xmenus.length; ++i) {
+//		b = xmenus[i][1];
+//		if (E('_f_mx_' + b).checked) a.push(b);
+//	}
+//	fom.web_mx.value = a.join(',');
 
 	form.submit(fom, 0);
 }
@@ -246,18 +236,18 @@ function init()
 <body onload="init()">
 <form id='_fom' method='post' action='tomato.cgi'>
 <table id='container' cellspacing=0>
-<tr><td colspan=2 id='header'>
-	<div class='title'>Tomato</div>
-	<div class='version'>Version <% version(); %></div>
+<tr><td colspan=2 id='header'><a id='headlink' href=''><img src='' id='headlogo'></a>
+	<div class='title' id='SVPNstatus'>Sabai</div>
+	<div class='version' id='subversion'>version <% sabaiversion(); %></div>
 </td></tr>
 <tr id='body'><td id='navi'><script type='text/javascript'>navi()</script></td>
 <td id='content'>
-<div id='ident'><% ident(); %></div>
+
 
 <!-- / / / -->
 
 <input type='hidden' name='_nextpage' value='admin-access.asp'>
-<input type='hidden' name='_nextwait' value='20'>
+<input type='hidden' name='_nextwait' value='10'>
 <input type='hidden' name='_service' value='admin-restart'>
 
 <input type='hidden' name='http_enable'>
@@ -271,11 +261,10 @@ function init()
 <input type='hidden' name='sshd_eas'>
 <input type='hidden' name='sshd_pass'>
 <input type='hidden' name='sshd_remote'>
-<input type='hidden' name='sshd_motd'>
 <input type='hidden' name='ne_shlimit'>
 <input type='hidden' name='rmgt_sip'>
 <input type='hidden' name='sshd_forwarding'>
-<input type='hidden' name='web_mx'>
+<!-- input type='hidden' name='web_mx' -->
 
 <div class='section-title'>Web Admin</div>
 <div class='section'>
@@ -295,18 +284,19 @@ var m = [
 	{ title: 'Port', indent: 2, name: 'http_wanport', type: 'text', maxlen: 5, size: 7, value:  fixPort(nvram.http_wanport, 8080) },
 	{ title: 'Allow Wireless Access', name: 'f_http_wireless', type: 'checkbox', value:  nvram.web_wl_filter == 0 },
 	null,
-	{ title: 'Color Scheme', name: 'web_css', type: 'select',
-		options: [['openlinksys','USB Blue - OpenLinksys'],['red','Tomato'],['ext/custom','Custom (ext/custom.css)'], ['online', 'On-line from TTB']], value: nvram.web_css },
-	{ title: 'TTB ID#', indent: 2, name: 'ttb_css', type: 'text', maxlen: 25, size: 30, value: nvram.ttb_css, suffix: ' Theme name from <a href="http://www.tomatothemebase.eu" target="_blanc"><u><i>TTB themes gallery</i></u></a>' },
-	null,
+/*	{ title: 'Color Scheme', name: 'web_css', type: 'select',
+		options: [['red','Tomato'],['black','Black'],['blue','Blue'],['bluegreen','Blue &amp; Green (Lighter)'],['bluegreen2','Blue &amp; Green (Darker)'],['brown','Brown'],['cyan','Cyan'],['olive','Olive'],['pumpkin','Pumpkin'],
+		['usbred','USB Red'],['usbblue','USB Blue'],['sabai','Sabai Technology'],
+		['ext/custom','Custom (ext/custom.css)']], value: nvram.web_css },
 	{ title: 'Open Menus' }
+*/
 ];
 
-var webmx = get_config('web_mx', '').toLowerCase();
-for (var i = 0; i < xmenus.length; ++i) {
-	m.push({ title: xmenus[i][0], indent: 2, name: 'f_mx_' + xmenus[i][1],
-		type: 'checkbox', value: (webmx.indexOf(xmenus[i][1]) != -1) });
-}
+//var webmx = get_config('web_mx', '').toLowerCase();
+//for (var i = 0; i < xmenus.length; ++i) {
+//	m.push({ title: xmenus[i][0], indent: 2, name: 'f_mx_' + xmenus[i][1],
+//		type: 'checkbox', value: (webmx.indexOf(xmenus[i][1]) != -1) });
+//}
 
 createFieldTable('', m);
 </script>
@@ -317,7 +307,6 @@ createFieldTable('', m);
 <script type='text/javascript'>
 createFieldTable('', [
 	{ title: 'Enable at Startup', name: 'f_sshd_eas', type: 'checkbox', value: nvram.sshd_eas == 1 },
-	{ title: 'Extended MOTD', name: 'f_sshd_motd', type: 'checkbox', value: nvram.sshd_motd == 1 },
 	{ title: 'Remote Access', name: 'f_sshd_remote', type: 'checkbox', value: nvram.sshd_remote == 1 },
 	{ title: 'Remote Port', indent: 2, name: 'sshd_rport', type: 'text', maxlen: 5, size: 7, value: nvram.sshd_rport },
 	{ title: 'Remote Forwarding', name: 'f_sshd_forwarding', type: 'checkbox', value: nvram.sshd_forwarding == 1 },
@@ -358,10 +347,11 @@ createFieldTable('', [
 </script>
 </div>
 
-<div class='section-title'>Password</div>
+<div class='section-title'>Username and Password</div>
 <div class='section'>
 <script type='text/javascript'>
 createFieldTable('', [
+	{ title: 'Username', name: 'http_username', type: 'text', value: nvram.http_username },
 	{ title: 'Password', name: 'set_password_1', type: 'password', value: '**********' },
 	{ title: '<i>(re-enter to confirm)</i>', indent: 2, name: 'set_password_2', type: 'password', value: '**********' }
 ]);

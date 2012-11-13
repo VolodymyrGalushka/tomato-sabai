@@ -11,8 +11,8 @@
 <meta http-equiv='content-type' content='text/html;charset=utf-8'>
 <meta name='robots' content='noindex,nofollow'>
 <title>[<% ident(); %>] NAS: FTP Server</title>
-<link rel='stylesheet' type='text/css' href='tomato.css'>
-<link rel='stylesheet' type='text/css' href='color.css'>
+
+<link rel='stylesheet' type='text/css' href='sabai.css'>
 <script type='text/javascript' src='tomato.js'></script>
 
 <!-- / / / -->
@@ -20,17 +20,12 @@
 #aft-grid {
 	width: 99%;
 }
-#aft-grid .co1 {
-	width: 20%;
-}
+#aft-grid .co1,
 #aft-grid .co2 {
-	width: 20%;
+	width: 40%;
 }
 #aft-grid .co3 {
-	width: 15%;
-}
-#aft-grid .co4 {
-	width: 45%;
+	width: 20%;
 }
 </style>
 
@@ -45,7 +40,7 @@ textarea {
 
 <script type='text/javascript'>
 
-//	<% nvram("ftp_enable,ftp_super,ftp_anonymous,ftp_dirlist,ftp_port,ftp_max,ftp_ipmax,ftp_staytimeout,ftp_rate,ftp_anonrate,ftp_anonroot,ftp_pubroot,ftp_pvtroot,ftp_custom,ftp_users,ftp_sip,ftp_limit,log_ftp"); %>
+//	<% nvram("vpn_service,ftp_enable,ftp_super,ftp_anonymous,ftp_dirlist,ftp_port,ftp_max,ftp_ipmax,ftp_staytimeout,ftp_rate,ftp_anonrate,ftp_anonroot,ftp_pubroot,ftp_pvtroot,ftp_custom,ftp_users,ftp_sip,ftp_limit,log_ftp"); %>
 
 ftplimit = nvram.ftp_limit.split(',');
 if (ftplimit.length != 3) ftplimit = [0,3,60];
@@ -80,7 +75,6 @@ aftg.verifyFields = function(row, quiet)
 
 	ferror.clear(f[0]);
 	ferror.clear(f[1]);
-	ferror.clear(f[3]);
 
 	if (!v_length(f[0], quiet, 1)) return 0;
 
@@ -103,14 +97,6 @@ aftg.verifyFields = function(row, quiet)
 
 	if (!v_length(f[1], quiet, 1)) return 0;
 	if (!v_nodelim(f[1], quiet, 'Password', 1)) return 0;
-	if (f[2].value == 'Private') {
-		f[3].value = '';
-		f[3].disabled = true;
-	}
-	else {
-		f[3].disabled = false;
-		if (!v_nodelim(f[3], quiet, 'Root Directory', 1) || !v_path(f[3], quiet, 0)) return 0;
-	}
 
 	return 1;
 }
@@ -124,7 +110,6 @@ aftg.resetNewEditor = function() {
 	f[0].value = '';
 	f[1].value = '';
 	f[2].selectedIndex = 0;
-	f[3].value = '';
 }
 
 aftg.setup = function()
@@ -132,18 +117,14 @@ aftg.setup = function()
 	this.init('aft-grid', 'sort', 50, [
 		{ type: 'text', maxlen: 50 },
 		{ type: 'password', maxlen: 50, peekaboo: 1 },
-		{ type: 'select', options: [['Read/Write', 'Read/Write'],['Read Only', 'Read Only'],['View Only', 'View Only'],['Private', 'Private']] },
-		{ type: 'text', maxlen: 128 }
+		{ type: 'select', options: [['Read/Write', 'Read/Write'],['Read Only', 'Read Only'],['View Only', 'View Only'],['Private', 'Private']] }
 	]);
-	this.headerSet(['User Name', 'Password', 'Access', 'Root Directory*']);
+	this.headerSet(['User Name', 'Password', 'Access']);
 
 	var s = nvram.ftp_users.split('>');
 	for (var i = 0; i < s.length; ++i) {
 		var t = s[i].split('<');
 		if (t.length == 3) {
-			t.push('');
-		}
-		if (t.length == 4) {
 			this.insertData(-1, t);
 		}
 	}
@@ -233,13 +214,13 @@ function save()
 <body>
 <form id='_fom' method='post' action='tomato.cgi'>
 <table id='container' cellspacing=0>
-<tr><td colspan=2 id='header'>
-	<div class='title'>Tomato</div>
-	<div class='version'>Version <% version(); %></div>
+<tr><td colspan=2 id='header'><a id='headlink' href=''><img src='' id='headlogo'></a>
+	<div class='title' id='SVPNstatus'>Sabai</div>
+	<div class='version' id='subversion'>version <% sabaiversion(); %></div>
 </td></tr>
 <tr id='body'><td id='navi'><script type='text/javascript'>navi()</script></td>
 <td id='content'>
-<div id='ident'><% ident(); %></div>
+
 
 <!-- / / / -->
 
@@ -279,15 +260,15 @@ createFieldTable('', [
 <div class='section'>
 <script type='text/javascript'>
 createFieldTable('', [
-	{ title: 'Anonymous Root Directory*', name: 'ftp_anonroot', type: 'text', maxlen: 256, size: 32, 
-		suffix: ' <small>(for anonymous connections)</small>',
-		value: nvram.ftp_anonroot },
 	{ title: 'Public Root Directory*', name: 'ftp_pubroot', type: 'text', maxlen: 256, size: 32,
-		suffix: ' <small>(for authenticated users access, if not specified for the user)</small>',
+		suffix: ' <small>(for authenticated users access)</small>',
 		value: nvram.ftp_pubroot },
 	{ title: 'Private Root Directory**', name: 'ftp_pvtroot', type: 'text', maxlen: 256, size: 32,
 		suffix: ' <small>(for authenticated users access in private mode)</small>',
 		value: nvram.ftp_pvtroot },
+	{ title: 'Anonymous Root Directory*', name: 'ftp_anonroot', type: 'text', maxlen: 256, size: 32, 
+		suffix: ' <small>(for anonymous connections)</small>',
+		value: nvram.ftp_anonroot },
 	{ title: 'Directory Listings', name: 'ftp_dirlist', type: 'select',
 		options: [['0', 'Enabled'],['1', 'Disabled'],['2', 'Disabled for Anonymous']],
 		suffix: ' <small>(always enabled for Admin)</small>',
@@ -342,9 +323,6 @@ createFieldTable('', [
 <div class='section'>
 	<table class='tomato-grid' cellspacing=1 id='aft-grid'></table>
 	<script type='text/javascript'>aftg.setup();</script>
-<small>
-*&nbsp;&nbsp;When no Root Directory is specified for the user, the default "Public Root Directory" is used.
-</small>
 </div>
 
 <!-- / / / -->

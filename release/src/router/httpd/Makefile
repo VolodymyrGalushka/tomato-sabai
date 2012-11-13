@@ -33,7 +33,7 @@ ifeq ($(TCONFIG_PPTPD),y)
 OBJS += pptpd.o
 endif
 
-sed "s/#define SABAIVPNVERSION.*/#define SABAIVPNVERSION $(V2)/" sabaisub.h
+### @sed "s/#define SABAIVPNVERSION.*/#define SABAIVPNVERSION $(V2)/" sabaisub.h
 
 all: httpd
 

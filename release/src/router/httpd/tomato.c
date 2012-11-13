@@ -23,7 +23,7 @@ char *post_buf = NULL;
 int rboot = 0;
 extern int post;
 
-static void asp_css(int argc, char **argv);
+//static void asp_css(int argc, char **argv);
 static void asp_resmsg(int argc, char **argv);
 
 //
@@ -431,6 +431,7 @@ const aspapi_t aspapi[] = {
 	{ "sabaaiVPN",			asp_sabaaiVPN		},
 	{ "sabaaiMenu",			asp_sabaaiMenu		},
 	{ "sabaaiMSG",			asp_sabai_msg		},
+//	{ "sabaaihash",			asp_sabai_hash		},
 	{ "sabaiversion",		asp_sabai_version	},
 	{ "isitsafe",			asp_isitsafe		},
 	{ "isitsabai",			asp_isitsabai		},
@@ -441,12 +442,12 @@ const aspapi_t aspapi[] = {
 	{ "vpnnetmask",			asp_vpnnetmask		},
 	{ "vpngateway",			asp_vpngateway		},
 
-	{ "css",				asp_css				},
-	{ NULL,					NULL				}
+//	{ "css",				asp_css		},
+	{ NULL,					NULL		}
 };
 
 // -----------------------------------------------------------------------------
-
+/*
 static void asp_css(int argc, char **argv)
 {
 	const char *css = nvram_safe_get("web_css");
@@ -460,7 +461,7 @@ static void asp_css(int argc, char **argv)
 		}
 	}
 }
-
+*/
 // -----------------------------------------------------------------------------
 
 const char *resmsg_get(void)
@@ -1308,7 +1309,7 @@ static const nvset_t nvset_list[] = {
 	{ "limit_br3_dlc",               V_RANGE(0, 999999)     },
 	{ "limit_br3_prio",              V_RANGE(0, 5)          },
 
-//NotCatSplash. Victek.
+//NoCatSplash. Victek.
 #ifdef TCONFIG_NOCAT
 	{ "NC_enable",			V_01				},
 	{ "NC_Verbosity",		V_RANGE(0, 10)			},

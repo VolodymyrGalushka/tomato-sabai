@@ -12,8 +12,8 @@
 <meta http-equiv='content-type' content='text/html;charset=utf-8'>
 <meta name='robots' content='noindex,nofollow'>
 <title>[<% ident(); %>] Scheduler</title>
-<link rel='stylesheet' type='text/css' href='tomato.css'>
-<link rel='stylesheet' type='text/css' href='color.css'>
+
+<link rel='stylesheet' type='text/css' href='sabai.css'>
 <script type='text/javascript' src='tomato.js'></script>
 
 <!-- / / / -->
@@ -32,19 +32,16 @@ textarea {
 
 <script type='text/javascript'>
 
-//	<% nvram("sch_rboot,sch_rcon,sch_c1,sch_c1_cmd,sch_c2,sch_c2_cmd,sch_c3,sch_c3_cmd,sch_c4,sch_c4_cmd,sch_c5,sch_c5_cmd"); %>
+//	<% nvram("vpn_service,sch_rboot,sch_rcon,sch_c1,sch_c1_cmd,sch_c2,sch_c2_cmd,sch_c3,sch_c3_cmd"); %>
 
 var dowNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 var dowLow = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
 var scheds = []
 
 tm = [];
-tm.push([0, timeString(0)]);
-tm.push([1, timeString(1)]);
-for (i = 15; i < 1440; i += 15) {
+for (i = 0; i < 1440; i += 15) {
 	tm.push([i, timeString(i)]);
 }
-tm.push([1439, timeString(1439)]);
 
 tm.push(
 	[-1, 'Every minute'], [-3, 'Every 3 minutes'], [-5, 'Every 5 minutes'], [-15, 'Every 15 minutes'], [-30, 'Every 30 minutes'],
@@ -239,13 +236,13 @@ function init()
 <body onload='init()'>
 <form name='_fom' id='_fom' method='post' action='tomato.cgi'>
 <table id='container' cellspacing=0>
-<tr><td colspan=2 id='header'>
-	<div class='title'>Tomato</div>
-	<div class='version'>Version <% version(); %></div>
+<tr><td colspan=2 id='header'><a id='headlink' href=''><img src='' id='headlogo'></a>
+	<div class='title' id='SVPNstatus'>Sabai</div>
+	<div class='version' id='subversion'>on Tomato v<% version() %></div>
 </td></tr>
 <tr id='body'><td id='navi'><script type='text/javascript'>navi()</script></td>
 <td id='content' style='visibility:hidden'>
-<div id='ident'><% ident(); %></div>
+
 
 <!-- / / / -->
 
@@ -256,8 +253,6 @@ function init()
 <input type='hidden' name='sch_c1' value=''>
 <input type='hidden' name='sch_c2' value=''>
 <input type='hidden' name='sch_c3' value=''>
-<input type='hidden' name='sch_c4' value=''>
-<input type='hidden' name='sch_c5' value=''>
 
 <div class='section-title'>Reboot</div>
 <div class='section'>
@@ -291,20 +286,6 @@ makeSched('c2', 1);
 <div class='section'>
 <script type='text/javascript'>
 makeSched('c3', 1);
-</script>
-</div>
-
-<div class='section-title'>Custom 4</div>
-<div class='section'>
-<script type='text/javascript'>
-makeSched('c4', 1);
-</script>
-</div>
-
-<div class='section-title'>Custom 5</div>
-<div class='section'>
-<script type='text/javascript'>
-makeSched('c5', 1);
 </script>
 </div>
 

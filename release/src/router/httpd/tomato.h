@@ -50,6 +50,7 @@ extern void asp_sabai_version();
 extern void asp_isitsafe();
 extern void asp_isitsabai();
 extern void asp_sabai_msg();
+//extern void asp_sabai_hash();
 extern void wo_sabaai_register();
 
 extern void wi_grabovpn_script();

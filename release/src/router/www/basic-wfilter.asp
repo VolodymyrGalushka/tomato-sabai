@@ -4,10 +4,6 @@
 	Copyright (C) 2006-2010 Jonathan Zarate
 	http://www.polarcloud.com/tomato/
 
-	Tomato VLAN GUI
-	Copyright (C) 2011 Augusto Bott
-	http://code.google.com/p/tomato-sdhc-vlan/
-
 	For use with Tomato Firmware only.
 	No part of this file may be used without permission.
 -->
@@ -16,8 +12,8 @@
 <meta http-equiv='content-type' content='text/html;charset=utf-8'>
 <meta name='robots' content='noindex,nofollow'>
 <title>[<% ident(); %>] Basic: Wireless Filter</title>
-<link rel='stylesheet' type='text/css' href='tomato.css'>
-<% css(); %>
+
+<link rel='stylesheet' type='text/css' href='sabai.css'>
 <script type='text/javascript' src='tomato.js'></script>
 
 <!-- / / / -->
@@ -39,7 +35,7 @@
 <script type='text/javascript' src='wireless.jsx?_http_id=<% nv(http_id); %>'></script>
 <script type='text/javascript'>
 
-//	<% nvram("wl_macmode,wl_maclist,macnames"); %>
+//	<% nvram("vpn_service,wl_macmode,wl_maclist,macnames"); %>
 
 var smg = new TomatoGrid();
 
@@ -128,7 +124,7 @@ function save()
 	fom.macnames.value = names.join('>');
 
 	for (i = 0; i < wl_ifaces.length; ++i) {
-		u = wl_fface(i);
+		u = wl_unit(i);
 		E('_wl'+u+'_macmode').value = fom.wl_macmode.value;
 		E('_wl'+u+'_maclist').value = fom.wl_maclist.value;
 	}
@@ -153,13 +149,13 @@ function init()
 <body onload='init()'>
 <form id='_fom' method='post' action='tomato.cgi'>
 <table id='container' cellspacing=0>
-<tr><td colspan=2 id='header'>
-	<div class='title'>Tomato</div>
-	<div class='version'>Version <% version(); %></div>
+<tr><td colspan=2 id='header'><a id='headlink' href=''><img src='' id='headlogo'></a>
+	<div class='title' id='SVPNstatus'>Sabai</div>
+	<div class='version' id='subversion'>version <% sabaiversion(); %></div>
 </td></tr>
 <tr id='body'><td id='navi'><script type='text/javascript'>navi()</script></td>
 <td id='content'>
-<div id='ident'><% ident(); %></div>
+
 
 <!-- / / / -->
 
@@ -173,7 +169,7 @@ function init()
 
 <script type='text/javascript'>
 for (var uidx = 0; uidx < wl_ifaces.length; ++uidx) {
-	var u = wl_fface(uidx);
+	var u = wl_unit(uidx);
 	W('<input type=\'hidden\' id=\'_wl'+u+'_macmode\' name=\'wl'+u+'_macmode\'>');
 	W('<input type=\'hidden\' id=\'_wl'+u+'_maclist\' name=\'wl'+u+'_maclist\'>');
 }

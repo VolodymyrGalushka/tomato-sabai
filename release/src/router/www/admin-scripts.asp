@@ -12,8 +12,8 @@
 <meta http-equiv='content-type' content='text/html;charset=utf-8'>
 <meta name='robots' content='noindex,nofollow'>
 <title>[<% ident(); %>] Admin: Scripts</title>
-<link rel='stylesheet' type='text/css' href='tomato.css'>
-<link rel='stylesheet' type='text/css' href='color.css'>
+
+<link rel='stylesheet' type='text/css' href='sabai.css'>
 <script type='text/javascript' src='tomato.js'></script>
 
 <!-- / / / -->
@@ -32,7 +32,7 @@
 
 <script type='text/javascript'>
 
-//	<% nvram("script_init,script_shut,script_fire,script_wanup"); %>
+//	<% nvram("vpn_service,script_init,script_shut,script_fire,script_wanup"); %>
 
 tabs = [['as-init', 'Init'],['as-shut', 'Shutdown'],['as-fire','Firewall'],['as-wanup', 'WAN Up']];
 
@@ -68,7 +68,7 @@ function save()
 	for (i = 0; i < tabs.length; ++i) {
 		t = tabs[i];
 		n = E(t[0] + '-text').value.length;
-		x = (t[0] == 'as-fire') ? 8192 : 4096;
+		x = ((t[0] == 'as-fire') || (t[0] == 'as-wanup')) ? 8192 : 4096;
 		if (n > x) {
 			tabSelect(t[0]);
 			alert(t[1] + ' script is too long. Maximum allowed is ' + x + ' bytes.');
@@ -92,13 +92,13 @@ function earlyInit()
 <body>
 <form id='_fom' method='post' action='tomato.cgi'>
 <table id='container' cellspacing=0>
-<tr><td colspan=2 id='header'>
-	<div class='title'>Tomato</div>
-	<div class='version'>Version <% version(); %></div>
+<tr><td colspan=2 id='header'><a id='headlink' href=''><img src='' id='headlogo'></a>
+	<div class='title' id='SVPNstatus'>Sabai</div>
+	<div class='version' id='subversion'>version <% sabaiversion(); %></div>
 </td></tr>
 <tr id='body'><td id='navi'><script type='text/javascript'>navi()</script></td>
 <td id='content'>
-<div id='ident'><% ident(); %></div>
+
 
 <!-- / / / -->
 

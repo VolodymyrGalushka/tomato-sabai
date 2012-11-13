@@ -1,20 +1,9 @@
-/*
-	Tomato GUI
-	Copyright (C) 2006-2010 Jonathan Zarate
-	http://www.polarcloud.com/tomato/
-
-	For use with Tomato Firmware only.
-	No part of this file may be used without permission.
-*/
-
-// -----------------------------------------------------------------------------
-
+/* Tomato GUI Copyright (C) 2006-2010 Jonathan Zarate http://www.polarcloud.com/tomato/ For use with Tomato Firmware only. No part of this file may be used without permission. */
 Array.prototype.find = function(v) {
 	for (var i = 0; i < this.length; ++i)
 		if (this[i] == v) return i;
 	return -1;
 }
-
 Array.prototype.remove = function(v) {
 	for (var i = 0; i < this.length; ++i) {
 		if (this[i] == v) {
@@ -24,21 +13,14 @@ Array.prototype.remove = function(v) {
 	}
 	return false;
 }
-
-// -----------------------------------------------------------------------------
-
 String.prototype.trim = function() {
 	return this.replace(/^\s+/, '').replace(/\s+$/, '');
 }
-
-// -----------------------------------------------------------------------------
-
 Number.prototype.pad = function(min) {
 	var s = this.toString();
 	while (s.length < min) s = '0' + s;
 	return s;
 }
-
 Number.prototype.hex = function(min)
 {
 	var h = '0123456789ABCDEF';
@@ -50,9 +32,6 @@ Number.prototype.hex = function(min)
 	} while ((--min > 0) || (n > 0));
 	return s;
 }
-
-// -----------------------------------------------------------------------------
-
 // ---- Element.protoype. doesn't work with all browsers
 
 var elem = {
@@ -206,11 +185,11 @@ var form = {
 	submitHidden: function(url, fields) {
 		var fom, body;
 
-		fom = document.createElement('FORM');
+		fom = A('FORM');
 		fom.action = url;
 		fom.method = 'post';
 		for (var f in fields) {
-			var e = document.createElement('INPUT');
+			var e = A('INPUT');
 			e.type = 'hidden';
 			e.name = f;
 			e.value = fields[f];
@@ -290,7 +269,7 @@ var form = {
 		var e;
 
 		if (typeof(fom._http_id) == 'undefined') {
-			e = document.createElement('INPUT');
+			e = A('INPUT');
 			e.type = 'hidden';
 			e.name = '_http_id';
 			e.value = nvram.http_id;
@@ -407,13 +386,9 @@ function v_mins(e, quiet, min, max)
 	return 0;
 }
 
-function v_macip(e, quiet, bok, lan_ipaddr, lan_netmask)
+function v_macip(e, quiet, bok, ipp)
 {
 	var s, a, b, c, d, i;
-	var ipp, temp;
-
-	temp = lan_ipaddr.split('.');
-	ipp = temp[0]+'.'+temp[1]+'.'+temp[2]+'.';
 
 	if ((e = E(e)) == null) return 0;
 	s = e.value.replace(/\s+/g, '');
@@ -428,63 +403,49 @@ function v_macip(e, quiet, bok, lan_ipaddr, lan_netmask)
 				return false;
 			}
 		}
-		else e.value = a;
+        else e.value = a;
 		ferror.clear(e);
 		return true;
 	}
 
 	a = s.split('-');
-    
 	if (a.length > 2) {
 		ferror.set(e, 'Invalid IP address range', quiet);
 		return false;
 	}
-	
-	if (a[0].match(/^\d+$/)){
-		a[0]=ipp+a[0];
-		if ((a.length == 2) && (a[1].match(/^\d+$/)))
-			a[1]=ipp+a[1];
-	}
-	else{
-		if ((a.length == 2) && (a[1].match(/^\d+$/))){
-			temp=a[0].split('.');
-			a[1]=temp[0]+'.'+temp[1]+'.'+temp[2]+'.'+a[1];
-		}
-	}
+	c = 0;
 	for (i = 0; i < a.length; ++i) {
-		b = a[i];    
+		b = a[i];
+		if (b.match(/^\d+$/)) b = ipp + b;
+
 		b = fixIP(b);
 		if (!b) {
 			ferror.set(e, 'Invalid IP address', quiet);
 			return false;
 		}
 
-		if ((aton(b) & aton(lan_netmask))!=(aton(lan_ipaddr) & aton(lan_netmask))) {
+		if (b.indexOf(ipp) != 0) {
 			ferror.set(e, 'IP address outside of LAN', quiet);
 			return false;
 		}
 
 		d = (b.split('.'))[3];
-		if (parseInt(d) <= parseInt(c)) {
+		if (d <= c) {
 			ferror.set(e, 'Invalid IP address range', quiet);
 			return false;
 		}
 
 		a[i] = c = d;
 	}
-	e.value = b.split('.')[0] + '.' + b.split('.')[1] + '.' + b.split('.')[2] + '.' + a.join('-');
+	e.value = ipp + a.join('-');
 	return true;
 }
 
 function fixIP(ip, x)
 {
 	var a, n, i;
-        a = ip;
-        i = a.indexOf("<br>");
-        if (i > 0)
-                a = a.slice(0,i);
 
-        a = a.split('.');
+	a = ip.split('.');
 	if (a.length != 4) return null;
 	for (i = 0; i < 4; ++i) {
 		n = a[i] * 1;
@@ -1209,7 +1170,7 @@ function TGO(e)
 function tgHideIcons()
 {
 	var e;
-	while ((e = document.getElementById('tg-row-panel')) != null) e.parentNode.removeChild(e);
+	while ((e = E('tg-row-panel')) != null) e.parentNode.removeChild(e);
 }
 
 // ---- options = sort, move, delete
@@ -1234,7 +1195,7 @@ TomatoGrid.prototype = {
 		this.editor = null;
 		this.canSort = options.indexOf('sort') != -1;
 		this.canMove = options.indexOf('move') != -1;
-		this.maxAdd = maxAdd || 500;
+		this.maxAdd = maxAdd || 140;
 		this.canEdit = (editorFields != null);
 		this.canDelete = this.canEdit || (options.indexOf('delete') != -1);
 		this.editorFields = editorFields;
@@ -1364,7 +1325,7 @@ TomatoGrid.prototype = {
 		if (me.moving) return;
 
 		me.rpHide();
-		e = document.createElement('div');
+		e = A('div');
 		e.tgo = me;
 		e.ref = evt.target;
 		e.setAttribute('id', 'tg-row-panel');
@@ -1453,10 +1414,7 @@ TomatoGrid.prototype = {
 				var ef = this.editorFields[i].multi;
 				if (!ef) ef = [this.editorFields[i]];
 				var f = (ef && ef.length > 0 ? ef[0] : null);
-				if (f && f.type == 'password') {
-					if (!f.peekaboo || get_config('web_pb', '1') != '0')
-						s = s.replace(/./g, '&#x25CF;');
-				}
+				if (f && f.type=='password' && !f.peekaboo){ s=s.replace(/./g, '&#x25CF;'); }
 			}
 			v.push(s);
 		}
@@ -1534,15 +1492,6 @@ TomatoGrid.prototype = {
 				if (id) attrib += ' id="' + id + '"';
 				switch (f.type) {
 				case 'password':
-					if (f.peekaboo) {
-						switch (get_config('web_pb', '1')) {
-						case '0':
-							f.type = 'text';
-						case '2':
-							f.peekaboo = 0;
-							break;
-						}
-					}
 					attrib += ' autocomplete="off"';
 					if (f.peekaboo && id) attrib += ' onfocus=\'peekaboo("' + id + '",1)\'';
 					// drop
@@ -1550,9 +1499,6 @@ TomatoGrid.prototype = {
 					s += '<input type="' + f.type + '" maxlength=' + f.maxlen + common + attrib;
 					if (which == 'edit') s += ' value="' + escapeHTML('' + values[vi]) + '">';
 						else s += '>';
-					break;
-				case 'clear':
-					s += '';
 					break;
 				case 'select':
 					s += '<select' + common + attrib + '>';
@@ -1628,6 +1574,7 @@ TomatoGrid.prototype = {
 	},
 
 	onChange: function(which, cell) {
+		window.newEdits = true;
 		return this.verifyFields((which == 'new') ? this.newEditor : this.editor, true);
 	},
 
@@ -1712,6 +1659,7 @@ TomatoGrid.prototype = {
 		if (this.getDataCount() >= this.maxAdd) disable = true;
 		if (this.newEditor) fields.disableAll(this.newEditor, disable);
 		if (this.newControls) fields.disableAll(this.newControls, disable);
+		window.newEdits=false;
 	},
 
 	resetNewEditor: function() {
@@ -2111,7 +2059,7 @@ TomatoRefresh.prototype = {
 function genStdTimeList(id, zero, min)
 {
 	var b = [];
-	var t = [0.5,1,2,3,4,5,10,15,30,60,120,180,240,300,10*60,15*60,20*60,30*60];
+	var t = [3,4,5,10,15,30,60,120,180,240,300,10*60,15*60,20*60,30*60];
 	var i, v;
 
 	if (min >= 0) {
@@ -2168,21 +2116,19 @@ function tabHigh(id)
 // -----------------------------------------------------------------------------
 
 var cookie = {
-	// The value 2147483647000 is ((2^31)-1)*1000, which is the number of
-	// milliseconds (minus 1 second) which correlates with the year 2038 counter
-	// rollover. This effectively makes the cookie never expire.
-
 	set: function(key, value, days) {
-		document.cookie = 'tomato_' + encodeURIComponent(key) + '=' + encodeURIComponent(value) + '; expires=' +
-		new Date(2147483647000).toUTCString() + '; path=/';
+		document.cookie = 'tomato_' + key + '=' + value + '; expires=' +
+			(new Date(new Date().getTime() + ((days ? days : 14) * 86400000))).toUTCString() + '; path=/';
 	},
+
 	get: function(key) {
-		var r = ('; ' + document.cookie + ';').match('; tomato_' + encodeURIComponent(key) + '=(.*?);');
-		return r ? decodeURIComponent(r[1]) : null;
+		var r = ('; ' + document.cookie + ';').match('; tomato_' + key + '=(.*?);');
+		return r ? r[1] : null;
 	},
+
 	unset: function(key) {
-		document.cookie = 'tomato_' + encodeURIComponent(key) + '=; expires=' +
-		(new Date(1)).toUTCString() + '; path=/';
+		document.cookie = 'tomato_' + key + '=; expires=' +
+			(new Date(1)).toUTCString() + '; path=/';
 	}
 };
 
@@ -2203,6 +2149,8 @@ function W(s)
 {
 	document.write(s);
 }
+
+function A(e){ return document.createElement(e); }
 
 function E(e)
 {
@@ -2251,12 +2199,12 @@ function ellipsis(s, max) {
 
 function MIN(a, b)
 {
-	return (a < b) ? a : b;
+	return a < b ? a : b;
 }
 
 function MAX(a, b)
 {
-	return (a > b) ? a : b;
+	return a > b ? a : b;
 }
 
 function fixInt(n, min, max, def)
@@ -2304,7 +2252,7 @@ function timeString(mins)
 
 function features(s)
 {
-	var features = ['ses','brau','aoss','wham','hpamp','!nve','11n','1000et','11ac'];
+	var features = ['ses','brau','aoss','wham','hpamp','!nve','11n','1000et'];
 	var i;
 
 	for (i = features.length - 1; i >= 0; --i) {
@@ -2335,7 +2283,6 @@ function show_notice1(s)
 function myName()
 {
 	var name, i;
-
 	name = document.location.pathname;
 	name = name.replace(/\\/g, '/');	// IE local testing
 	if ((i = name.lastIndexOf('/')) != -1) name = name.substring(i + 1, name.length);
@@ -2343,217 +2290,148 @@ function myName()
 	return name;
 }
 
-function navi()
-{
-	var menu = [
-		['Status', 			'status', 0, [
-			['Overview',			'overview.asp'],
-			['Device List',			'devices.asp'],
-			['Web Usage',			'webmon.asp'],
-			['Logs',			'log.asp'] ] ],
-		['Bandwidth', 			'bwm', 0, [
-			['Real-Time',			'realtime.asp'],
-			['Last 24 Hours',		'24.asp'],
-			['Daily',			'daily.asp'],
-			['Weekly',			'weekly.asp'],
-			['Monthly',			'monthly.asp']
-			] ],
-		['IP Traffic',			'ipt', 0, [
-			['Real-Time',			'realtime.asp'],
-			['Last 24 Hours',		'24.asp'],
-			['View Graphs',			'graphs.asp'],
-			['Transfer Rates',		'details.asp'],
-			['Daily',			'daily.asp'],
-			['Monthly',			'monthly.asp']
-			] ],
-		['Tools', 			'tools', 0, [
-			['Ping',			'ping.asp'],
-			['Trace',			'trace.asp'],
-			['System Commands',		'shell.asp'],
-			['Wireless Survey',		'survey.asp'],
-			['WOL',				'wol.asp'] ] ],
-		null,
-		['Basic', 			'basic', 0, [
-			['Network',			'network.asp'],
-/* IPV6-BEGIN */
-			['IPv6',			'ipv6.asp'],
-/* IPV6-END */
-			['Identification',		'ident.asp'],
-			['Time',			'time.asp'],
-			['DDNS',			'ddns.asp'],
-			['Static DHCP/ARP/IPT',		'static.asp'],
-			['Wireless Filter',		'wfilter.asp'] ] ],
-		['Advanced', 			'advanced', 0, [
-			['Conntrack/Netfilter',		'ctnf.asp'],
-			['DHCP/DNS',			'dhcpdns.asp'],
-			['Firewall',			'firewall.asp'],
-			['MAC Address',			'mac.asp'],
-			['Miscellaneous',		'misc.asp'],
-			['Routing',			'routing.asp'],
-/* TOR-BEGIN */
-			['TOR Project',			'tor.asp'],
-/* TOR-END */
-			['VLAN',			'vlan.asp'],
-			['LAN Access',			'access.asp'],
-			['Virtual Wireless',		'wlanvifs.asp'],
-			['Wireless',			'wireless.asp'] ] ],
-		['Port Forwarding', 		'forward', 0, [
-			['Basic',			'basic.asp'],
-/* IPV6-BEGIN */
-			['Basic IPv6',			'basic-ipv6.asp'],
-/* IPV6-END */
-			['DMZ',				'dmz.asp'],
-			['Triggered',			'triggered.asp'],
-			['UPnP/NAT-PMP',		'upnp.asp'] ] ],
-		['Access Restriction',		'restrict.asp'],
-		['QoS',				'qos', 0, [
-			['Basic Settings',		'settings.asp'],
-			['Classification',		'classify.asp'],
-			['View Graphs',			'graphs.asp'],
-			['View Details',		'detailed.asp'],
-			['Transfer Rates',		'ctrate.asp']
-			] ],
-		['Bandwidth Limiter',		'bwlimit.asp'],
-		null,
-/* NOCAT-BEGIN */
-		['Captive Portal',		'splashd.asp'],
-/* NOCAT-END */
-/* REMOVE-BEGIN
-		['Scripts',				'sc', 0, [
-			['Startup',		'startup.asp'],
-			['Shutdown',		'shutdown.asp'],
-			['Firewall',		'firewall.asp'],
-			['WAN Up',		'wanup.asp']
-			] ],
-REMOVE-END */
-/* USB-BEGIN */
-// ---- !!TB - USB, FTP, Samba, Media Server
-		['USB and NAS',			'nas', 0, [
-			['USB Support',			'usb.asp']
-/* FTP-BEGIN */
-			,['FTP Server',			'ftp.asp']
-/* FTP-END */
-/* SAMBA-BEGIN */
-			,['File Sharing',		'samba.asp']
-/* SAMBA-END */
-/* MEDIA-SRV-BEGIN */
-			,['Media Server',		'media.asp']
-/* MEDIA-SRV-END */
-/* UPS-BEGIN */
-			,['UPS Monitor',		'ups.asp']
-/* UPS-END */
-/* BT-BEGIN */
-			,['BitTorrent Client',		'bittorrent.asp']
-/* BT-END */
-			] ],
-/* USB-END */
-/* VPN-BEGIN */
-		['VPN Tunneling',			'vpn', 0, [
-/* OPENVPN-BEGIN */
-			['OpenVPN Server',		'server.asp'],
-			['OpenVPN Client',		'client.asp'],
-/* OPENVPN-END */
-/* PPTPD-BEGIN */
-			['PPTP Server',			'pptp-server.asp'],
-			['PPTP Online',			'pptp-online.asp'],
-			['PPTP Client',			'pptp.asp']
-/* PPTPD-END */
-		] ],
-/* VPN-END */
-		null,
-		['Administration',		'admin', 0, [
-			['Admin Access',		'access.asp'],
-			['TomatoAnon',			'tomatoanon.asp'],
-			['Bandwidth Monitoring',	'bwm.asp'],
-			['IP Traffic Monitoring',	'iptraffic.asp'],
-			['Buttons/LED',			'buttons.asp'],
-/* CIFS-BEGIN */
-			['CIFS Client',			'cifs.asp'],
-/* CIFS-END */
-/* SDHC-BEGIN */
-			['SDHC/MMC',			'sdhc.asp'],
-/* SDHC-END */
-			['Configuration',		'config.asp'],
-			['Debugging',			'debug.asp'],
-/* JFFS2-BEGIN */
-			['JFFS',			'jffs2.asp'],
-/* JFFS2-END */
-/* NFS-BEGIN */
-			['NFS Server',			'nfs.asp'],
-/* NFS-END */
-/* SNMP-BEGIN */
-			['SNMP',			'snmp.asp'],
-/* SNMP-END */
-			['Logging',			'log.asp'],
-			['Scheduler',			'sched.asp'],
-			['Scripts',			'scripts.asp'],
-			['Upgrade',			'upgrade.asp'] ] ],
-		null,
-		['About',			'about.asp'],
-		['Reboot...',			'javascript:reboot()'],
-		['Shutdown...',			'javascript:shutdown()'],
-		['Logout',			'javascript:logout()']
-	];
-	var name, base;
-	var i, j;
-	var buf = [];
-	var sm;
-	var a, b, c;
-	var on1;
-	var cexp = get_config('web_mx', '').toLowerCase();
-
-	name = myName();
-	if (name == 'restrict-edit.asp') name = 'restrict.asp';
-	if ((i = name.indexOf('-')) != -1) {
-		base = name.substring(0, i);
-		name = name.substring(i + 1, name.length);
-	}
-	else base = '';
-
-	for (i = 0; i < menu.length; ++i) {
-		var m = menu[i];
-		if (!m) {
-			buf.push("<br>");
-			continue;
-		}
-		if (m.length == 2) {
-			buf.push('<a href="' + m[1] + '" class="indent1' + (((base == '') && (name == m[1])) ? ' active' : '') + '">' + m[0] + '</a>');
-		}
-		else {
-			if (base == m[1]) {
-				b = name;
-			}
-			else {
-				a = cookie.get('menu_' + m[1]);
-				b = m[3][0][1];
-				for (j = 0; j < m[3].length; ++j) {
-					if (m[3][j][1] == a) {
-						b = a;
-						break;
-					}
-				}
-			}
-			a = m[1] + '-' + b;
-			if (a == 'status-overview.asp') a = '/';
-			on1 = (base == m[1]);
-			buf.push('<a href="' + a + '" class="indent1' + (on1 ? ' active' : '') + '">' + m[0] + '</a>');
-			if ((!on1) && (m[2] == 0) && (cexp.indexOf(m[1]) == -1)) continue;
-
-			for (j = 0; j < m[3].length; ++j) {
-				sm = m[3][j];
-				a = m[1] + '-' + sm[1];
-				if (a == 'status-overview.asp') a = '/';
-				buf.push('<a href="' + a + '" class="indent2' + (((on1) && (name == sm[1])) ? ' active' : '') + '">' + sm[0] + '</a>');
-			}
-		}
-	}
-	document.write(buf.join(''));
-
-	if (base.length) {
-		if ((base == 'qos') && (name == 'detailed.asp')) name = 'view.asp';
-		cookie.set('menu_' + base, name);
-	}
+// /* DAVID BEGIN */
+function requeue(){
+var queue = []; var workingNow = false; var me = this; var client; var current = {};
+this.handle = function(){ if((client!=null)&&(client.readyState == 4)&&(client.status==200)){ current.handler(client.responseText); me.crunch(); } }
+this.request = function(){ client = new XMLHttpRequest(); client.onreadystatechange = me.handle; client.open(current.type||'POST',current.path,true); if(current.header!=null){ client.setRequestHeader('Content-Type', current.header); }; client.send(current.args); }
+this.crunch = function(){ if(current = queue.shift()){ workingNow = true; me.request(); }else{ workingNow = false; } }
+this.drop = function(q_path, q_handler, q_args, q_type, q_header){ if(q_path!=null) me.add(q_path, q_handler, q_args, q_type, q_header); if(!workingNow){ me.crunch(); } }
+this.add = function(q_path, q_handler, q_args, q_type, q_header){ queue.push({ path: q_path, handler: q_handler, args: q_args, type: q_type, header: q_header }); }
 }
+var que = new requeue();
+
+function toggleChildMenu(){
+ var ch = E('sub-'+this.id);
+ ch.className = (ch.className == 'shownChildMenu') ? 'hiddenChildMenu' : 'shownChildMenu';
+}
+
+function toggleAdvancedMenu(){
+ if( cookie.get('_AdvancedMenuOpen') == 'show' ){
+  toggleChildMenu.call(this);
+ }else if( confirm("Some advanced settings may render your router unusable.  Are you sure you want to continue?") ){
+  cookie.set('_AdvancedMenuOpen', 'show' , 1 );
+  toggleChildMenu.call(this);
+ }
+}
+
+function redoMenu(text){ eval(text);
+ var vm = document.createDocumentFragment(); addMenu(vm,[sabaaiMenu]);
+ var svmi = E('sup-Register'); svmi.parentNode.replaceChild(vm,svmi);
+ E('sabaivpn').className+=' electMenuParent'; var svm=E('sub-sabaivpn'); svm.className='shownChildMenu'; svm.childNodes[0].className+=' electMenu';
+}
+function grabMenu(newMenu){ que.drop('sabaimenu.asp',redoMenu); }
+
+vpn_service='sabai';
+function navi(){ E('headlogo').src='sabai.png'; E('headlink').href='http://www.sabaitechnology.com';
+
+var menu = [
+['Network', 		'basic-network.asp'],
+((<% sabaaiMenu(); %>)||'1'),
+1,
+['Status', 		'status', 0, [
+	['Overview',		'status-overview.asp'],
+	['Device List',		'status-devices.asp'],
+	['Time',		'basic-time.asp'],
+	['Identification',	'basic-ident.asp'],
+	['Web Usage',		'status-webmon.asp'],
+	['Logs',		'status-log.asp'] ] ],
+['Diagnostics', 	'tools', 0, [
+	['Ping',		'tools-ping.asp'],
+	['Trace',		'tools-trace.asp'],
+	['Route',		'tools-route.asp'],
+	['System',		'tools-shell.asp'],
+	['Wireless Survey',	'tools-survey.asp'],
+	['WOL',			'tools-wol.asp'] ] ],
+['Advanced',		'advanced'],
+1,
+['About',			'about.asp'],
+['Backup',			'admin-config.asp'],
+['Upgrade',			'admin-upgrade.asp'],
+['Reboot...',			'javascript:reboot()'],
+['Logout',			'javascript:logout()']
+];
+
+var adv = [
+['Settings', 		'settings', 0, [
+	['DDNS',		'basic-ddns.asp'],
+	['Static DHCP',		'basic-static.asp'],
+	['DHCP / DNS',		'advanced-dhcpdns.asp'],
+	['MAC Address',		'advanced-mac.asp'],
+	['Routing',		'advanced-routing.asp'],
+	['Wireless',		'advanced-wireless.asp'] ] ],
+['Controls', 		'control', 0, [
+	['Conntrack Netfilter',	'advanced-ctnf.asp'],
+	['Wireless Filter',	'basic-wfilter.asp'],
+	['Firewall',		'advanced-firewall.asp'] ] ],
+['Port Forwarding', 	'forward', 0, [
+	['Basic',		'forward-basic.asp'],
+	['Basic IPv6',		'basic-ipv6.asp'],
+	['DMZ',			'forward-dmz.asp'],
+	['Triggered',		'forward-triggered.asp'],
+	['UPnP / NAT-PMP',	'forward-upnp.asp'] ] ],
+['QoS',			'qos', 0, [
+	['Basic Settings',	'qos-settings.asp'],
+	['Classification',	'qos-classify.asp'],
+	['View Graphs',		'qos-graphs.asp'],
+	['View Details',	'qos-detailed.asp'],
+	['Transfer Rates',	'qos-ctrate.asp'] ] ],
+['USB and NAS',		'nas', 0, [
+	['USB Support',		'nas-usb.asp'],
+	['FTP Server',		'nas-ftp.asp'],
+	['File Sharing',	'nas-samba.asp'],
+	['Media Server',	'nas-media.asp'] ] ],
+['Administration',	'admin', 0, [
+	['Admin Access',	'admin-access.asp'],
+	['Bandwidth Monitoring','admin-bwm.asp'],
+	['Buttons / LED',	'admin-buttons.asp'],
+	['CIFS Client',		'admin-cifs.asp'],
+	['Debugging',		'admin-debug.asp'],
+	['JFFS',		'admin-jffs2.asp'],
+	['Logging',		'admin-log.asp'],
+	['Scheduler',		'admin-sched.asp'],
+	['Scripts',		'admin-scripts.asp'],
+	['Miscellaneous',	'advanced-misc.asp'] ] ],
+['Bandwidth', 		'bwm', 0, [
+	['Real-Time',		'bwm-realtime.asp'],
+	['Last 24 Hours',	'bwm-24.asp'],
+	['Daily',		'bwm-daily.asp'],
+	['Weekly',		'bwm-weekly.asp'],
+	['Monthly',		'bwm-monthly.asp'] ] ]
+];
+ addMenu(E('navi'),menu);
+ addMenu(E('sub-advanced'),adv);
+}
+
+function addMenu(parent,menu){ var highlight,m; var name = myName(); var frag = document.createDocumentFragment();
+ while(m = menu.shift()){
+  if(m==1){ frag.appendChild(A('br')); }else{
+   var ha = A('a'); ha.appendChild(document.createTextNode(m[0])); ha.className = 'indent1'; frag.appendChild(ha);
+   if( m[1]=='advanced' ){
+    ha.onclick = toggleAdvancedMenu; ha.id = 'advanced';
+    var di = A('div'); di.id = 'sub-advanced'; di.className = ( cookie.get('_AdvancedMenuOpen') == 'show' ) ? 'shownChildMenu' : 'hiddenChildMenu'; frag.appendChild(di);
+   }else{
+    var mm;
+    if( mm = m[3] ){
+     ha.onclick = toggleChildMenu; ha.id = m[1]; var di = A('div'); di.id = 'sub-'+m[1];
+     if(m[2]==1){ di.className = 'shownChildMenu'; }else{ di.className = 'hiddenChildMenu'; }
+     var sm;
+     while(sm = mm.shift()){
+      var li = A('a'); li.appendChild(document.createTextNode(sm[0])); li.className = 'indent2'; li.href = sm[1]; di.appendChild(li);
+      if( name == sm[1] ){ di.className = 'shownChildMenu'; li.className += ' electMenu'; highlight=li.parentNode.id.substring(4); }
+     }
+     frag.appendChild(di);
+    }else{
+     ha.id='sup-'+m[0]; ha.href = m[1]; if(m[1]==name){ ha.className += ' electMenuParent'; }
+    }
+   }
+  }
+ }
+ parent.appendChild(frag);
+ if(highlight != undefined){ E(highlight).className += ' electMenuParent'; }
+}
+
+///* DAVID END */
 
 function createFieldTable(flags, desc)
 {
@@ -2623,25 +2501,13 @@ function createFieldTable(flags, desc)
 				buf2.push('<input type="radio"' + name + (f.value ? ' checked' : '') + ' onclick="verifyFields(this, 1)"' + common + '>');
 				break;
 			case 'password':
-				if (f.peekaboo) {
-					switch (get_config('web_pb', '1')) {
-					case '0':
-						f.type = 'text';
-					case '2':
-						f.peekaboo = 0;
-						break;
-					}
-				}
-				if (f.type == 'password') {
+				if (f.type=='password') {
 					common += ' autocomplete="off"';
 					if (f.peekaboo) common += ' onfocus=\'peekaboo("' + id + '",1)\'';
 				}
 				// drop
 			case 'text':
 				buf2.push('<input type="' + f.type + '"' + name + ' value="' + escapeHTML(UT(f.value)) + '" maxlength=' + f.maxlen + (f.size ? (' size=' + f.size) : '') + common + '>');
-				break;
-			case 'clear':
-				s += '';
 				break;
 			case 'select':
 				buf2.push('<select' + name + common + '>');
@@ -2677,7 +2543,7 @@ function createFieldTable(flags, desc)
 function peekaboo(id, show)
 {
 	try {
-		var o = document.createElement('INPUT');
+		var o = A('INPUT');
 		var e = E(id);
 		var name = e.name;
 		o.type = show ? 'text' : 'password';

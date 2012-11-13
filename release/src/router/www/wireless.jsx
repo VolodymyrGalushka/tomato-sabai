@@ -6,22 +6,12 @@
 	No part of this file may be used without permission.
 */
 
-//	<% wlifaces(1); %>
-//	<% wlbands(1); %>
+//	<% wlifaces(); %>
+//	<% wlbands(); %>
 
 function wl_unit(uidx)
 {
 	return wl_ifaces[uidx][2];
-}
-
-function wl_sunit(uidx)
-{
-	return wl_ifaces[uidx][3];
-}
-
-function wl_fface(uidx)
-{
-	return wl_ifaces[uidx][1];
 }
 
 function wl_uidx(unit)
@@ -36,14 +26,6 @@ function wl_ifidx(ifname)
 {
 	for (var u = 0; u < wl_ifaces.length; ++u) {
 		if (wl_ifaces[u][0] == ifname) return u;
-	}
-	return -1;
-}
-
-function wl_ifidxx(ifname)
-{
-	for (var u = 0; u < wl_ifaces.length; ++u) {
-		if (wl_ifaces[u][1] == ifname) return u;
 	}
 	return -1;
 }

@@ -185,6 +185,9 @@ void wo_sabaai_hwmac(){ int i=6; char macstr[13] = {0}; int *mac = get_MAC_in_CF
 void asp_isitsafe(){ int i=6; char macstr[18] = {0}; int *mac = get_MAC_in_CFE(); while(i--){ sprintf( &macstr[3*(5-i)] ,"%02X:",mac[5-i]); }; macstr[17] = 0;
  web_printf("isitsafe={ hwmac: '%s', nvmac: '%s' };\n",macstr,nvram_safe_get("et0macaddr") );
 }
+
+//void asp_sabai_hash(){ eval("md5sum","/dev/mtd0ro"); }
+
 void asp_sabai_msg(){
 	int i; int *mac = get_MAC_in_CFE();
 	unsigned char S[] = { 83, 65, 66, 65, 65, 73 };

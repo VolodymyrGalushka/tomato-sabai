@@ -12,8 +12,8 @@
 <meta http-equiv='content-type' content='text/html;charset=utf-8'>
 <meta name='robots' content='noindex,nofollow'>
 <title>[<% ident(); %>] Status: Logs</title>
-<link rel='stylesheet' type='text/css' href='tomato.css'>
-<link rel='stylesheet' type='text/css' href='color.css'>
+
+<link rel='stylesheet' type='text/css' href='sabai.css'>
 <script type='text/javascript' src='tomato.js'></script>
 
 <!-- / / / -->
@@ -22,13 +22,44 @@
 
 <script type='text/javascript'>
 
-//	<% nvram("log_file"); %>
+//	<% nvram("vpn_service,log_file"); %>
 
-function find()
-{
-	var s = E('find-text').value;
-	if (s.length) document.location = 'logs/view.cgi?find=' + escapeCGI(s) + '&_http_id=' + nvram.http_id;
+
+///* DAVID BEGIN */
+
+function find(){
+ var s = E('find-text').value;
+ if(s.length){
+  que.drop( 'logs/view.cgi' , postLog, 'find=' + escapeCGI(s) + '&_http_id=' + nvram.http_id );
+ }
 }
+
+function postLog(text){
+ var LR = E('log_response');
+ if(LR.firstChild){
+  LR.removeChild(LR.firstChild);
+ }
+ LR.appendChild(document.createTextNode(text));
+}
+
+function bubble_catch(event){
+ event.stopPropagation();
+}
+
+function getLog(allornone){
+ var lines;
+ if(allornone != null){
+  lines = 'all';
+ }else{
+  lines = E('lineCount').value;
+  if(lines>1000){
+   lines = 'all';
+  }
+ }
+ que.drop( 'logs/view.cgi' , postLog, 'which=' + lines + '&_http_id=' + nvram.http_id );
+}
+
+///* DAVID END */
 
 function init()
 {
@@ -37,33 +68,55 @@ function init()
 		if (checkEvent(ev).keyCode == 13) find();
 	}
 }
+
 </script>
+
+<!-- DAVID BEGIN -->
+<style type='text/css'>
+
+.tablemenu { width: 100%; border: 1px transparent double !important; border-collapse: collapse; }
+
+.tablemenu td { border: 1px black solid; text-align: center; }
+
+#finder { position: relative; top: 0px; height: 22px;}
+
+#log_response{ width: 100%; height: 480px; }
+
+</style>
+<!-- DAVID END -->
 
 </head>
 <body onload='init()'>
 <form id='_fom' action='javascript:{}'>
 <table id='container' cellspacing=0>
-<tr><td colspan=2 id='header'>
-	<div class='title'>Tomato</div>
-	<div class='version'>Version <% version(); %></div>
+<tr><td colspan=2 id='header'><a id='headlink' href=''><img src='' id='headlogo'></a>
+	<div class='title' id='SVPNstatus'>Sabai</div>
+	<div class='version' id='subversion'>version <% sabaiversion(); %></div>
 </td></tr>
 <tr id='body'><td id='navi'><script type='text/javascript'>navi()</script></td>
 <td id='content'>
-<div id='ident'><% ident(); %></div>
+
 
 <!-- / / / -->
 
 <div id='logging'>
 	<div class='section-title'>Logs</div>
 	<div class='section'>
-		<a href="logs/view.cgi?which=25&_http_id=<% nv(http_id) %>">View Last 25 Lines</a><br>
-		<a href="logs/view.cgi?which=50&_http_id=<% nv(http_id) %>">View Last 50 Lines</a><br>
-		<a href="logs/view.cgi?which=100&_http_id=<% nv(http_id) %>">View Last 100 Lines</a><br>
-		<a href="logs/view.cgi?which=all&_http_id=<% nv(http_id) %>">View All</a><br><br>
-		<a href="logs/syslog.txt?_http_id=<% nv(http_id) %>">Download Log File</a><br><br>
-		<input type="text" maxsize=32 size=33 id="find-text"> <input type="button" value="Find" onclick="find()"><br>
-		<br><br>
-		&raquo; <a href="admin-log.asp">Logging Configuration</a><br><br>
+
+<!-- DAVID BEGIN -->
+
+<table class='tablemenu'><tbody><tr>
+ <td><a onclick='getLog(null);'>View Last <input onclick='bubble_catch(event);' id='lineCount' size='5' value='25' /> Lines</a></td>
+ <td><a onclick='getLog(true);'>View All</a></td>
+ <td><a href="logs/syslog.txt?_http_id=<% nv(http_id) %>">Download Log File</a></td>
+ <td><input type="text" maxsize=32 size=33 id="find-text"><input type="button" value="Find" onclick="find()" id='finder'></td>
+ <td>&raquo; <a href="admin-log.asp">Logging Configuration</a></td>
+</tr></tbody></table>
+
+<textarea id='log_response'></textarea>
+
+<!-- DAVID END -->
+
 	</div>
 </div>
 
@@ -73,9 +126,6 @@ if (nvram.log_file != '1') {
 	E('logging').style.display = 'none';
 }
 </script>
-
-<!-- / / / -->
-
 </td></tr>
 <tr><td id='footer' colspan=2>&nbsp;</td></tr>
 </table>

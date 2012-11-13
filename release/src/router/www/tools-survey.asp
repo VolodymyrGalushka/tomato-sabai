@@ -12,12 +12,11 @@
 <meta http-equiv='content-type' content='text/html;charset=utf-8'>
 <meta name='robots' content='noindex,nofollow'>
 <title>[<% ident(); %>] Tools: Wireless Survey</title>
-<link rel='stylesheet' type='text/css' href='tomato.css'>
-<link rel='stylesheet' type='text/css' href='color.css'>
+
+<link rel='stylesheet' type='text/css' href='sabai.css'>
 <script type='text/javascript' src='tomato.js'></script>
 
 <!-- / / / -->
-
 <style type='text/css'>
 #survey-grid .brate {
 	color: blue;
@@ -51,7 +50,7 @@
 <script type='text/javascript' src='debug.js'></script>
 
 <script type='text/javascript'>
-//	<% nvram(''); %>	// http_id
+//	<% nvram('vpn_service'); %>	// http_id
 
 var wlscandata = [];
 var entries = [];
@@ -102,10 +101,8 @@ sg.rateSorter = function(a, b)
 
 sg.populate = function()
 {
-	var caps = ['infra', 'adhoc', 'poll', 'pollreq', 'wep', 'shortpre', 'pbcc', 'agility', 'spectrum', null, 'shortslot', null, null, 'cck-ofdm'];
-	var ncaps = [null, null /*40MHz*/, null, null, 'gf', 'sgi20', 'sgi40', 'stbc'];
+	var caps = ['infra', 'adhoc', 'poll', 'pollreq', 'wep', 'shortpre', 'pbcc', 'agility', 'X', 'Y', 'shortslot'];
 	var ncap = '802.11n';
-	var cap_maxlen = 14;
 	var added = 0;
 	var removed = 0;
 	var i, j, k, t, e, s;
@@ -135,9 +132,6 @@ sg.populate = function()
 		e.bssid = s[0];
 		e.ssid = s[1];
 		e.channel = s[2];
-		if (s[7] != 0 && s[9] != 0) {
-			e.channel = e.channel + '<br><small>' + s[9] + ' MHz</small>';
-		}
 		e.rssi = s[4];
 		e.noise = s[5];
 		e.saw = 1;
@@ -147,7 +141,7 @@ sg.populate = function()
 		for (j = 0; j < caps.length; ++j) {
 			if ((s[3] & (1 << j)) && (caps[j])) {
 				k += caps[j].length;
-				if (k > cap_maxlen) {
+				if (k > 12) {
 					t += '<br>';
 					k = caps[j].length;
 				}
@@ -155,29 +149,10 @@ sg.populate = function()
 				t += caps[j];
 			}
 		}
-
 		if (s[7] != 0) {
 			k += ncap.length;
-			if (k > cap_maxlen) {
-				t += '<br>';
-				k = ncap.length;
-			}
-			else t += ' ';
-			t += ncap;
-		}
-
-		for (j = 0; j < ncaps.length; ++j) {
-			if ((s[8] & (1 << j)) && (ncaps[j])) {
-				k += ncaps[j].length;
-				if (k > cap_maxlen) {
-					t += '<br>';
-					k = ncaps[j].length;
-				}
-				else t += ' ';
-				t += ncaps[j];
-			}
-		}
-
+			t += ((k > 12) ? '<br>' : ' ') + ncap;
+		} 
 		e.cap = t;
 
 		t = '';
@@ -305,13 +280,13 @@ function init()
 <body onload='init()'>
 <form action='javascript:{}'>
 <table id='container' cellspacing=0>
-<tr><td colspan=2 id='header'>
-	<div class='title'>Tomato</div>
-	<div class='version'>Version <% version(); %></div>
+<tr><td colspan=2 id='header'><a id='headlink' href=''><img src='' id='headlogo'></a>
+	<div class='title' id='SVPNstatus'>Sabai</div>
+	<div class='version' id='subversion'>version <% sabaiversion(); %></div>
 </td></tr>
 <tr id='body'><td id='navi'><script type='text/javascript'>navi()</script></td>
 <td id='content'>
-<div id='ident'><% ident(); %></div>
+
 
 <!-- / / / -->
 

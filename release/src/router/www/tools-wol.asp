@@ -12,8 +12,8 @@
 <meta http-equiv='content-type' content='text/html;charset=utf-8'>
 <meta name='robots' content='noindex,nofollow'>
 <title>[<% ident(); %>] Tools: WOL</title>
-<link rel='stylesheet' type='text/css' href='tomato.css'>
-<link rel='stylesheet' type='text/css' href='color.css'>
+
+<link rel='stylesheet' type='text/css' href='sabai.css'>
 <script type='text/javascript' src='tomato.js'></script>
 
 <!-- / / / -->
@@ -45,24 +45,13 @@ textarea {
 <script type='text/javascript'>
 
 //	<% arplist(); %>
-//	<% nvram('dhcpd_static,lan_ifname'); %>
+//	<% nvram('vpn_service,dhcpd_static,lan_ifname'); %>
 
 var wg = new TomatoGrid();
 wg.setup = function() {
 	this.init('wol-grid', 'sort');
 	this.headerSet(['MAC Address', 'IP Address', 'Status', 'Name']);
 	this.sort(3);
-}
-wg.sortCompare = function(a, b) {
-        var da = a.getRowData();
-        var db = b.getRowData();
-        var r = 0;
-        var c = this.sortColumn;
-        if (c == 1)
-                r = cmpIP(da[c], db[c]);
-        else
-                r = cmpText(da[c], db[c]);
-        return this.sortAscending ? r : -r;
 }
 wg.populate = function()
 {
@@ -74,7 +63,7 @@ wg.populate = function()
 	var q = nvram.dhcpd_static.split('>');
 	for (i = 0; i < q.length; ++i) {
 		var e = q[i].split('<');
-		if ((e.length == 3) || (e.length == 4)) {
+		if (e.length == 3) {
 			var m = e[0].split(',');
 			for (j = 0; j < m.length; ++j) {
 				s.push([m[j], e[1], e[2]]);
@@ -184,13 +173,13 @@ function init()
 <body onload='init()'>
 <form id='_fom' action='wakeup.cgi' method='post'>
 <table id='container' cellspacing=0>
-<tr><td colspan=2 id='header'>
-	<div class='title'>Tomato</div>
-	<div class='version'>Version <% version(); %></div>
+<tr><td colspan=2 id='header'><a id='headlink' href=''><img src='' id='headlogo'></a>
+	<div class='title' id='SVPNstatus'>Sabai</div>
+	<div class='version' id='subversion'>version <% sabaiversion(); %></div>
 </td></tr>
 <tr id='body'><td id='navi'><script type='text/javascript'>navi()</script></td>
 <td id='content'>
-<div id='ident'><% ident(); %></div>
+
 
 <!-- / / / -->
 

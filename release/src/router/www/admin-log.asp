@@ -12,8 +12,8 @@
 <meta http-equiv='content-type' content='text/html;charset=utf-8'>
 <meta name='robots' content='noindex,nofollow'>
 <title>[<% ident(); %>] Admin: Logging</title>
-<link rel='stylesheet' type='text/css' href='tomato.css'>
-<link rel='stylesheet' type='text/css' href='color.css'>
+
+<link rel='stylesheet' type='text/css' href='sabai.css'>
 <script type='text/javascript' src='tomato.js'></script>
 
 <!-- / / / -->
@@ -22,7 +22,7 @@
 
 <script type='text/javascript'>
 
-//	<% nvram("log_remote,log_remoteip,log_remoteport,log_file,log_file_custom,log_file_path,log_limit,log_in,log_out,log_mark,log_events,log_wm,log_wmtype,log_wmip,log_wmdmax,log_wmsmax,log_file_size,log_file_keep,webmon_bkp,webmon_dir,webmon_shrink"); %>
+//	<% nvram("vpn_service,log_remote,log_remoteip,log_remoteport,log_file,log_limit,log_in,log_out,log_mark,log_events,log_wm,log_wmtype,log_wmip,log_wmdmax,log_wmsmax"); %>
 
 function verifyFields(focused, quiet)
 {
@@ -79,14 +79,10 @@ function verifyFields(focused, quiet)
 
 	a = E('_f_log_wm').checked;
 	b = E('_log_wmtype').value != 0;
-	c = E('_f_webmon_bkp').checked;
 	E('_log_wmtype').disabled = !a;
 	E('_f_log_wmip').disabled = !a;
 	E('_log_wmdmax').disabled = !a;
 	E('_log_wmsmax').disabled = !a;
-	E('_f_webmon_bkp').disabled = !a;
-	E('_f_webmon_shrink').disabled = !a || !c;
-	E('_webmon_dir').disabled = !a || !c;
 	elem.display(PR('_f_log_wmip'), b);
 
 	if (a) {
@@ -121,8 +117,6 @@ function save()
 
 	fom.log_wm.value = E('_f_log_wm').checked ? 1 : 0;
 	fom.log_wmip.value = fom.f_log_wmip.value.split(/\s*,\s*/).join(',');
-	fom.webmon_bkp.value = E('_f_webmon_bkp').checked ? 1 : 0;
-	fom.webmon_shrink.value = E('_f_webmon_shrink').checked ? 1 : 0;
 
 	form.submit(fom, 1);
 }
@@ -132,13 +126,13 @@ function save()
 <body>
 <form id='_fom' method='post' action='tomato.cgi'>
 <table id='container' cellspacing=0>
-<tr><td colspan=2 id='header'>
-	<div class='title'>Tomato</div>
-	<div class='version'>Version <% version(); %></div>
+<tr><td colspan=2 id='header'><a id='headlink' href=''><img src='' id='headlogo'></a>
+	<div class='title' id='SVPNstatus'>Sabai</div>
+	<div class='version' id='subversion'>version <% sabaiversion(); %></div>
 </td></tr>
 <tr id='body'><td id='navi'><script type='text/javascript'>navi()</script></td>
 <td id='content'>
-<div id='ident'><% ident(); %></div>
+
 
 <!-- / / / -->
 
@@ -152,8 +146,6 @@ function save()
 
 <input type='hidden' name='log_wm'>
 <input type='hidden' name='log_wmip'>
-<input type='hidden' name='webmon_bkp'>
-<input type='hidden' name='webmon_shrink'>
 
 <script type='text/javascript'>
 </script>
@@ -175,9 +167,9 @@ createFieldTable('', [
 	{ title: 'Log Internally', name: 'f_log_file', type: 'checkbox', value: nvram.log_file == 1 },
 	{ title: 'Max size before rotate', name: 'log_file_size', type: 'text', maxlen: 5, size: 6, value: nvram.log_file_size || 50, suffix: ' <small>KB</small>' },
 	{ title: 'Number of rotated logs to keep', name: 'log_file_keep', type: 'text', maxlen: 2, size: 3, value: nvram.log_file_keep || 1 },
-	{ title: 'Custom Log File Path', multi: [
+	{ title: 'Custom Log Path & Filename', multi: [
 		{ name: 'f_log_file_custom', type: 'checkbox', value: nvram.log_file_custom == 1, suffix: '  ' },
-		{ name: 'log_file_path', type: 'text', maxlen: 50, size: 30, value: nvram.log_file_path, suffix: ' <small>(make sure the directory exists and is writable)</small>' }
+		{ name: 'log_file_path', type: 'text', maxlen: 32, size: 20, value: nvram.log_file_path, suffix: ' <small>(make sure the directory exists and is writable)</small>' }
 		] },
 	{ title: 'Log To Remote System', name: 'f_log_remote', type: 'checkbox', value: nvram.log_remote == 1 },
 	{ title: 'Host or IP Address / Port', indent: 2, multi: [
@@ -208,10 +200,7 @@ createFieldTable('', [
 		  suffix: '<br><small>(ex: "1.1.1.1", "1.1.1.0/24" or "1.1.1.1 - 2.2.2.2")</small>' },
 	{ title: 'Number of Entries to remember' },
 		{ title: 'Domains', indent: 2,  name: 'log_wmdmax', type: 'text', maxlen: 4, size: 6, value: nvram.log_wmdmax, suffix: ' <small>(0 to disable)</small>' },
-		{ title: 'Searches', indent: 2, name: 'log_wmsmax', type: 'text', maxlen: 4, size: 6, value: nvram.log_wmsmax, suffix: ' <small>(0 to disable)</small>' },
-	{ title: 'Daily Backup', name: 'f_webmon_bkp', type: 'checkbox', value: nvram.webmon_bkp == 1, suffix: ' <small>(every day at midnight)</small>' },
-		{ title: 'Clear Data After Backup', indent: 2, name: 'f_webmon_shrink', type: 'checkbox', value: nvram.webmon_shrink == 1 },
-		{ title: 'Backup Directory', indent: 2,  name: 'webmon_dir', type: 'text', maxlen: 128, size: 30, value: nvram.webmon_dir, suffix: ' <small>(make sure the directory exists and is writable)</small>' }
+		{ title: 'Searches', indent: 2, name: 'log_wmsmax', type: 'text', maxlen: 4, size: 6, value: nvram.log_wmsmax, suffix: ' <small>(0 to disable)</small>' }
 ]);
 </script>
 </div>

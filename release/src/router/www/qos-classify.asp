@@ -12,8 +12,8 @@
 <meta http-equiv='content-type' content='text/html;charset=utf-8'>
 <meta name='robots' content='noindex,nofollow'>
 <title>[<% ident(); %>] QoS: Classification</title>
-<link rel='stylesheet' type='text/css' href='tomato.css'>
-<% css(); %>
+
+<link rel='stylesheet' type='text/css' href='sabai.css'>
 <script type='text/javascript' src='tomato.js'></script>
 <script type='text/javascript' src='protocols.js'></script>
 
@@ -107,11 +107,9 @@
 
 <script type='text/javascript'>
 
-//	<% nvram("qos_classnames,qos_enable,qos_orules"); %>
+//	<% nvram("vpn_service,qos_enable,qos_orules"); %>
 
-
-var abc = nvram.qos_classnames.split(' ');		// Toastman - configurable class names
-
+var abc = ['Highest', 'High', 'Medium', 'Low', 'Lowest', 'A','B','C','D','E'];
 
 var ipp2p = [
 	[0,'IPP2P (disabled)'],[0xFFF,'All IPP2P filters'],[1,'AppleJuice'],[2,'Ares'],[4,'BitTorrent'],[8,'Direct Connect'],
@@ -336,7 +334,7 @@ qosg.setup = function() {
 	}
 
 	// what a mess...
-	this.init('qg', 'move', 80, [
+	this.init('qg', 'move', 50, [
 		{ multi: [
 			{ type: 'select', options: [[0,'Any Address'],[1,'Dst IP'],[2,'Src IP'],[3,'Src MAC']],
 				prefix: '<div class="x1a">', suffix: '</div>' },
@@ -357,8 +355,7 @@ qosg.setup = function() {
 			{ type: 'text', prefix: '<div class="x5b"> - </div><div class="x5c">', suffix: '</div><div class="x5d">KB Transferred</div>' }
 		] },
 		{ type: 'select', options: class1, vtop: 1 },
-		{ type: 'text', maxlen: 32, vtop: 1 },
-		{ type: 'clear', vtop: 1 }
+		{ type: 'text', maxlen: 32, vtop: 1 }
 	]);
 
 	this.headerSet(['Match Rule', 'Class', 'Description', '#']);
@@ -429,13 +426,13 @@ function init()
 <body onload='init()'>
 <form id='_fom' method='post' action='tomato.cgi'>
 <table id='container' cellspacing=0>
-<tr><td colspan=2 id='header'>
-	<div class='title'>Tomato</div>
-	<div class='version'>Version <% version(); %></div>
+<tr><td colspan=2 id='header'><a id='headlink' href=''><img src='' id='headlogo'></a>
+	<div class='title' id='SVPNstatus'>Sabai</div>
+	<div class='version' id='subversion'>version <% sabaiversion(); %></div>
 </td></tr>
 <tr id='body'><td id='navi'><script type='text/javascript'>navi()</script></td>
 <td id='content'>
-<div id='ident'><% ident(); %></div>
+
 
 <!-- / / / -->
 

@@ -12,8 +12,8 @@
 <meta http-equiv='content-type' content='text/html;charset=utf-8'>
 <meta name='robots' content='noindex,nofollow'>
 <title>[<% ident(); %>] Edit Access Restrictions</title>
-<link rel='stylesheet' type='text/css' href='tomato.css'>
-<link rel='stylesheet' type='text/css' href='color.css'>
+
+<link rel='stylesheet' type='text/css' href='sabai.css'>
 <script type='text/javascript' src='tomato.js'></script>
 <script type='text/javascript' src='protocols.js'></script>
 
@@ -62,7 +62,7 @@ textarea {
 <script type='text/javascript' src='debug.js'></script>
 
 <script type='text/javascript'>
-//	<% nvram(''); %>	// http_id
+//	<% nvram('vpn_service'); %>	// http_id
 
 // {enable}|{begin_mins}|{end_mins}|{dow}|{comp[<comp]}|{rules<rules[...]>}|{http[ ...]}|{http_file}|{desc}
 //	<% rrule(); %>
@@ -82,15 +82,7 @@ layer7.unshift(['', 'Layer 7 (disabled)']);
 
 var ipp2p = [
 	[0,'IPP2P (disabled)'],[0xFFFF,'All IPP2P Filters'],[1,'AppleJuice'],[2,'Ares'],[4,'BitTorrent'],[8,'Direct Connect'],
-	[16,'eDonkey'],[32,'Gnutella'],[64,'Kazaa'],[128,'Mute'],
-/* LINUX26-BEGIN */
-	[4096,'PPLive/UUSee'],
-/* LINUX26-END */
-	[256,'SoulSeek'],[512,'Waste'],[1024,'WinMX'],[2048,'XDCC']
-/* LINUX26-BEGIN */
-	,[8192,'Xunlei/QQCyclone']
-/* LINUX26-END */
-	];
+	[16,'eDonkey'],[32,'Gnutella'],[64,'Kazaa'],[128,'Mute'],[256,'SoulSeek'],[512,'Waste'],[1024,'WinMX'],[2048,'XDCC']];
 
 var dowNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
@@ -313,12 +305,12 @@ function verifyFields(focused, quiet)
 	return 1;
 }
 
-function cancelRule()
+function cancel()
 {
 	document.location = 'restrict.asp';
 }
 
-function removeRule()
+function remove()
 {
 	if (!confirm('Delete this rule?')) return;
 
@@ -330,7 +322,7 @@ function removeRule()
 	form.submit('_fom');
 }
 
-function saveRule()
+function save()
 {
 	if (!verifyFields(null, false)) return;
 	if ((cg.isEditing()) || (bpg.isEditing())) return;
@@ -441,13 +433,13 @@ function earlyInit()
 <body onload='init()'>
 <form name='_fom' id='_fom' method='post' action='tomato.cgi'>
 <table id='container' cellspacing=0>
-<tr><td colspan=2 id='header'>
-	<div class='title'>Tomato</div>
-	<div class='version'>Version <% version(); %></div>
+<tr><td colspan=2 id='header'><a id='headlink' href=''><img src='' id='headlogo'></a>
+	<div class='title' id='SVPNstatus'>Sabai</div>
+	<div class='version' id='subversion'>on Tomato v<% version() %></div>
 </td></tr>
 <tr id='body'><td id='navi'><script type='text/javascript'>navi()</script></td>
 <td id='content'>
-<div id='ident'><% ident(); %></div>
+
 
 <!-- / / / -->
 
@@ -499,10 +491,10 @@ createFieldTable('', [
 </td></tr>
 <tr><td id='footer' colspan=2>
 	<span id='footer-msg'></span>
-	<input type='button' value='Delete...' id='delete-button' onclick='removeRule()'>
+	<input type='button' value='Delete...' id='delete-button' onclick='remove()'>
 	&nbsp;
-	<input type='button' value='Save' id='save-button' onclick='saveRule()'>
-	<input type='button' value='Cancel' id='cancel-button' onclick='cancelRule()'>
+	<input type='button' value='Save' id='save-button' onclick='save()'>
+	<input type='button' value='Cancel' id='cancel-button' onclick='cancel()'>
 </td></tr>
 </table>
 <br><br>

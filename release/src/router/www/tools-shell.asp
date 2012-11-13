@@ -10,8 +10,8 @@
 <meta http-equiv='content-type' content='text/html;charset=utf-8'>
 <meta name='robots' content='noindex,nofollow'>
 <title>[<% ident(); %>] Tools: System Commands</title>
-<link rel='stylesheet' type='text/css' href='tomato.css'>
-<link rel='stylesheet' type='text/css' href='color.css'>
+
+<link rel='stylesheet' type='text/css' href='sabai.css'>
 <script type='text/javascript' src='tomato.js'></script>
 
 <!-- / / / -->
@@ -27,19 +27,10 @@ textarea {
 <script type='text/javascript' src='debug.js'></script>
 <script type='text/javascript'>
 
-//	<% nvram(''); %>	// http_id
+//	<% nvram('vpn_service'); %>	// http_id
 
 var cmdresult = '';
 var cmd = null;
-
-
-var ref = new TomatoRefresh('update.cgi', '', 0, 'tools-shell_refresh');
-
-ref.refresh = function(text)
-{
-	execute();
-}
-
 
 function verifyFields(focused, quiet)
 {
@@ -102,13 +93,13 @@ function init()
 <body onload='init()'>
 <form action='javascript:{}'>
 <table id='container' cellspacing=0>
-<tr><td colspan=2 id='header'>
-	<div class='title'>Tomato</div>
-	<div class='version'>Version <% version(); %></div>
+<tr><td colspan=2 id='header'><a id='headlink' href=''><img src='' id='headlogo'></a>
+	<div class='title' id='SVPNstatus'>Sabai</div>
+	<div class='version' id='subversion'>version <% sabaiversion(); %></div>
 </td></tr>
 <tr id='body'><td id='navi'><script type='text/javascript'>navi()</script></td>
 <td id='content'>
-<div id='ident'><% ident(); %></div>
+
 
 <!-- / / / -->
 
@@ -120,7 +111,6 @@ createFieldTable('', [
 ]);
 </script>
 <div style='float:left'><input type='button' value='Execute' onclick='execute()' id='execb'></div>
-<script type='text/javascript'>genStdRefresh(1,5,'ref.toggle()');</script>
 </div>
 
 <div style="visibility:hidden;text-align:right" id="wait">Please wait... <img src='spin.gif' style="vertical-align:top"></div>
