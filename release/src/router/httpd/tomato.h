@@ -43,6 +43,34 @@ extern void resmsg_set(const char *msg);
 extern int resmsg_fread(const char *fname);
 
 
+// BEGIN SABAI
+extern void asp_sabaaiVPN(int argc, char **argv);
+extern void asp_sabaaiMenu();
+extern void asp_sabai_version();
+extern void asp_isitsafe();
+extern void asp_isitsabai();
+extern void asp_sabai_msg();
+extern void wo_sabaai_register();
+
+extern void wi_grabovpn_script();
+extern void wo_sabaai_OVPN_start();
+extern void wo_sabaai_OVPN_erase();
+extern void wo_sabaai_OVPN_stop();
+extern void wo_sabaai_dual();
+extern void wo_sabaai_PPTP();
+extern void wo_makeStatic();
+extern void wo_sabaai_vpns();
+extern void wo_sabaai_vypr();
+extern void wo_sabaai_vpna();
+extern void wo_sabaai_hwmac();
+
+extern void asp_vpnstatus(int argc, char **argv);
+extern void asp_vpnconnectiontype(int argc, char **argv);
+extern void asp_vpnipaddress(int argc, char **argv);
+extern void asp_vpnnetmask(int argc, char **argv);
+extern void asp_vpngateway(int argc, char **argv);
+// END SABAI
+
 
 // nvram.c
 extern void asp_nvram(int argc, char **argv);

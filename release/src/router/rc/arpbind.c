@@ -3,8 +3,7 @@
 void start_arpbind(void) {
 
 	char *nvp, *nv, *b;
-	const char *ipaddr, *macaddr;
-	const char *name, *bind;
+	const char *ipaddr, *macaddr, *name, *bind, *gws;
 
 	nvp = nv = strdup(nvram_safe_get("dhcpd_static"));
 	if (!nv) return;
@@ -14,10 +13,10 @@ void start_arpbind(void) {
 
 	while ((b = strsep(&nvp, ">")) != NULL) {
 		/*
-			macaddr<ip.ad.dr.ess<hostname<arpbind>anotherhwaddr<other.ip.addr.ess<othername<arpbind
+			macaddr<ip.ad.dr.ess<hostname<gws<arpbind>anotherhwaddr<other.ip.addr.ess<othername<gws<arpbind
 		*/
 
-		if ((vstrsep(b, "<", &macaddr, &ipaddr, &name, &bind)) != 4)
+		if ((vstrsep(b, "<", &macaddr, &ipaddr, &name, &gws, &bind)) != 4)
 			continue;
 		if (strchr(macaddr,',') != NULL)
 			continue;

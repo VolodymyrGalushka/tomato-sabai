@@ -196,7 +196,36 @@ int skip_header(int *len)
 	}
 	return 0;
 }
+ // SABAI BEGIN ADDED 2012-10-24
+int skip_header_get_filename(int *len, char * filename,  int iMaxFileNameLength)
+{
+	/* iMaxFileNameLength is the maximum filename length including '\0' */
+	char buf[2048];
+	char * first_c , * cp;
 
+	while (*len > 0) {
+		if (!web_getline(buf, MIN(*len, sizeof(buf)))) {
+			break;
+		}
+		cprintf ("%s\n", buf);
+		*len -= strlen(buf);
+		if ((strcmp(buf, "\n") == 0) || (strcmp(buf, "\r\n") == 0)) {
+			return 1;
+		}
+		else if ( (cp = strstr(buf, "filename=")) ) {
+			first_c = &cp[9];
+			first_c += strspn(first_c, " \t\""); // skip spaces, tabs and "
+			cp = strchr (first_c, (int)'"'); // look for closing "
+			if (cp == NULL) return 0;
+			*cp = '\0';
+			if ((cp = strrchr (first_c, (int)'/')) || (cp = strrchr (first_c, (int)'\\')))
+				first_c = cp + 1;
+			strcpy (filename, first_c);	
+		}
+	}
+	return 0;
+}
+ // SABAI END ADDED 2012-10-24
 
 // -----------------------------------------------------------------------------
 

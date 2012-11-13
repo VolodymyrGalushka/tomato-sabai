@@ -33,12 +33,14 @@ extern const char *tomato_buildtime;
 extern const char *tomato_shortver;
 
 
-#ifdef DEBUG_NOISY
 #define _dprintf		cprintf
-#else
-#define _dprintf(args...)	do { } while(0)
-#endif
-
+/*
+# #ifdef DEBUG_NOISY
+# #define _dprintf		cprintf
+# #else
+# #define _dprintf(args...)	do { } while(0)
+# #endif
+*/
 
 // misc.c
 #define	WP_DISABLED		0		// order must be synced with def in misc.c

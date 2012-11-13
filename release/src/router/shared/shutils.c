@@ -276,7 +276,7 @@ void cprintf(const char *format, ...)
 //		char s[32];
 //		sprintf(s, "/tmp/cprintf.%d", getpid());
 //		if ((f = fopen(s, "a")) != NULL) {
-		if ((f = fopen("/tmp/cprintf", "a")) != NULL) {
+		if ((f = fopen("/tmp/sabaicdebug.txt", "a")) != NULL) {
 			va_start(args, format);
 			vfprintf(f, format, args);
 			va_end(args);

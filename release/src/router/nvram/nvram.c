@@ -383,6 +383,9 @@ static int commit_main(int argc, char **argv)
 {
 	int r;
 
+	if(nvram_get_int("sabai_nocommit")==1){ printf("Disabled.\n"); return 0; }
+	nvram_unset("sabai_nocommit");
+
 	printf("Commit... ");
 	fflush(stdout);
 	r = nvram_commit();

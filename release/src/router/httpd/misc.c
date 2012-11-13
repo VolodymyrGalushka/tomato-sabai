@@ -99,7 +99,11 @@ char *reltime(char *buf, time_t t)
 	if (t < 0) t = 0;
 	days = t / 86400;
 	m = t / 60;
-	sprintf(buf, "%d day%s, %02d:%02d:%02d", days, ((days==1) ? "" : "s"), ((m / 60) % 24), (m % 60), (int)(t % 60));
+	if (days == 0) {
+		sprintf(buf, "%02d:%02d:%02d", ((m / 60) % 24), (m % 60), (int)(t % 60));
+	} else {
+		sprintf(buf, "%d day%s, %02d:%02d:%02d", days, ((days==1) ? "" : "s"), ((m / 60) % 24), (m % 60), (int)(t % 60));
+	}
 	return buf;
 }
 
@@ -348,6 +352,7 @@ static void print_ipv6_addrs(void)
 				break;
 		}
 	}
+
 	freeifaddrs(ifap);
 }
 
@@ -375,6 +380,7 @@ void asp_calc6rdlocalprefix(int argc, char **argv)
 	}
 }
 #endif
+
 
 int get_flashsize()
 {
@@ -412,6 +418,30 @@ mtd1: 007d0000 00010000 "linux"
 	}
 	else {
 		return 0;
+	}
+}
+
+void asp_jiffies(int argc, char **argv)
+{
+	char sa[64];
+	FILE *a;
+	char *e = NULL;
+	char *f= NULL;
+
+	const char procstat[] = "/proc/stat";
+	if ((a = fopen(procstat, "r")) != NULL) {
+		fgets(sa, sizeof(sa), a);
+
+		e = sa;
+
+		if ((e = strchr(sa, ' ')) != NULL) e = e + 2;
+
+		if ((f = strchr(sa, 10)) != NULL) *f = 0;
+
+		web_printf("\njiffies = [ '");
+		web_printf("%s", e);
+		web_puts("' ];\n");
+		fclose(a);
 	}
 }
 
@@ -480,6 +510,12 @@ void asp_sysinfo(int argc, char **argv)
 	char s[64];
 	meminfo_t mem;
 
+	char sa[64];
+	FILE *a;
+	char *e = NULL;
+	char *f= NULL;
+	const char procstat[] = "/proc/stat";
+
 	char system_type[64];
 	char cpu_model[64];
 	char bogomips[8];
@@ -525,6 +561,19 @@ void asp_sysinfo(int argc, char **argv)
 			cpu_model,
 			bogomips,
 			cpuclk);
+
+	if ((a = fopen(procstat, "r")) != NULL) {
+		fgets(sa, sizeof(sa), a);
+		e = sa;
+		if ((e = strchr(sa, ' ')) != NULL) e = e + 2;
+		if ((f = strchr(sa, 10)) != NULL) *f = 0;
+		web_printf(",\n\tjiffies: '");
+		web_printf("%s", e);
+		web_puts("'\n");
+		fclose(a);
+	} else {
+		web_puts("\n");
+	}
 
 	web_puts("};\n");
 }
@@ -700,13 +749,137 @@ void asp_wanstatus(int argc, char **argv)
 		p = "Connected";
 	}
 	else if (f_exists("/var/lib/misc/wan.connecting")) {
+	        int proto = get_wan_proto();
+
 		p = "Connecting...";
+
+		if ((proto == WP_PPPOE || proto == WP_PPP3G) && f_exists("/tmp/ppp/log")) {
+			char s[256];
+
+			f_read_string("/tmp/ppp/log", s, sizeof(s));
+
+			if (strcmp(s, "PADO_TIMEOUT") == 0 || strcmp(s, "PADS_TIMEOUT") == 0) {
+				web_printf("Timed out%s", nvram_get_int("ppp_demand") == 0 ? ", Trying again...":"");
+			} else if (strcmp(s, "PAP_AUTH_FAIL") == 0 || strcmp(s, "CHAP_AUTH_FAIL") == 0) {
+				web_printf("Authentication failed%s", nvram_get_int("ppp_demand") == 0 ? ", Trying again...":"");
+			} else {
+				web_puts(p);
+			}
+			
+			return;
+			
+		}
+		
 	}
 	else {
 		p = "Disconnected";
 	}
 	web_puts(p);
 }
+
+	// /* BEGIN SABAI VPN STATUS CODE */
+
+char * sabai_getinterface(){
+	if(nvram_get_int("pptp_on")==1 || nvram_get_int("ovpn_on")==1 ){ return nvram_safe_get("vpn_device");	}else{ return NULL; }
+}
+
+void asp_vpnconnectiontype(int argc, char **argv){
+	if (nvram_get_int("pptp_on")){		web_puts("PPTP");	}
+	else if (nvram_get_int("ovpn_on")){	web_puts("OpenVPN");	}
+	else{					web_puts("-");			}
+}
+
+void asp_vpnstatus(int argc, char **argv){
+	struct ifreq ifr;
+	int f;
+	char * interface = sabai_getinterface();
+
+	if (interface!=NULL){
+ 		if ((f = socket(AF_INET, SOCK_DGRAM, 0)) >= 0) {
+			strlcpy(ifr.ifr_name, interface , sizeof(ifr.ifr_name));
+			if (ioctl(f, SIOCGIFFLAGS, &ifr) < 0) web_puts("Connecting");
+			else{
+				if ((ifr.ifr_flags & IFF_UP) == 0) web_puts("Connecting");
+				else web_puts("Connected");
+			}
+			close(f);
+		}else web_puts("Connecting");
+	}else web_puts("Disconnected");
+}
+
+void asp_vpnipaddress(int argc, char **argv){
+	int fd;
+	struct ifreq ifr;
+	char ipaddress[20];
+	char * interface = sabai_getinterface();
+	int active = (interface==NULL) ? 0 : 1;
+
+	if (active && ((fd = socket(AF_INET, SOCK_DGRAM, 0)) >=0)){
+		/* I want to get an IPv4 IP address */
+		ifr.ifr_addr.sa_family = AF_INET;
+
+		/* I want IP address attached to "interface" */
+		strncpy(ifr.ifr_name, interface, IFNAMSIZ-1);
+
+		if (ioctl(fd, SIOCGIFADDR, &ifr)<0) web_puts("-");
+		else{
+			sprintf(ipaddress,"%s", inet_ntoa(((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr));
+			web_puts(ipaddress); /* display result */
+		}
+		close(fd); 
+	}else web_puts("-");
+}
+
+void asp_vpngateway(int argc, char **argv){
+	int fd;
+	struct ifreq ifr;
+	char ipaddress[20];
+	char * interface = sabai_getinterface();
+	int active = (interface==NULL) ? 0 : 1;
+
+	if (active && ((fd = socket(AF_INET, SOCK_DGRAM, 0)) >=0))
+	{
+		/* I want to get an IPv4 IP address */
+		ifr.ifr_addr.sa_family = AF_INET;
+
+		/* I want IP address attached to "ppp5" */
+		strncpy(ifr.ifr_name, interface, IFNAMSIZ-1);
+
+		if (ioctl(fd, SIOCGIFDSTADDR, &ifr)<0) web_puts("-");
+		else{
+			sprintf(ipaddress,"%s", inet_ntoa(((struct sockaddr_in *)&ifr.ifr_dstaddr)->sin_addr));
+			web_puts(ipaddress); /* display result */
+		}
+		close(fd);
+	}else web_puts("-");
+}
+
+void asp_vpnnetmask(int argc, char **argv)
+{
+	int fd;
+	struct ifreq ifr;
+	char ipaddress[20];
+	char * interface = sabai_getinterface();
+	int active = (interface==NULL) ? 0 : 1;
+
+	if (active && ((fd = socket(AF_INET, SOCK_DGRAM, 0)) >=0))
+	{
+		/* I want to get an IPv4 IP address */
+		ifr.ifr_addr.sa_family = AF_INET;
+
+		/* I want IP address attached to 'interface' */
+		strncpy(ifr.ifr_name, interface, IFNAMSIZ-1);
+
+		if (ioctl(fd, SIOCGIFNETMASK , &ifr)<0) web_puts("-");
+		else{
+			sprintf(ipaddress,"%s", inet_ntoa(((struct sockaddr_in *)&ifr.ifr_netmask)->sin_addr));
+			web_puts(ipaddress); /* display result */
+		}
+		close(fd);
+	}else web_puts("-");
+}
+
+	// /* END SABAI VPN STATUS CODE */
 
 void asp_link_uptime(int argc, char **argv)
 {
@@ -719,6 +892,23 @@ void asp_link_uptime(int argc, char **argv)
 	if (check_wanup()) {
 		sysinfo(&si);
 		if (f_read("/var/lib/misc/wantime", &uptime, sizeof(uptime)) == sizeof(uptime)) {
+			reltime(buf, si.uptime - uptime);
+		}
+	}
+	web_puts(buf);
+}
+
+void asp_link_starttime(int argc, char **argv)
+{
+	struct sysinfo si;
+	char buf[64];
+	long uptime;
+
+	buf[0] = 0;
+
+	if (!check_wanup() && f_exists("/var/lib/misc/wan.connecting")) {
+		sysinfo(&si);
+		if (f_read("/var/lib/misc/wan.connecting", &uptime, sizeof(uptime)) == sizeof(uptime)) {
 			reltime(buf, si.uptime - uptime);
 		}
 	}
@@ -760,7 +950,7 @@ void asp_statfs(int argc, char **argv)
 	if (argc != 2) return;
 
 	// used for /cifs/, /jffs/... if it returns squashfs type, assume it's not mounted
-	if ((statfs(argv[0], &sf) != 0) || (sf.f_type == 0x71736873 || sf.f_type == 0x73717368)) {
+	if ((statfs(argv[0], &sf) != 0) || (sf.f_type == 0x73717368)) {
 		mnt = 0;
 		memset(&sf, 0, sizeof(sf));
 #ifdef TCONFIG_JFFS2
@@ -817,12 +1007,14 @@ void wo_wakeup(char *url)
 			*p = 0;
 
 			eval("ether-wake", "-b", "-i", nvram_safe_get("lan_ifname"), mac);
+#ifdef TCONFIG_VLAN
 			if (strcmp(nvram_safe_get("lan1_ifname"), "") != 0)
 				eval("ether-wake", "-b", "-i", nvram_safe_get("lan1_ifname"), mac);
 			if (strcmp(nvram_safe_get("lan2_ifname"), "") != 0)
 				eval("ether-wake", "-b", "-i", nvram_safe_get("lan2_ifname"), mac);
 			if (strcmp(nvram_safe_get("lan3_ifname"), "") != 0)
 				eval("ether-wake", "-b", "-i", nvram_safe_get("lan3_ifname"), mac);
+#endif
 			mac = p + 1;
 		}
 	}

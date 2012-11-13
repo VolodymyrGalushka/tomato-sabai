@@ -46,6 +46,8 @@
 #define TRACE_PT(args...) do { } while(0)
 #endif
 
+#define SABAI_TRACE_PT(args...) do { _dprintf("[%d:%s +%ld] ", getpid(), __FUNCTION__, get_uptime()); _dprintf(args); } while(0)
+
 #define MOUNT_ROOT	"/tmp/mnt"
 #define PROC_SCSI_ROOT	"/proc/scsi"
 #define USB_STORAGE	"usb-storage"

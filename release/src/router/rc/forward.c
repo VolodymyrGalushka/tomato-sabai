@@ -13,8 +13,40 @@ extern char chain_wan_prerouting[];
 
 static const char tcpudp[2][4] = {"tcp", "udp"};
 
-void ipt_forward(ipt_table_t table)
-{
+void ipt_forward(ipt_table_t table){
+ char *lanip = nvram_safe_get("lan_ipaddr"); char *vpnip = nvram_safe_get("vpn_ipaddr"); char *wanip = nvram_safe_get("wan_ipaddr");
+ char *nv, *nvp, *b; const char *proto, *vpnpf, *saddr, *xports, *iport, *iaddr, *desc, *c, *mdport; int n,i,j,v,vpn_on;
+ char *wanvpn[2] = { wanip , vpnip };
+ vpn_on = ( nvram_get_int("pptp_on")==1 || nvram_get_int("ovpn_on")==1 );
+ v=(1+(vpn_on<<1));
+ nvp = nv = strdup(nvram_safe_get("portforward"));
+ if (!nv) return;
+ while ((b = strsep(&nvp, ">")) != NULL) {
+  n = vstrsep(b, "<", &c, &proto, &vpnpf, &saddr, &xports, &iport, &iaddr, &desc);
+  if ((n < 8) || (*c != '1')) continue;
+  mdport = ( (strchr(xports, ',') != NULL) || (strchr(xports, ':') != NULL) ) ? "-m multiport --dports" : "--dport";
+
+  for(i=0; i<2; ++i){ if( (1 << i) & (*proto - '0') ){ // BEGIN TCP/UDP LOOP
+   if (table == IPT_TABLE_NAT) {
+    if(nvram_get_int("nf_loopback")==1){
+     ipt_write("-A POSTROUTING -p %s %s %s -s %s/%s -d %s -j SNAT --to-source %s\n",tcpudp[i], mdport, *iport ? iport : xports, lanip, nvram_safe_get("lan_netmask"), iaddr, wanip);
+    }
+    for(j=0; j<2; ++j){ if( (1 << j) & (*vpnpf - '0') & v ){ // BEGIN WAN/VPN LOOP
+     ipt_write("-I PREROUTING -p %s %s%s -d %s %s %s -j DNAT --to %s%s%s\n", tcpudp[i], *saddr ? "-s " : "", *saddr ? saddr : "", wanvpn[j],mdport,xports, iaddr,*iport ? ":" : "", iport);
+    } } // END WAN/VPN LOOP
+   } else if (table == IPT_TABLE_FILTER){
+    ipt_write("-I FORWARD -p %s -d %s%s%s -j ACCEPT\n",tcpudp[i], iaddr, *iport ? " --dport " : "", *iport ? iport : "");
+   }
+  } } // END TCP/UDP LOOP
+
+ }
+ free(nv);
+ if((table==IPT_TABLE_FILTER)&&(nvram_get_int("wan_route")==1)){ ipt_write("-I FORWARD -s %s/%s -j ACCEPT\n", wanip, nvram_safe_get("wan_netmask")); }
+ if((table==IPT_TABLE_NAT)&&(nvram_get_int("ovpn_on")==1)){ ipt_write("-A POSTROUTING -o %s -j MASQUERADE\n", nvram_get("vpn_device")); }
+}
+
+/*
+void ipt_forward(ipt_table_t table){
 	char *nv, *nvp, *b;
 	const char *proto, *saddr, *xports, *iport, *iaddr, *desc;
 	const char *c;
@@ -27,21 +59,21 @@ void ipt_forward(ipt_table_t table)
 	if (!nv) return;
 
 	while ((b = strsep(&nvp, ">")) != NULL) {
-		/*
-			[<1.01] 1<3<30,40-45<60<5<desc
-			[<1.07] 1<3<30,40-45<60<192.168.1.5<desc
 
-			1<3<71.72.73.74<30,40-45<60<192.168.1.5<desc
 
-			1 = enabled
-			3 = tcp & udp
-			71.72.73.74 = src addr
-			30,40-45 = ext port
-			60 = int port
-			192.168.1.5 = dst addr
-			desc = desc
+//			[<1.01] 1<3<30,40-45<60<5<desc
+//			[<1.07] 1<3<30,40-45<60<192.168.1.5<desc
+//
+//			1<3<71.72.73.74<30,40-45<60<192.168.1.5<desc
+//
+//			1 = enabled
+//			3 = tcp & udp
+//			71.72.73.74 = src addr
+//			30,40-45 = ext port
+//			60 = int port
+//			192.168.1.5 = dst addr
+//			desc = desc
 
-		*/
 		n = vstrsep(b, "<", &c, &proto, &saddr, &xports, &iport, &iaddr, &desc);
 		if ((n < 6) || (*c != '1')) continue;
 		if (n == 6) {
@@ -109,6 +141,7 @@ void ipt_forward(ipt_table_t table)
 	}
 	free(nv);
 }
+*/
 
 void ipt_triggered(ipt_table_t table)
 {

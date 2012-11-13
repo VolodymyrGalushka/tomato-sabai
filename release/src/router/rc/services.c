@@ -314,6 +314,13 @@ void start_dnsmasq()
 	// 00:aa:bb:cc:dd:ee<123.123.123.123<xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.xyz<a> = 87 w/ delim
 	// 00:aa:bb:cc:dd:ee,00:aa:bb:cc:dd:ee<123.123.123.123<xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.xyz<a> = 108 w/ delim
 
+	// NEW NEW FORMAT (+flag for auto add +static ARP binding flag after hostname):
+	// 00:aa:bb:cc:dd:ee<123<xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.xyz<0<a> = 75 w/ delim
+	// 00:aa:bb:cc:dd:ee<123.123.123.123<xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.xyz<0<a> = 87 w/ delim
+	// 00:aa:bb:cc:dd:ee,00:aa:bb:cc:dd:ee<123.123.123.123<xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.xyz<0<a> = 105 w/ delim
+
+
+
 	p = nvram_safe_get("dhcpd_static");
 	while ((e = strchr(p, '>')) != NULL) {
 		n = (e - p);
@@ -2261,7 +2268,8 @@ TOP:
 	modifier = act;
 	strsep(&modifier, "-");
 
-	TRACE_PT("service=%s action=%s modifier=%s\n", service, act, modifier ? : "");
+	SABAI_TRACE_PT("service=%s action=%s modifier=%s\n", service, act, modifier ? : "");
+//	TRACE_PT("service=%s action=%s modifier=%s\n", service, act, modifier ? : "");
 
 	if (strcmp(act, "start") == 0) action = A_START;
 		else if (strcmp(act, "stop") == 0) action = A_STOP;
