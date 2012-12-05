@@ -13,26 +13,25 @@
 .superscript { vertical-align: super; font-size: .7em; }
 input[type="button"] { width: 100px; }
 input[type="radio"], .gw_opt { margin-left: 25px; width: 12px; display: inline-block; }
-
-
 .gw_0 input { margin-left: 5px; margin-right: 20px; }
 .opt { text-align: center; }
 .opts { text-align: center; background-color: #EDEDED; vertical-align: text-bottom; }
 .opts input { vertical-align: text-bottom; }
-
 .gw_def { margin-left: 0px !important; }
-
 .gw_opt { width: 14px; margin: 0 0 0 25px; }
 .gw_opt_def { margin: 0; }
-
 .stupid_table { visibility: collapse; }
 .stupid_table td { width: 25%; }
 </style>
 <script type='text/javascript' src='tomato.js'></script>
 <script type='text/javascript' src='sabaivpn.jsx?_http_id=<% nv(http_id); %>'></script>
 <script type='text/javascript'>
-ipp = '192.168.134.'; /* ASP lipp(); */
- /* BEGIN ASP devlist(); */
+
+var ipp='<% lipp(); %>.';
+<% devlist(); %>
+
+/*ipp = '192.168.134.'; // ASP lipp();
+// BEGIN ASP devlist();
 arplist = [ ['192.168.134.5','20:6A:8A:6D:45:05','br0']];
 dhcpd_static = 'D0:27:88:70:F2:63<192.168.134.2<vpna<0>20:6A:8A:6D:45:05<192.168.134.3<Camus<0>00:00:00:00:00:10<192.168.134.10<i10<1>00:00:00:00:00:12<192.168.134.12<i12<1>'.split('>');
 wldev = [ ['eth1','64:27:37:32:BC:18',0,52000,117000,15,0]];
@@ -42,16 +41,14 @@ dhcpd_lease = [
  ['d247','192.168.134.247','64:27:37:32:BC:18','0 days, 23:59:51'],
  ['d248','192.168.134.248','64:27:37:32:BC:19','0 days, 23:59:51']
  ];
- /* END ASP devlist(); */
-
+ // END ASP devlist();
+*/
 // /* BEGIN DUAL GATEWAY JS */
 
 var dbug,f;
 var list={};
 var vpna = false;
 var gw_vpna=['<a href="http://','">VPN Accelerator<span class=\'superscript\'>&#x2020;</span></a>'];
-//var gw_radio=["<input type='radio' value='0' checked name='gw_","'><input type='radio' value='1' name='gw_","'><input type='radio' value='2' name='gw_","'><input type='radio' value='3' name='gw_","'>"]; //"<input type='radio' value='0' name='gw_"+i+"'><input type='radio' value='1' name='gw_"+i+"'><input type='radio' value='2' name='gw_"+i+"'><input type='radio' value='3' name='gw_"+i+"'>"
-
 var gw_radio=["<input type='radio' class='gw_def' name='gw_","' onclick='chgw(",",0)'><input type='radio' name='gw_","' onclick='chgw(",",1)'><input type='radio' name='gw_","' onclick='chgw(",",2)'><input type='radio' name='gw_","' onclick='chgw(",",3)'>"];
 
 function bug(text){ dbug.innerHTML=text; }
@@ -86,16 +83,10 @@ function populateGrid(){ var i, j;
   gw_grid.insert( -1, vpna, [vpna.mac.replace(/,/,'\n'), vpna.ip, vpna.name, gw_vpna.join(vpna.ip) ], false );
  }
 
- var txt=[];
-
  for(var i in list){
-  var ik=i.toString(); while(ik.length<3) ik='0'+ik;
-  txt.push( ik+ ' ips: '+ list[i].ips +'; gws: '+ list[i].gws +'; ipsORgws: '+ (list[i].gws || list[i].ips) );
-
   gw_grid.insert( -1, list[i], [list[i].mac.replace(/,/,'\n'), list[i].ip, list[i].name, gw_radio.join(i) ], false );
-  f['gw_'+i][list[i].gw].checked=true;
+  f['gw_'+i][verify_gw(list[i].gw)].checked=true;
  }
-// bug(txt.join('\n'));
 }
 
 function refreshResponse(text){ eval(text); gw_grid.removeAllData(); populateGrid(); gw_grid.resort(); }
@@ -108,49 +99,45 @@ function setupGrid(){
 
 function radioValue(radioGroup){ for(var i=0; i<f[radioGroup].length; i++){ if(f[radioGroup][i].checked){ return f[radioGroup][i].value; } }; return false; }
 
-function gw_response(text){
- bug(text);
-}
+function async(state){ E('reg_spin').style.display = state?'':'none'; for(var i=0; i<f.elements.length; i++){ f.elements[i].disabled = state; } }
 
-function savegw(){
- var def = radioValue('gw_0');
- var new_dhcpd_static=[];
- var new_gw=[ [], [], [] ];
+function gw_response(text){ async(false); sv=JSON.parse(text); bug(sv.sabai?'Gateway settings changed.':'There was an error.'); }
 
- if(vpna){ list[nvram.ac_ip] = vpna; }/*  new_dhcpd_static.push( [ vpna.mac , vpna.ip ,  vpna.name , '1' ].join('<') ); if(def!=1){ new_gw[1].push(  ); } */
+function savegw(){ async(true);
+ var def = radioValue('gw_0'); var new_dhcpd_static=[]; var new_gw=[ [], [], [] ];
+
+ if(vpna){ list[nvram.ac_ip] = vpna; }
  for(var i in list){
   if( list[i].gw==0 || list[i].gw==def ){
-   if( list[i].ips==1 && list[i].gws==0 ){
-    new_dhcpd_static.push( [ list[i].mac , list[i].ip ,  list[i].name , '0' ].join('<') );
-   }
-  }else{
-   new_dhcpd_static.push( [ list[i].mac , list[i].ip ,  list[i].name , '1' ].join('<') );
-   new_gw[ list[i].gw - 1 ].push( i );
-  }
+   if( list[i].ips==1 && list[i].gws==0 ) new_dhcpd_static.push( [ list[i].mac , list[i].ip ,  list[i].name , '0' ].join('<') );
+  }else{ new_dhcpd_static.push( [ list[i].mac , list[i].ip , list[i].name , '1' ].join('<') ); new_gw[ list[i].gw - 1 ].push( i ); }
  }
- 
- for(i=0; i<3; i++){ new_gw[i] = (new_gw[i].length==0?'-':new_gw[i].join(',')); }
- new_gw = new_gw.join(';');
- new_dhcpd_static = (new_dhcpd_static.length==0?'-':new_dhcpd_static.join('>') + '>');
- que.drop('gw.sh',gw_response, 'save '+ def +' '+ new_dhcpd_static +' '+ new_gw );
-}
 
+ for(i=0; i<3; i++){ new_gw[i] = 'gw_'+(i+1)+'='+(new_gw[i].length==0?'':new_gw[i].join(' ')); }
+ new_dhcpd_static = (new_dhcpd_static.length==0?'':new_dhcpd_static.join('>') + '>');
+
+//            bug(EscapeStaticEntries('gw_def='+def+'&dhcpd_static='+new_dhcpd_static+'&'+new_gw.join('&')+'&_http_id='+nvram.http_id,'\n'));
+ que.drop('s_sabaigw.cgi',gw_response,'gw_def='+def+'&dhcpd_static='+new_dhcpd_static+'&'+new_gw.join('&')+'&_http_id='+nvram.http_id );
+}
+function verify_gw(dgw){ dgw=parseInt(dgw); if(dgw=='') return 0; if(dgw<0||dgw>3) return 0; return dgw; }
 function init(){ redo_VPN_stats = function(){ return; }; window.VPN_test=0; f=E('gw_form');
  dbug=E('pre');
- f.gw_0[nvram.gw_def].checked = true;
+ f.gw_0[verify_gw(nvram.gw_def)].checked = true;
  setupGrid(); hidden=E('hideme'); hide=E('hiddentext');
 }
 
 function defgw(event,gw){ for(var i in list){ f['gw_'+i][list[i].gw = gw].checked = true; } }
-function chgw(ip,gw){ bug(ip +' '+ gw); if(!list[ip]) return; list[ip].gw = gw; for(var i=0; i<f['gw_all'].length; i++){ f['gw_all'][i].checked = false; } }
+function chgw(ip,gw){ if(!list[ip]) return; list[ip].gw = gw; for(var i=0; i<f['gw_all'].length; i++){ f['gw_all'][i].checked = false; } }
 
 function verifyFields(){}
+
+function EscapeStaticEntries(entries,sep){ return entries.replace(/</g,'&lt;').replace(/>/g,'&gt;'+(sep==null?'':sep)).replace(/&/,(sep==null?'':sep)+'&'); }
 
 // /* END DUAL GATEWAY JS */
 
 </script></head><body onload='init();' id='topmost'><table id='container' cellspacing=0>
 <tr><td colspan=2 id='header'><a id='headlink' href=''><img src='' id='headlogo'></a>
-<div class='title' id='SVPNstatus'>Sabai</div><div class='version' id='subversion'>version <% sabaiversion(); %></div></td></tr>
+<div class='title' id='SVPNstatus'>Sabai</div><div class='version' id='subversion'>version <!-- SABAI-VERSION --></div></td></tr>
 
 <tr id='body'><td id='navi'><script type='text/javascript'>navi()</script></td><td id='content'>
 
@@ -183,6 +170,7 @@ function verifyFields(){}
 
 </div>
 <div style='text-align:right;'>
+<img id='reg_spin' style='display: none;' src="spin.gif">
 <input type='button' value='Save' onclick='savegw();' id='save-button'>
 <input type='button' value='Cancel' onclick='location.reload();' id='cancel-button'>
 <input type='button' value='Refresh' onclick='refreshList();' id='refresh-button'>

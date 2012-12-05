@@ -4,85 +4,68 @@
 <meta http-equiv='content-type' content='text/html;charset=utf-8'>
 <meta name='robots' content='noindex,nofollow'>
 <title id='VPN_TYPE'>[<% ident(); %>] SabaiVPN</title><link rel='stylesheet' type='text/css' href='sabai.css'>
+<style type='text/css'>
+</style>
 <script type='text/javascript' src='tomato.js'></script>
 <script type='text/javascript' src='sabaivpn.jsx?_http_id=<% nv(http_id); %>'></script>
 <script type='text/javascript'>
 <% isitsafe(); %>
 // // /* BEGIN REGISTRATION JS */
-var msg, f, regButton, canButton, whatReg=false;
+var info, f, ls, acc;
 
-var pro={ lic: '<% nv('srcnvrl'); %>', tok: '<% nv('srcnvrt'); %>'};
+//var pro={ sub: '<% nv("wan_gateway_get"); %>'=='192.168.222.1', msg: '<% sabaaiMSG() %>', lic: '<% nv('srcnvrl'); %>', act: '<% nv('srcnvrv'); %>' };
+var pro={ sub: true, msg: '<% sabaaiMSG() %>', lic: '<% nv('srcnvrl'); %>', act: '<% nv('srcnvrv'); %>' };
 
-function skipLicense(){ E('row_prep').style.display='none'; E('row_email').style.display=''; }
-function skipToken(skip){ if( skip && f.act_email.value.length==0 ){ report('Please enter a valid e-mail address.'); return; };
- E('row_email').style.display=(skip?'none':''); E('row_token').style.display=(skip?'':'none');
-}
+function async(state){ E('reg_spin').style.display = state?'':'none'; for(var i=0; i<f.elements.length; i++){ f.elements[i].disabled = state; } }
+function get(script,action,process){ async(true); que.drop(script, function(text){ async(false); process(JSON.parse(text)); }, action ); }
 
-function getLicense(){ async(); que.drop('activate.sh',receipt, 'license' ); }
+function skipToken(){ var skip=(f.skip.value=='0'); f.skip.value=(skip?'1':'0'); E('row_email').style.display=(skip?'none':''); E('row_token').style.display=(skip?'':'none'); E('skip_button').value=(skip?'Back: I need':'Skip: I have') +' an Activation Token'; }
 
-function getToken(){ async();
- if( f.act_email.value.length==0 ){ report('Please enter a valid e-mail address.'); return; }
- que.drop('activate.sh',receipt, 'token '+ f.act_email.value );
-}
+function finished(res){ if(res.sabai){ location.reload(); }else{ if(res.msg!='') report(res.msg); } }
 
-function useToken(){ async();
- if( f.act_token.value.length==0 ){ report('Please enter a token.'); return; }
- que.drop('activate.sh',receipt, 'register '+ f.act_email.value +' '+ f.act_token.value );
-}
+function manualReply(res){ acc.value='"'+res.msg+'"'; E('row_code').style.display=''; E('row_status').style.display='none'; E('skip_button').style.display='none'; skipToken(); report("Please give the contents of the Code box to your support representative; they will retrieve your Activation Token."); }
+function manualActivation(){ get('register.sh', 'manual '+pro.msg+','+f.act_email.value, manualReply ); }
 
-function receipt(text){ E('reg_spin').className = 'hiddenChildMenu'; regButton.disabled=''; canButton.disabled='';
- eval(text);
- if(!reg.sabai){ report(reg.msg); }else{
-  if(!whatReg){ swapReg(); E('_reg_code').value=reg.code; }
-  report('<br>Please take the time to note your registration code. You may need it in the case that your router needs to be fully reset or loses its settings.<br>Please visit the VPN page to begin.');
-  grabMenu();
- }
-}
+function activate(){ if(f.skip.value=='1'){ if(f.act_token.value.length==0){ report('Please enter an Activation Token.'); }else get('register.sh', 'gotToken '+f.act_token.value, finished ); }else{ if(pro.lic==''){ manualActivation(); }else{ get('register.sh', 'activate '+ pro.msg+','+f.act_email.value, finished ); } } }
+function getInit(){ f.step.value=(pro.lic==''?'program':'activate'); if(pro.act!='') return; if((pro.lic=='') && pro.sub) get('register.sh', 'program '+pro.msg, finished ); }
 
-function async(){ E('reg_spin').style.display = '';
- for(var i=0; i<f.elements.length; i++){ f.elements[i].disabled = true; }
-}
-// que.drop('activate.sh',receipt,(whatReg?'code':'info') +' '+ vpn_service+' '+ msg_sabaivpn +' '+ (whatReg ? f.reg_code.value : f.reg_email.value+','+f.reg_cid.value+','+f.reg_oid.value+' '+vpn_service+','+(f.reg_remind.checked?'1':0)) );
-
-function report(text){ msg.innerHTML = text; }
-
+function report(text){ E('infobox').innerHTML = text; }
 function verifyFields(){}
-
-function init(){ msg = E('msg'); f=E('fom');
- E('remacs').innerHTML=(isitsafe.nvmac.toUpperCase()==isitsafe.hwmac.toUpperCase()?'':' &iexcl;MAC mismatch!');
- E(pro.lic==''?'row_prep':'row_email').style.display='';
-}
+function init(){ f=E('fom'); ls=E('license_status'); acc=E('activation_code'); getInit(); }
 // /* END REGISTRATION JS */
 
 </script></head><body onload='init();' id='topmost'><form id='fom'><table id='container' cellspacing=0>
 <tr><td colspan=2 id='header'><a id='headlink' href=''><img src='' id='headlogo'></a>
-<div class='title' id='SVPNstatus'>Sabai</div><div class='version' id='subversion'>version <% sabaiversion(); %></div></td></tr>
+<div class='title' id='SVPNstatus'>Sabai</div><div class='version' id='subversion'>version <!-- SABAI-VERSION --></div></td></tr>
 <tr id='body'><td id='navi'><script type='text/javascript'>navi()</script></td><td id='content'>
 
 <!-- / / / -->
 
 <!-- BEGIN REGISTRATION HTML -->
 <div class='section-title'>Sabai Router Registration<span id='remacs' style='color: red; font-size: 12px;'></span></div><div class='section'>
+<input type='hidden' name='step' value='program'>
+<input type='hidden' name='skip' value='0'>
 <script type='text/javascript'>
 createFieldTable('', [
-	{ title: 'Processing...', hidden: true, rid: 'reg_spin', suffix: '<img src="spin.gif">' },
-	{ title: 'Prepare', hidden: true, rid: 'row_prep', type: 'hidden',
- suffix: "<input value='Request License' onclick='getLicense();' type='button'> <input value='I have a license' onclick='skipLicense();' type='button'>" },
-	{ title: 'E-mail', hidden: true, rid: 'row_email', name: 'act_email', type: 'text', maxlen: 256, size: 30,
- suffix: "<br><br><input value='Request Token' onclick='getToken();' type='button'> <input value='I have a Token' onclick='skipToken(true);' type='button'>" },
-	{ title: 'Activation Token', hidden: true, rid: 'row_token', name: 'act_token', type: 'text', maxlen: 128, size: 60,
- suffix: "<br><br><input value='Use Token' onclick='useToken();' type='button'> <input value='I need a Token' onclick='skipToken(false);' type='button'>" },
+	{ title: '', rid: 'row_status', hidden: (pro.act!=''||pro.lic!=''), suffix: "<span style='font-weight: bold'>This router <span style='color: red'>needs</span> an Initialization Token.</span>" },
+	{ title: 'E-mail', hidden: (pro.act!=''), rid: 'row_email', name: 'act_email', type: 'text', maxlen: 256, size: 30, value: '' },
+	{ title: 'Activation Token', hidden: true, rid: 'row_token', name: 'act_token', type: 'text', size: '60' },
+	{ title: '', hidden: (pro.act!=''||pro.lic!=''),
+ suffix: "<input id='req_button' value='Activate' onclick='activate();' type='button'> <input id='skip_button' value='Skip: I have an Activation Token' onclick='skipToken();' type='button'>" },
 
+	{ title: 'Processing...', hidden: true, rid: 'reg_spin', suffix: '<img src="spin.gif">' },
+
+	{ title: 'Code', hidden: true, rid: 'row_code', suffix: "<textarea id='activation_code' readonly='readonly' onclick='this.select();' style='width: 100%; height: 6em'></textarea>" },
+
+	{ title: 'Go to', hidden: (pro.act==''), rid: 'row_choices',
+ suffix: "<input value='PPTP' onclick='location.pathname=\"/sabaivpn-pptp.asp\"' type='button'> <input value='OpenVPN' onclick='location.pathname=\"/sabaivpn-ovpn.asp\"' type='button'>" },
 
 ]);
 </script>
 
 </div>
 
-<span id='msg'>Thank you for purchasing a Sabai Technology integrated VPN router.<br>
-Please enter the e-mail you used when you purchased the router or upgrade, your Customer ID and Order ID.
- (This information should be available in or on the packaging with your order and in your order e-mail confirmation.)<br>
-Alternatively, you may enter a registration code.<br></span><br>
+<span id='infobox'> </span>
 
 <br><br><a href='http://sabaitechnology.zendesk.com'>Technical Support</a>
 <!-- END REGISTRATION HTML -->

@@ -29,6 +29,7 @@ install:
 			-e "s,\x0d,," \
 			-e "s,^\s\+,," \
 			-e "/^$$/d" \
+			-e "s,<!-- SABAI-VERSION -->,$(V2)," \
 			-e "/^<!--$$/,/^-->$$/! { s,^\s\+, , }" $$F > $(INSTALLDIR)/www/$$F; \
 	done
 

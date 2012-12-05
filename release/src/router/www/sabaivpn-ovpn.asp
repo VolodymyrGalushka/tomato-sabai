@@ -8,12 +8,12 @@
 <script type='text/javascript' src='sabaivpn.jsx?_http_id=<% nv(http_id); %>'></script>
 <script type='text/javascript'>
 
-// <% sabaaiVPN("SJ"); %>
+// <% sabaaiVPN("0J"); %>
 
 </script></head><body onload='init();' id='topmost'>
 <table id='container' cellspacing=0><tr><td colspan=2 id='header'>
 <a id='headlink' href=''><img src='' id='headlogo'></a>
-<div class='title' id='SVPNstatus'>Sabai</div><div class='version' id='subversion'>version <% sabaiversion(); %></div></td></tr>
+<div class='title' id='SVPNstatus'>Sabai</div><div class='version' id='subversion'>version <!-- SABAI-VERSION --></div></td></tr>
 <tr id='body'><td id='navi'><script type='text/javascript'>navi()</script></td><td id='content'>
 
 <!-- / / / -->

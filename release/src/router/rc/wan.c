@@ -835,6 +835,10 @@ void start_wan(int mode)
 
 	enable_ip_forward();
 
+///* SABAI GW BEGIN */
+	do_sabaigw(TRUE); // But does it blend?
+///* SABAI GW END */
+
 	led(LED_DIAG, 0);	// for 4712, 5325E (?)
 	led(LED_DMZ, nvram_match("dmz_enable", "1"));
 

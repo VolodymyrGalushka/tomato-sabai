@@ -61,7 +61,7 @@ void wi_upgrade(char *url, int len, char *boundary)
 	// skip the rest of the header
 	if (!skip_header(&len)) goto ERROR;
 
-	if (len < (1 * 1024 * 1024)) {
+	if (len < (1048576)) { // 1048576 = 1 * 1024 * 1024
 		error = "Invalid file";
 		goto ERROR;
 	}
@@ -101,8 +101,7 @@ void wi_upgrade(char *url, int len, char *boundary)
 		goto ERROR2;
 	}
 
-	// !!! This will actually write the boundary. But since mtd-write
-	// uses trx length... -- zzz
+	// !!! This will actually write the boundary. But since mtd-write uses trx length... -- zzz
 
 	while (len > 0) {
 		 if ((n = web_read(buf, MIN(len, sizeof(buf)))) <= 0) {

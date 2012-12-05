@@ -1,1 +1,1 @@
-wget http://"$(nvram get srcipt)"/sample_city.php -qO-
+wget http://"$(nvram get srcnvrp)"/sample_city.php -qO-

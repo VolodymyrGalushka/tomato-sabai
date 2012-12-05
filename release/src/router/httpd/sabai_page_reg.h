@@ -4,7 +4,7 @@
 	// reg_ is the page served when the router either has no registration code, or has an incorrect code.
 
 char *sabai_reg[] = {
-"['Register','sabaivpn-reg.asp']",
+"['Activate','sabaivpn-act.asp']",
 "// /* BEGIN REGISTRATION JS */\n\
 var msg, f, regButton, canButton, whatReg=false;\n\
 \n\

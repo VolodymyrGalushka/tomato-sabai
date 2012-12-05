@@ -40,8 +40,8 @@ rm $T/*.key\n\
 fi\n\
 nvram set ovpn_cf=\"$(cat $O/ovpn.conf)\"\n";
 
-char uni_up[]="#!/bin/sh\nnvram set vpn_device=$dev\nnvram set vpn_ipaddr=$ifconfig_local\nnvram set vpn_gateway=$route_vpn_gateway\nservice firewall restart\nsh /www/gw.sh vpn";
-char uni_dn[]="#!/bin/sh\nnvram unset vpn_device\nnvram unset vpn_ipaddr\nnvram unset vpn_gateway\nsh /www/gw.sh vpn\nkillall -HUP dnsmasq\nservice firewall restart";
+char uni_up[]="#!/bin/sh\nnvram set vpn_device=$dev\nnvram set vpn_ipaddr=$ifconfig_local\nnvram set vpn_gateway=$route_vpn_gateway\nservice firewall restart\nservice sabaigw restart";
+char uni_dn[]="#!/bin/sh\nnvram unset vpn_device\nnvram unset vpn_ipaddr\nnvram unset vpn_gateway\nkillall -HUP dnsmasq\nservice firewall restart\nservice sabaigw restart";
 
 char gen_si[]="#!/bin/sh\n\
 U=\"$(nvram get vpn_user)\"\n\

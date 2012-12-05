@@ -144,9 +144,7 @@ _up()\n\
 \tservice routing restart\n\
 \tservice dnsmasq restart\n\
 \tservice firewall restart\n\
-#SABAI DUAL GATEWAY CODE BEGIN\n\
-\tsh /www/gw.sh vpn\n\
-#SABAI DUAL GATEWAY CODE BEGIN\n\
+\tservice sabaigw restart\n\
 }\n\
 \n\
 _down()\n\
@@ -173,9 +171,9 @@ _down()\n\
 \n\
 \tservice routing restart\n\
 \tservice dnsmasq restart\n\
-\tservice firewall restart\n\
-\tsh /www/gw.sh vpn\n\
 \tnvram set pptp_on=0\n\
+\tservice firewall restart\n\
+\tservice sabaigw restart\n\
 \tnvram unset vpn_device\n\
 }\n\
 \n\

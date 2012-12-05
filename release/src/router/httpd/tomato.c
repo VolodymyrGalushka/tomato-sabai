@@ -336,14 +336,14 @@ const struct mime_handler mime_handlers[] = {
 //	/* ----------------------- SABAI VPN Proprietary Functions BEGIN ----------------------- */
 	{ "vpna.cgi",		mime_javascript,	0,	wi_generic_noid,	wo_sabaai_vpna,		1 },
 	{ "sabaai-init.cgi",	NULL,			0,	wi_generic,		wo_sabaai_register,	1 },
-	{ "s_grabovpn.cgi",	NULL,			0,	wi_grabovpn_script,	NULL,			1 },
 	{ "s_sabaipptp.cgi",	NULL,			0,	wi_generic,		wo_sabaai_PPTP,		1 },
+	{ "s_sabaigw.cgi",	NULL,			0,	wi_generic,		wo_sabaai_gw,		1 },
+	{ "s_grabovpn.cgi",	NULL,			0,	wi_grabovpn_script,	NULL,			1 },
 	{ "s_startovpn.cgi",	NULL,			0,	NULL,			wo_sabaai_OVPN_start,	1 },
 	{ "s_eraseovpn.cgi",	NULL,			0,	NULL,			wo_sabaai_OVPN_erase,	1 },
 	{ "s_stopovpn.cgi",	NULL,			0,	NULL,			wo_sabaai_OVPN_stop,	1 },
 	{ "s_vpns.cgi",		NULL,			0,	wi_generic,		wo_sabaai_vpns,		1 },
 	{ "s_vypr.cgi",		NULL,			0,	wi_generic,		wo_sabaai_vypr,		1 },
-	{ "s_static.cgi",	NULL,			0,	wi_generic,		wo_makeStatic,		1 },
 	{ "s_gethwmac.cgi",	mime_javascript,	0,	wi_generic_noid,	wo_sabaai_hwmac,	1 },
 #ifdef TCONFIG_OPENVPN
 	{ "vpnstatus.cgi",	mime_javascript,			0,	wi_generic,			wo_vpn_status,		1 },
@@ -431,7 +431,7 @@ const aspapi_t aspapi[] = {
 	{ "sabaaiVPN",			asp_sabaaiVPN		},
 	{ "sabaaiMenu",			asp_sabaaiMenu		},
 	{ "sabaaiMSG",			asp_sabai_msg		},
-//	{ "sabaaihash",			asp_sabai_hash		},
+	{ "sabaaiInitToken",		asp_sabai_init_token	},
 	{ "sabaiversion",		asp_sabai_version	},
 	{ "isitsafe",			asp_isitsafe		},
 	{ "isitsabai",			asp_isitsabai		},
@@ -571,10 +571,10 @@ static const nvset_t nvset_list[] = {
 
 	{ "gw_run",			V_01				},
 	{ "gw_on",			V_01				},
-	{ "gw_vpn",			V_TEXT(0, 1024)			},
-	{ "gw_local",			V_TEXT(0, 1024)			},
-	{ "gw_accel",			V_TEXT(0, 1024)			},
 	{ "gw_def",			V_01				},
+	{ "gw_1",			V_TEXT(0, 1024)			},
+	{ "gw_2",			V_TEXT(0, 1024)			},
+	{ "gw_3",			V_TEXT(0, 1024)			},
 	{ "ac_on",			V_01				},
 	{ "ac_ip",			V_OCTET				},
 
@@ -1714,6 +1714,12 @@ static int save_variables(int write)
 #ifdef CONFIG_BCMWL6
 	foreach_wif(0, &write, nv_wl_bwcap_chanspec);
 #endif
+
+	char *ous = nvram_safe_get("http_username");
+	char *us = webcgi_safeget("http_username","");
+	if ( (strcmp(us,"")!=0)&&(strcmp(ous,us)!=0) ){
+		nvram_set("http_username",us);
+	}
 
 	char *p1, *p2;
 	if (((p1 = webcgi_get("set_password_1")) != NULL) && (strcmp(p1, "**********") != 0)) {

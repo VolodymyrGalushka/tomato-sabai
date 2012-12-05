@@ -109,6 +109,15 @@ void asp_sabaaiVPN(int argc, char **argv){
 		if( piece=='j' ) web_puts(sabai_reg[1]);
 		return;
 	}
+	switch(nvram_get_int("vpn_servicen")){
+		case 0:{
+			if( piece=='h' ) web_puts(sabai_sabai[2]);
+			if( piece=='j' ) web_puts(sabai_sabai[1]);
+			if( piece=='H' ) web_puts(sabai_sabai[4]);
+			if( piece=='J' ) web_puts(sabai_sabai[3]);
+		break; }
+	}
+/*
 	switch(page){
 		case '0':{
 			if( piece=='h' ) web_puts(sabai_sabai[2]);
@@ -142,15 +151,16 @@ void asp_sabaaiVPN(int argc, char **argv){
 			if( piece=='h' ) web_puts(sabai_hma[2]);
 			if( piece=='j' ) web_puts(sabai_hma[1]);
 		break; }
-/*		case 'A':{
-			if( piece=='h' ) web_puts(sabai_astrill[2]);
-			if( piece=='j' ) web_puts(sabai_astrill[1]);
-		break; }
-*//*		case 'P':{
-			if( piece=='h' ) web_puts(sabai_apo[2]);
-			if( piece=='j' ) web_puts(sabai_apo[1]);
-		break; }
-*/	}
+//		case 'A':{
+//			if( piece=='h' ) web_puts(sabai_astrill[2]);
+//			if( piece=='j' ) web_puts(sabai_astrill[1]);
+//		break; }
+//		case 'P':{
+//			if( piece=='h' ) web_puts(sabai_apo[2]);
+//			if( piece=='j' ) web_puts(sabai_apo[1]);
+//		break; }
+	}
+*/
 }
 
 void wo_sabaai_register(){
@@ -186,7 +196,7 @@ void asp_isitsafe(){ int i=6; char macstr[18] = {0}; int *mac = get_MAC_in_CFE()
  web_printf("isitsafe={ hwmac: '%s', nvmac: '%s' };\n",macstr,nvram_safe_get("et0macaddr") );
 }
 
-//void asp_sabai_hash(){ eval("md5sum","/dev/mtd0ro"); }
+void asp_sabai_init_token(){ eval("md5sum","/dev/mtd0ro"); }
 
 void asp_sabai_msg(){
 	int i; int *mac = get_MAC_in_CFE();

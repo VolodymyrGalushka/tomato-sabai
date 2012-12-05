@@ -6,7 +6,7 @@ CFLAGS += -I$(SRCBASE) -I$(SRCBASE)/include -I. -I$(TOP)/shared
 OBJS = httpd.o cgi.o tomato.o version.o 
 OBJS += misc.o dhcp.o upgrade.o traceping.o parser.o upnp.o ctnf.o
 OBJS += nvram.o log.o webio.o wl.o devlist.o ddns.o config.o bwm.o
-OBJS += sabaisub.o sabaivpn.o sabaivpn_ovpn.o sabaivpn_dual.o sabaivpn_pptp.o sabaivpn_vpns.o sabaivpn_vypr.o
+OBJS += sabaisub.o sabaivpn.o sabaivpn_ovpn.o sabaivpn_gw.o sabaivpn_pptp.o sabaivpn_vpns.o sabaivpn_vypr.o
 OBJS += blackhole.o utf8.o
 OBJS += cpuinfo.o
 OBJS += iptraffic.o
@@ -33,7 +33,6 @@ ifeq ($(TCONFIG_PPTPD),y)
 OBJS += pptpd.o
 endif
 
-### @sed "s/#define SABAIVPNVERSION.*/#define SABAIVPNVERSION $(V2)/" sabaisub.h
 
 all: httpd
 

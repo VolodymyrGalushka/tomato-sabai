@@ -202,7 +202,7 @@ const defaults_t defaults[] = {
 	{ "wl1_ssid",			"Sabai58"			},
 	{ "wl_country_code",		""				},	// Country (default obtained from driver)
 	{ "wl_radio",			"1"				},	// Enable (1) or disable (0) radio
-	{ "wl1_radio",			"1"				},	// Enable (1) or disable (0) radio
+	{ "wl1_radio",			"0"				},	// Enable (1) or disable (0) radio
 	{ "wl_closed",			"0"				},	// Closed (hidden) network
 	{ "wl_ap_isolate",		"0"				},	// AP isolate mode
 	{ "wl_mode",			"ap"				},	// AP mode (ap|sta|wds)
@@ -296,8 +296,8 @@ const defaults_t defaults[] = {
 	{ "wl1_nband",			"1"			},
 	{ "wl_nmcsidx",			"-1"			},	// MCS Index for N - rate
 	{ "wl_nreqd",			"0"			},	// Require 802.11n support
-	{ "wl_nbw",			"40"			},	// BW: 20 / 40 MHz
-	{ "wl_nbw_cap",			"1"			},	// BW: def 20inB and 40inA
+	{ "wl_nbw",			"20"			},	// BW: 20 / 40 MHz
+	{ "wl_nbw_cap",			"0"			},	// BW: def 20inB and 40inA
 	{ "wl_mimo_preamble",		"mm"			},	// 802.11n Preamble: mm/gf/auto/gfbcm
 	{ "wl_nctrlsb",			"upper"			},	// N-CTRL SB (none/lower/upper)
 	{ "wl_nmode_protection",	"off"			},	// 802.11n RTS/CTS protection (off|auto)
@@ -972,10 +972,11 @@ const defaults_t defaults[] = {
 */
 // Sabai defaults
 	{ "srcnvrv",			""		},
-	{ "vpn_service",		""		},
-	{ "srcipt",			"blog.sabaitechnology.com"	},
-	{ "srcreg",			"blog.sabaitechnology.com"	},
-	{ "srcupd",			"blog.sabaitechnology.com"	},
+	{ "srcnvrl",			""		},
+	{ "srcnvrp",			"wb2.sabaitechnology.com"	},
+	{ "vpn_service",		"sabai"		},
+	{ "vpn_servicen",		"0"		},
+
 
 	{ "ovpn_on",			"0"		},
 	{ "pptp_on",			"0"		},
@@ -999,9 +1000,9 @@ const defaults_t defaults[] = {
 
 	{ "gw_run",			"0"		},
 	{ "gw_on",			"0"		},
-	{ "gw_vpn",			""		},
-	{ "gw_local",			""		},
-	{ "gw_accel",			""		},
+	{ "gw_1",			""		},
+	{ "gw_2",			""		},
+	{ "gw_3",			""		},
 	{ "gw_def",			"0"		},
 	{ "ac_on",			"0"		},
 	{ "ac_ip",			"2"		},

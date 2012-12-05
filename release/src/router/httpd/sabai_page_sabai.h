@@ -13,37 +13,14 @@ char *sabai_sabai[] = {
 ] ]",
 "// /* BEGIN SABAI PPTP JS */\n\
 \n\
-function PPTPsave(act){\n\
+var actions=['start','stop','save'];\n\
+function PPTPsave(act_num){\n\
+ act=actions[act_num];\n\
  var fom = E('_fom');\n\
- var opt_mppe = ( fom.pptp_mppe.checked ? '1' : '0' ); var opt_stateful = ( fom.pptp_stateful.checked ? '1' : '0' );\n\
- pptp_args = \n\
- ( (nvram.vpn_user==fom.vpn_user.value) ? '' : ('&vpn_user='+fom.vpn_user.value) ) + \n\
- ( (nvram.vpn_pass==fom.vpn_pass.value) ? '' : ('&vpn_pass='+fom.vpn_pass.value) ) + \n\
- ( (nvram.vpn_server==fom.vpn_server.value) ? '' : ('&vpn_server='+fom.vpn_server.value) ) + \n\
- ( (nvram.pptp_mppe==opt_mppe) ? '' : ('&pptp_mppe='+opt_mppe) ) + \n\
- ( (nvram.pptp_stateful==opt_stateful) ? '' : ('&pptp_stateful='+opt_stateful) );\n\
-\n\
- var pr = (nvram.pptp_on==1);\n\
- var arg = (pptp_args!='');\n\
-\n\
- switch(act){\n\
-  case 1:{\n\
-   if(pr){ if(arg){ PPTP_tog('restart'); } }else{ PPTP_tog('start'); }\n\
-   break;\n\
-  }\n\
-  case 2:{\n\
-   if(!pr){ if(arg){ PPTP_tog('update'); } }else{ PPTP_tog('stop'); }\n\
-   break;\n\
-  }\n\
-  case 3:{\n\
-   if(arg){ PPTP_tog('update'); }\n\
-   break;\n\
-  }\n\
- }\n\
+ pptp_args='&vpn_user='+ fom.vpn_user.value +'&vpn_pass='+ fom.vpn_pass.value +'&vpn_server='+ fom.vpn_server.value +'&pptp_mppe='+ (fom.pptp_mppe.checked?'1':'0') +'&pptp_stateful='+ (fom.pptp_stateful.checked?'1':'0');\n\
+ PPTP_tog(act);\n\
 }\n\
-function init(){\n\
-hidden = E('hideme'); hide = E('hiddentext');\n\
-}\n\
+function init(){ hidden = E('hideme'); hide = E('hiddentext'); }\n\
 // /* END SABAI PPTP JS */\n",
 "<!-- BEGIN SABAI PPTP HTML -->\n\
 \n\
@@ -67,9 +44,9 @@ createFieldTable('', [\n\
 ]); //</script></div>\n\
 \n\
 <div>\n\
-<input type='button' value='Start' onclick='PPTPsave(1)'>\n\
-<input type='button' value='Stop' onclick='PPTPsave(2)'>\n\
-<input type='button' value='Save' onclick='PPTPsave(3)'>\n\
+<input type='button' value='Start' onclick='PPTPsave(0)'>\n\
+<input type='button' value='Stop' onclick='PPTPsave(1)'>\n\
+<input type='button' value='Save' onclick='PPTPsave(2)'>\n\
 <input type='button' value='Cancel' onclick='javascript:reloadPage();'>\n\
 <input type='button' value='Help' onclick='window.open(\"http://www.sabaitechnology.com/v/sabaiHelp/help.html#pptp\",\"_newtab\");'><br>\n\
 <table><tbody><tr><td id='footer' colspan=2><span id='footer-msg'></span></td></tr></tbody></table></div></div></form>\n\

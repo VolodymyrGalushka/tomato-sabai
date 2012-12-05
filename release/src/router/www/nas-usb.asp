@@ -319,7 +319,7 @@ function submit_complete()
 <table id='container' cellspacing=0>
 <tr><td colspan=2 id='header'><a id='headlink' href=''><img src='' id='headlogo'></a>
 	<div class='title' id='SVPNstatus'>Sabai</div>
-	<div class='version' id='subversion'>version <% sabaiversion(); %></div>
+	<div class='version' id='subversion'>version <!-- SABAI-VERSION --></div>
 </td></tr>
 <tr id='body'><td id='navi'><script type='text/javascript'>navi()</script></td>
 <td id='content'>

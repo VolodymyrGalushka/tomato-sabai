@@ -33,33 +33,17 @@ if (nvram.lan_ipaddr.match(/^(\d+\.\d+\.\d+)\.(\d+)$/)) ipp = RegExp.$1 + '.';
 	else ipp = '?.?.?.';
 
 autonum = aton(nvram.lan_ipaddr) & aton(nvram.lan_netmask);
-
+var managedDHCP=[];
 var sg = new TomatoGrid();
 
-sg.exist = function(f, v)
-{
+sg.exist = function(f, v){
 	var data = this.getAllData();
-	for (var i = 0; i < data.length; ++i) {
-		if (data[i][f] == v) return true;
-	}
+	for (var i = 0; i < data.length; ++i){ if (data[i][f] == v) return true; }
 	return false;
 }
-
-sg.existMAC = function(mac)
-{
-	if (isMAC0(mac)) return false;
-	return this.exist(0, mac) || this.exist(1, mac);
-}
-
-sg.existName = function(name)
-{
-	return this.exist(3, name);
-}
-
-sg.inStatic = function(n)
-{
-	return this.exist(2, n);
-}
+sg.existMAC = function(mac){ if (isMAC0(mac)) return false; return this.exist(0, mac) || this.exist(1, mac); }
+sg.existName = function(name){ return this.exist(3, name); }
+sg.inStatic = function(n){ return this.exist(2, n); }
 
 sg.dataToView = function(data) {
 	var v = [];
@@ -194,13 +178,17 @@ sg.setup = function()
 		{ type: 'text', maxlen: 15 },
 		{ type: 'text', maxlen: 63 } ] );
 
-	this.headerSet(['MAC Address', 'IP Address', 'Managed','Hostname']);
+	this.headerSet(['MAC Address', 'IP Address', 'Hostname']);
 	var s = nvram.dhcpd_static.split('>');
 	for (var i = 0; i < s.length; ++i) {
 		var t = s[i].split('<');
 		if (t.length == 4) {
 			var d = t[0].split(',');
-			this.insertData(-1, [d[0], (d.length >= 2) ? d[1] : '00:00:00:00:00:00', (t[1].indexOf('.') == -1) ? (ipp + t[1]) : t[1], (t[3]==1?'Yes':'No'), t[2]]);
+			if(t[3]==0){
+				this.insertData(-1, [d[0], (d.length >= 2) ? d[1] : '00:00:00:00:00:00', (t[1].indexOf('.') == -1) ? (ipp + t[1]) : t[1], t[2] ]);
+			}else{
+				managedDHCP.push(s[i]);
+			}
 		}
 	}
 	this.sort(2);
@@ -220,8 +208,10 @@ function save()
 		var d = data[i];
 		sdhcp += d[0];
 		if (!isMAC0(d[1])) sdhcp += ',' + d[1];
-		sdhcp += '<' + d[2] + '<' + d[3] + '>';
+		sdhcp += '<' + d[2] + '<' + d[3] + '<0>';
 	}
+
+	sdhcp+=(managedDHCP.length>0?managedDHCP.join('>')+'>':'');
 
 	var fom = E('_fom');
 	fom.dhcpd_static.value = sdhcp;
@@ -239,7 +229,7 @@ function init()
 <table id='container' cellspacing=0>
 <tr><td colspan=2 id='header'><a id='headlink' href=''><img src='' id='headlogo'></a>
 	<div class='title' id='SVPNstatus'>Sabai</div>
-	<div class='version' id='subversion'>version <% sabaiversion(); %></div>
+	<div class='version' id='subversion'>version <!-- SABAI-VERSION --></div>
 </td></tr>
 <tr id='body'><td id='navi'><script type='text/javascript'>navi()</script></td>
 <td id='content'>
@@ -259,7 +249,7 @@ function init()
 
 <div>
 <small>To specify multiple hostnames per device, separate them with spaces.</small><br>
-You will need to enter the MAC address for the device you wish to assign; please ensure that the IP address you assign does not already belong to another device.
+<span id='user-msg'>You will need to enter the MAC address for the device you wish to assign; please ensure that the IP address you assign does not already belong to another device.</span>
 </div><br><div id='footer'>
 	<span id='footer-msg'></span>
 	<input type='button' value='Save' id='save-button' onclick='save()'>

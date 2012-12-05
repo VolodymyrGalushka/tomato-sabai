@@ -214,6 +214,8 @@ endif
 
 obj-y += wanuptime
 
+obj-$(TCONFIG_TCPDUMP) += lpcap tcpdump
+
 obj-clean := $(foreach obj, $(obj-y) $(obj-n) $(obj-), $(obj)-clean)
 obj-install := $(foreach obj,$(obj-y),$(obj)-install)
 
@@ -230,25 +232,25 @@ kernel: $(LINUXDIR)/.config
 	@$(SEP)
 
 	@if ! grep -q "CONFIG_EMBEDDED_RAMDISK=y" $(LINUXDIR)/.config ; then \
-	    $(MAKE) -C $(LINUXDIR) zImage CC=$(KERNELCC) $(PARALLEL_BUILD); \
+	    $(MAKE) -C $(LINUXDIR) zImage CC=$(KERNELCC); \
 	fi
 	if grep -q "CONFIG_MODULES=y" $(LINUXDIR)/.config ; then \
-	    $(MAKE) -C $(LINUXDIR) modules CC=$(KERNELCC) $(PARALLEL_BUILD); \
+	    $(MAKE) -C $(LINUXDIR) modules CC=$(KERNELCC); \
 	fi
 ifeq ($(CONFIG_LINUX26),y)
-	$(MAKE) -C $(LINUXDIR)/arch/mips/brcm-boards/bcm947xx/compressed srctree=$(LINUXDIR) $(PARALLEL_BUILD)
+	 srctree=$(LINUXDIR) $(MAKE) -C $(LINUXDIR)/arch/mips/brcm-boards/bcm947xx/compressed srctree=$(LINUXDIR)
 endif
 
 
 lzma-loader:
-	$(MAKE) -C $(SRCBASE)/lzma-loader CROSS_COMPILE=$(CROSS_COMPILE) LD=$(LD) $(PARALLEL_BUILD)
+	$(MAKE) -C $(SRCBASE)/lzma-loader CROSS_COMPILE=$(CROSS_COMPILE) LD=$(LD)
 
 lzma-loader-install: lzma-loader
 	@$(SEP)
 
 
 kmod: dummy
-	$(MAKE) -C $(LINUXDIR) modules CC=$(KERNELCC) $(PARALLEL_BUILD)
+	$(MAKE) -C $(LINUXDIR) modules CC=$(KERNELCC)
 
 testfind:
 	cd $(TARGETDIR)/lib/modules/* && find -name "*.o" -exec mv -i {} . \; || true
@@ -657,13 +659,44 @@ dependconf: .ipv6-$(if $(TCONFIG_IPV6),y,n) .fullssl-$(if $(FULL_OPENSSL),y,n)
 
 oldconfig oldconf: koldconf roldconf dependconf bboldconf
 
+# BEGIN SABAI
+
+sabaikoldconf:
+	@$(MAKE) -C $(LINUXDIR) oldconfig
+	@$(MAKE) -C $(LINUXDIR) include/linux/version.h
+
+sabairoldconf: config/conf
+	@config/conf -o $(CONFIG_IN)
+	@$(MAKE) shared-clean rc-clean nvram-clean httpd-clean prebuilt-clean libbcmcrypto-clean dhcpv6-clean
+	#@$(MAKE) shared rc nvram httpd prebuilt libbcmcrypto dhcpv6
+
+.sabaiipv6-y .sabaiipv6-n:
+	@rm -f .ipv6-y .ipv6-n
+	@$(MAKE) iptables-clean ebtables-clean pppd-clean zebra-clean dnsmasq-clean iproute2-clean
+	#@$(MAKE) iptables ebtables pppd zebra dnsmasq iproute2
+	@touch $@
+
+.sabaifullssl-y .sabaifullssl-n:
+	@rm -f .fullssl-y .fullssl-n
+	@$(MAKE) openssl-clean vsftpd-clean mssl-clean mdu-clean httpd-clean
+	#@$(MAKE) openssl vsftpd mssl mdu httpd
+	@touch $@
+
+sabaidependconf: .ipv6-$(if $(TCONFIG_IPV6),y,n) .fullssl-$(if $(FULL_OPENSSL),y,n)
+
+sabaibboldconf:
+	@$(MAKE) -C busybox oldconfig
+
+sabaioldconfig: sabaikoldconf sabairoldconf sabaidependconf sabaibboldconf
+
+# END SABAI
 
 #
 # overrides and extra dependencies
 #
 
 busybox: dummy
-	@$(MAKE) -C busybox EXTRA_CFLAGS="-fPIC $(EXTRACFLAGS)" $(PARALLEL_BUILD)
+	@$(MAKE) -C busybox EXTRA_CFLAGS="-fPIC $(EXTRACFLAGS)"
 
 busybox-install:
 	rm -rf $(INSTALLDIR)/busybox
@@ -828,7 +861,7 @@ iptables-clean:
 
 ppp:
 	@$(SEP)
-	$(MAKE) -C ppp/pppoecd $* INSTALLDIR=$(INSTALLDIR)/ppp $(if $(TCONFIG_IPV6),HAVE_INET6=y,) $(PARALLEL_BUILD)
+	$(MAKE) -C ppp/pppoecd $* INSTALLDIR=$(INSTALLDIR)/ppp $(if $(TCONFIG_IPV6),HAVE_INET6=y,)
 #	$(MAKE) -C ppp/pppoecd $* INSTALLDIR=$(INSTALLDIR)/ppp DFLAGS="-DDEBUG -DDEBUGALL"
 
 ppp-%:
@@ -841,7 +874,7 @@ rp-pppoe/src/stamp-h1: rp-pppoe/src/Makefile.in
 	@touch rp-pppoe/src/stamp-h1
 
 rp-pppoe: pppd rp-pppoe/src/stamp-h1
-	$(MAKE) -C rp-pppoe/src pppoe-relay rp-pppoe.so $(PARALLEL_BUILD)
+	$(MAKE) -C rp-pppoe/src pppoe-relay rp-pppoe.so
 
 rp-pppoe-clean:
 	-@$(MAKE) -C rp-pppoe/src clean
@@ -901,7 +934,7 @@ shared: busybox
 
 vsftpd: $(if $(TCONFIG_FTP_SSL),openssl,)
 	@$(SEP)
-	$(MAKE) -C vsftpd $(PARALLEL_BUILD)
+	$(MAKE) -C vsftpd
 
 vsftpd-install: vsftpd
 	install -D vsftpd/vsftpd $(INSTALLDIR)/vsftpd/usr/sbin/vsftpd
@@ -923,7 +956,7 @@ ntfs-3g/Makefile:
 		--disable-posix-acls --disable-nfconv --disable-dependency-tracking
 
 ntfs-3g: ntfs-3g/Makefile
-	@$(MAKE) -C ntfs-3g $(PARALLEL_BUILD)
+	@$(MAKE) -C ntfs-3g 
 
 ntfs-3g-clean:
 	-@$(MAKE) -C ntfs-3g clean
@@ -1209,7 +1242,7 @@ ntpc: nvram shared
 
 dropbear: dropbear/config.h
 	@$(SEP)
-	@$(MAKE) -C dropbear PROGRAMS="dropbear dbclient dropbearkey scp" MULTI=1 $(PARALLEL_BUILD)
+	@$(MAKE) -C dropbear PROGRAMS="dropbear dbclient dropbearkey scp" MULTI=1
 
 dropbear-install:
 	install -D dropbear/dropbearmulti $(INSTALLDIR)/dropbear/usr/bin/dropbearmulti
@@ -1247,7 +1280,7 @@ sqlite/stamp-h1:
 	touch sqlite/stamp-h1
 
 sqlite: sqlite/stamp-h1
-	@$(MAKE) -C sqlite all $(PARALLEL_BUILD)
+	@$(MAKE) -C sqlite all
 
 sqlite-clean:
 	-@$(MAKE) -C sqlite clean
@@ -1293,7 +1326,7 @@ ffmpeg/stamp-h1: zlib
 	touch ffmpeg/stamp-h1
 
 ffmpeg: ffmpeg/stamp-h1 zlib
-	@$(MAKE) -C ffmpeg all $(PARALLEL_BUILD)
+	@$(MAKE) -C ffmpeg all
 
 ffmpeg-clean:
 	-@$(MAKE) -C ffmpeg clean
@@ -1318,7 +1351,7 @@ libogg/stamp-h1:
 	touch libogg/stamp-h1
 
 libogg: libogg/stamp-h1
-	@$(MAKE) -C libogg all $(PARALLEL_BUILD)
+	@$(MAKE) -C libogg all
 
 libogg-clean:
 	-@$(MAKE) -C libogg clean
@@ -1342,7 +1375,7 @@ flac/stamp-h1: libogg
 	touch flac/stamp-h1
 
 flac: flac/stamp-h1 libogg
-	@$(MAKE) -C flac/src/libFLAC all $(PARALLEL_BUILD)
+	@$(MAKE) -C flac/src/libFLAC all
 
 flac-clean:
 	-@$(MAKE) -C flac clean
@@ -1361,7 +1394,7 @@ jpeg/stamp-h1:
 	touch jpeg/stamp-h1
 
 jpeg: jpeg/stamp-h1
-	@$(MAKE) -C jpeg LIBTOOL="" O=o A=a CC=$(CC) AR2="touch" libjpeg.a libjpeg.so $(PARALLEL_BUILD)
+	@$(MAKE) -C jpeg LIBTOOL="" O=o A=a CC=$(CC) AR2="touch" libjpeg.a libjpeg.so
 
 jpeg-clean:
 	-@$(MAKE) -C jpeg clean
@@ -1402,7 +1435,7 @@ zlib/stamp-h1:
 	touch zlib/stamp-h1
 
 zlib: zlib/stamp-h1
-	@$(MAKE) -C zlib CC=$(CC) AR="ar rc" RANLIB=$(RANLIB) LD=$(LD) all $(PARALLEL_BUILD)
+	@$(MAKE) -C zlib CC=$(CC) AR="ar rc" RANLIB=$(RANLIB) LD=$(LD) all
 
 zlib-clean:
 	-@$(MAKE) -C zlib clean
@@ -1435,7 +1468,7 @@ libid3tag/stamp-h1: zlib
 	touch libid3tag/stamp-h1
 
 libid3tag: libid3tag/stamp-h1 zlib
-	@$(MAKE) -C libid3tag all $(PARALLEL_BUILD)
+	@$(MAKE) -C libid3tag all
 
 libid3tag-clean:
 	-@$(MAKE) -C libid3tag clean
@@ -1459,7 +1492,7 @@ libvorbis/stamp-h1: libogg
 	touch libvorbis/stamp-h1
 
 libvorbis: libvorbis/stamp-h1
-	@$(MAKE) -C libvorbis/lib all $(PARALLEL_BUILD)
+	@$(MAKE) -C libvorbis/lib all
 
 libvorbis-clean:
 	-@$(MAKE) -C libvorbis clean
@@ -1474,7 +1507,7 @@ endif
 
 minidlna: zlib sqlite ffmpeg libogg flac jpeg libexif libid3tag libvorbis
 	@$(SEP)
-	@$(MAKE) -C minidlna CC=$(CC) $(if $(MEDIA_SERVER_STATIC),STATIC=1,) minidlna $(PARALLEL_BUILD)
+	@$(MAKE) -C minidlna CC=$(CC) $(if $(MEDIA_SERVER_STATIC),STATIC=1,) minidlna
 
 
 igmpproxy/src/Makefile: igmpproxy/src/Makefile.in
@@ -1484,7 +1517,7 @@ igmpproxy/src/Makefile: igmpproxy/src/Makefile.in
 
 igmpproxy: igmpproxy/src/Makefile
 	@$(SEP)
-	@$(MAKE) -C igmpproxy/src $(PARALLEL_BUILD)
+	@$(MAKE) -C igmpproxy/src
 
 igmpproxy-install: igmpproxy
 	install -D igmpproxy/src/igmpproxy $(INSTALLDIR)/igmpproxy/usr/sbin/igmpproxy
@@ -1570,7 +1603,7 @@ glib/stamp-h1:
 	touch glib/stamp-h1
 
 glib: glib/stamp-h1
-	@$(MAKE) -C glib $(PARALLEL_BUILD)
+	@$(MAKE) -C glib
 
 glib-clean:
 	-@$(MAKE) -C glib clean
@@ -1595,7 +1628,7 @@ nocat/stamp-h1: glib-install
 	touch nocat/stamp-h1
 
 nocat: nocat/stamp-h1
-	@$(MAKE) -C nocat $(PARALLEL_BUILD)
+	@$(MAKE) -C nocat 
 
 nocat-clean:
 	-@$(MAKE) -C nocat clean
@@ -1613,7 +1646,7 @@ lzo/stamp-h1:
 	touch lzo/stamp-h1
 
 lzo: lzo/stamp-h1
-	@$(MAKE) -C lzo $(PARALLEL_BUILD)
+	@$(MAKE) -C lzo 
 
 lzo-clean:
 	-@$(MAKE) -C lzo clean
@@ -1638,7 +1671,7 @@ openvpn/.conf: openssl lzo
 	touch openvpn/.conf
 
 openvpn: openvpn/.conf
-	@$(MAKE) -C openvpn $(PARALLEL_BUILD)
+	@$(MAKE) -C openvpn
 
 openvpn-clean:
 	-@$(MAKE) -C openvpn clean
@@ -1918,7 +1951,7 @@ apcupsd/stamp-h1:
 	touch apcupsd/stamp-h1
 
 apcupsd: apcupsd/stamp-h1
-	$(MAKE) -C apcupsd $(PARALLEL_BUILD)
+	$(MAKE) -C apcupsd
 
 apcupsd-clean:
 	-@$(MAKE) -C apcupsd clean
@@ -1938,7 +1971,7 @@ libsodium/stamp-h1:
 	touch libsodium/stamp-h1
 
 libsodium: libsodium/stamp-h1
-	$(MAKE) -C libsodium $(PARALLEL_BUILD)
+	$(MAKE) -C libsodium
 
 libsodium-install: libsodium
 	install -d $(INSTALLDIR)/libsodium/usr/lib

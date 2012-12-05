@@ -7,7 +7,6 @@
 
 #include "rc.h"
 
-
 #ifdef DEBUG_RCTEST
 // used for various testing
 static int rctest_main(int argc, char *argv[])

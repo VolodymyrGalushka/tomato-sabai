@@ -1,7 +1,7 @@
 #ifndef SABAISUB_H
 #define SABAISUB_H
 
-#define SABAIVPNVERSION "1.0501beta"
+#define SABAIVPNVERSION "5"
 #define STRONGTF 0
 
 #define T_ISITAMAC(T_START,T_MAC) ( (T_MAC[T_START+2]==':')&&(T_MAC[T_START+5]==':')&&(T_MAC[T_START+8]==':')&&(T_MAC[T_START+11]==':')&&(T_MAC[T_START+14]==':') )

@@ -64,8 +64,8 @@ static int is_wet(int idx, int unit, int subunit, void *param)
 	return nvram_match(wl_nvname("mode", unit, subunit), "wet");
 }
 
-void start_dnsmasq()
-{
+void start_dnsmasq(){
+
 	FILE *f;
 	const char *nv;
 	char buf[512];
@@ -2276,6 +2276,12 @@ TOP:
 		else if (strcmp(act, "restart") == 0) action = A_RESTART;
 		else action = 0;
 	user = (modifier != NULL && *modifier == 'c');
+
+	if (strcmp(service, "sabaigw") == 0) {
+		do_sabaigw(action & A_START);
+//		if (action & A_START){ do_sabaigw(TRUE); }else if (action & A_STOP){ do_sabaigw(FALSE); };
+		goto CLEAR;
+	}
 
 	if (strcmp(service, "dhcpc") == 0) {
 		if (action & A_STOP) stop_dhcpc();

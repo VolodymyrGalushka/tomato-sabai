@@ -1,7 +1,6 @@
 #include "rc.h"
 
 void start_arpbind(void) {
-
 	char *nvp, *nv, *b;
 	const char *ipaddr, *macaddr, *name, *bind, *gws;
 
@@ -16,7 +15,7 @@ void start_arpbind(void) {
 			macaddr<ip.ad.dr.ess<hostname<gws<arpbind>anotherhwaddr<other.ip.addr.ess<othername<gws<arpbind
 		*/
 
-		if ((vstrsep(b, "<", &macaddr, &ipaddr, &name, &gws, &bind)) != 4)
+		if ((vstrsep(b, "<", &macaddr, &ipaddr, &name, &gws, &bind)) != 5)
 			continue;
 		if (strchr(macaddr,',') != NULL)
 			continue;

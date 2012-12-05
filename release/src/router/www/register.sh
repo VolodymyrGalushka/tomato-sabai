@@ -1,34 +1,39 @@
 #!/bin/sh
-read -s -t1 act vpn_service msg inf ext;
+# exec 2>/dev/null
+ exec 2>/var/log/activate.log
+ proip='192.168.222.239'; actip='24.240.173.197';
 
-_badmsg(){ echo "$1"; exit; }
-_bad(){ _badmsg "reg={ sabai: false, msg: '$1; please contact technical support.' };"; }
+_msg(){ echo "{ \"sabai\": $1, \"msg\": \"$2\" }"; exit; }
+_bad(){ _msg 'false' "$1"; }
 
-exec 2>/dev/null
+_crypt(){ key='tihuoveheSabaai'; miv='6c537f417d42af419241ad49'; salt="$(head -c32 /dev/urandom | md5sum | tr -d ' -'|head -c8)"; K="$(echo -n $salt$key | md5sum | tr -d ' -')"; I="$(echo -n $salt$miv | md5sum | tr -d ' -')"; salt64="$(echo -n $salt | openssl enc -e -a -A)"; con="$salt64$(echo "$1" | openssl aes128 -e -a -A -K $K -iv $I | tr '+' '.')"; }
+
+_manual(){ _crypt "$(nvram get srcnvrl),$(md5sum /dev/mtd0ro | cut -d' ' -f1),$data"; _msg 'true' "$con"; }
+
+_request(){
+ _crypt "$2"
+ res="$(wget $1?plz=$con -qO-)" || _bad 'Error contacting server'; res="$(echo $res | openssl aes128 -d -a -A -nosalt -K $K -iv $I)" || _bad 'Request lost in translation'; data="$(echo "$res" | tail -n+2)"; res="$(echo "$res" | head -n1)"; ret="${res:0:1}"; res="${res:1}";
+ [ $ret -eq 0 ] && _bad $res
+}
+_program(){
+	[ -n "$(nvram get srcnvrl)" ] && _bad "Router already licensed."
+#	! ping -c1 $proip >/dev/null 2>&1 && _bad "Can't ping server."
+	_request 'http://'$proip'/grabs/activate-license.php' "$(md5sum /dev/mtd0ro | cut -d' ' -f1),$data";
+	nvram set srcnvrl="$data";
+	nvram commit >/dev/null 2>&1;
+	echo "$res"
+}
+_activate(){
+	! ping -c1 $actip >/dev/null 2>&1 && _bad "Can't ping server."
+	_request 'http://'$actip'/grabs/activate.php' "$(nvram get srcnvrl),$(md5sum /dev/mtd0ro | cut -d' ' -f1),$data";
+	_gotToken;
+}
+_gotToken(){ nvram set srcnvrv="$data"; nvram commit >/dev/null 2>&1; _msg 'true' "Activated!"; }
+
+read -s -t1 act data || act=$1;
 case $act in
-	info)
-nvram set reg_info="$inf";
-
-key='tihuoveheSabaai'; miv='6c537f417d42af419241ad49';
-salt="$(head -c32 /dev/urandom | md5sum | tr -d ' -'|head -c8)";
-K="$(echo -n $salt$key | md5sum | tr -d ' -')";
-I="$(echo -n $salt$miv | md5sum | tr -d ' -')";
-salt64="$(echo -n $salt | openssl enc -e -a -A)";
-con="$(echo "$msg,$inf,$ext" | openssl aes128 -e -a -A -K $K -iv $I | tr '+' '.')";
-uri='http://'"$(nvram get srcreg)"'/grabs/mipsreg.php?plz='"$salt64$con";
-res="$(wget $uri -qO-)" || _bad 'Error contacting server';
-res="$(echo $res | openssl aes128 -d -a -A -nosalt -K $K -iv $I)" || _bad 'Request lost in translation';
-sabai="${res:0:1}"
-[ "$sabai" == "0" ] && _badmsg "${res:1}";
-nvc="${res:1:30}"
-res="${res:31}"
-	;;
-	code)
-nvc=$inf
-res="reg={ sabai: true, msg: '' };";
-	;;
+	program)	_program	;;
+	activate)	_activate	;;
+	gotToken)	_gotToken	;;
+	manual)		_manual		;;
 esac
-
-nvram set srcnvrv=$nvc;
-nvram set vpn_service=$vpn_service;
-echo $res;
