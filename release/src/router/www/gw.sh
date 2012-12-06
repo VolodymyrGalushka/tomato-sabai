@@ -4,7 +4,7 @@ exec 2>/var/log/sabaigw.err
 exec 1>/var/log/sabaigw.log
 
 lan_prefix="$(nvram get lan_ipaddr | cut -d '.' -f1,2,3)";
-default="$(nvram get gw_def)";
+#default="$(nvram get gw_def)";
 
 _fin(){ ip route flush cache; }
 
@@ -33,7 +33,7 @@ _start(){
  fi
 
  ip rule | grep "$lan_prefix" | cut -d':' -f2 | while read old_rule; do ip rule del $old_rule; done
- [ ! $default -eq 0 ] && ip rule add from "$lan_prefix.1/24" table $default
+# [ ! $default -eq 0 ] && ip rule add from "$lan_prefix.1/24" table $default
  for i in 1 2 3; do
   for j in $(nvram get gw_$i); do
    ip rule add from "$lan_prefix.$j" table $i

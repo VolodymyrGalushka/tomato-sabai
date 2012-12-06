@@ -1231,7 +1231,7 @@ TomatoGrid.prototype = {
 		}
 	},
 
-	headerSet: function(cells, escCells) {
+	headerSet: function(cells, escCells, noSort) {
 		var e, i;
 
 		elem.remove(this.header);
@@ -1240,6 +1240,7 @@ TomatoGrid.prototype = {
 
 		for (i = 0; i < e.cells.length; ++i) {
 			e.cells[i].cellN = i;	// cellIndex broken in Safari
+			if( noSort != null && noSort != undefined && noSort[i] == true) continue;
 			e.cells[i].onclick = function() { return TGO(this).headerClick(this); };
 		}
 		return e;
