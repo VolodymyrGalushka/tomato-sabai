@@ -44,6 +44,26 @@ function eraseovpn(callback){ if(callback==null){ callback = showUi; }
  else if(confirm('Erasing your script ('+nvram.ovpn_file+') will also stop OpenVPN and disconnect the VPN.  Would you like to continue?')){ OVPNrem(callback); }
 }
 
+function changeScript(){ var f = E('newscript'); var fe = f.file.value;
+ if( (fe.substr(-4)=='.zip')||(fe.substr(-3)=='.sh')||(fe.substr(-5)=='.ovpn')||(fe.substr(-5)=='.conf') ){ hideUi(msg_ovpnUI); form.addIdAction(f); f.submit(); }else{ alert('You must supply a .sh, .zip, .conf, or .ovpn file.'); showUi(); }
+}
+
+function saveoptionchanges(callback){ if(callback == null){ callback = showUi; }
+ hideUi(msg_ovpnUI); s_req('tomato.cgi', callback, 'sabaivpn_fallback=' +( E('check_fallback').checked ? '1' : '0' )+ '&sabaivpn_generic_updown=' +( E('check_generic_updown').checked ? '1' : '0' ) +'&_http_id='+nvram.http_id );
+}
+
+function savescriptchanges(callback){
+ if(callback == null){
+  if( diffScripts() == 0 ){ alert('No changes to save.'); return; }
+  callback = showUi;
+  if(!confirm('Changing your script can prevent your VPN connection from working and potentially disable your router.  Are you sure?')) return;
+ }
+ var lastArgs = (nvram.ovpn_type=='' ? 'ovpn_type=GenScript&' : '') + (nvram.ovpn_file=='' ? 'ovpn_file=Generated&' : '');
+ hideUi(msg_ovpnUI);
+ que.drop('tomato.cgi',callback,lastArgs+encodescripts()+'_http_id='+nvram.http_id );
+// s_req('tomato.cgi', callback, lastArgs+encodescripts()+'_http_id='+nvram.http_id );
+}
+
 // BEGIN	STATUS
 
 function show_VPN_status(vpnstats){

@@ -55,7 +55,7 @@ createFieldTable('', [\n\
 ",
 "// /* BEGIN SABAI OVPN JS */\n\
 \n\
-var hidden;\n\
+var hidden; var ovpn_settings = ['ovpn_cf','ovpn_up','ovpn_dn','ovpn_si'];\n\
 \n\
 function init(){\n\
 E('current_ovpn_script').innerHTML += (nvram.ovpn_file||'None');\n\
@@ -116,7 +116,7 @@ function toggleMan(){ var eman = E('exte_man'); var egen = E('exte_gen'); egen.c
 function toggleGen(){ var eman = E('exte_man'); var egen = E('exte_gen'); egen.className = ''; eman.className = 'hiddenChildMenu'; }\n\
 \n\
 function generateOVPN(){\n\
- var conf = E('ta_gen_cfg').value.replace(/\\nca .*/,'').replace(/\\ncert .*/,'').replace(/\\nkey .*/,'');;\n\
+ var conf = E('ta_gen_cfg').value;\n\
  var adds = [ E('ta_gen_cacrt').value, E('ta_gen_clientcrt').value, E('ta_gen_takey').value, E('ta_gen_clientkey').value ];\n\
  var wrap = ['ca','cert','tls-auth','key'];\n\
  for(var i=0; i<adds.length; i++){ conf+= '\\n<' +wrap[i]+ '>\\n' +adds[i]+ '\\n</' +wrap[i]+ '>'; }\n\
@@ -146,7 +146,7 @@ You may supply an OpenVPN DD-WRT script, a zip file (containing ca.crt, client.c
 <input type='button' value='New Script' id='newscript-button' onclick='toggleUpload();' style='height:20px'>\n\
 <input type='button' value='Erase Script' id='erase-button' onclick='eraseovpn();' style='height:20px'>\n\
 <input type='button' value='Options' id='OVPN_extended_button' onclick='toggleOptions();' style='height:20px'>\n\
-<input type='button' value='Help' onclick='window.open(\"http://www.sabaitechnology.com/v/sabaiHelp/help.html#ovpn\",\"_newtab\");'>\n\
+<input type='button' value='Help' onclick='window.open(\"http://www.sabaitechnology.com/v/sabaiHelp/help.html#ovpn\",\"_newtab\");' style='height:20px'>\n\
 \n\
 <span id='OVPN_extended' class='hiddenChildMenu'>\n\
 <input type='button' value='Manual Script' id='manScript_button' onclick='toggleMan();' style='height:20px'>\n\

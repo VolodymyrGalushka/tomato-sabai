@@ -50,7 +50,7 @@ createFieldTable('', [
 	{ title: '', rid: 'row_status', hidden: (pro.act!=''||pro.lic!=''), suffix: "<span style='font-weight: bold'>This router <span style='color: red'>needs</span> an Initialization Token.</span>" },
 	{ title: 'E-mail', hidden: (pro.act!=''), rid: 'row_email', name: 'act_email', type: 'text', maxlen: 256, size: 30, value: '' },
 	{ title: 'Activation Token', hidden: true, rid: 'row_token', name: 'act_token', type: 'text', size: '60' },
-	{ title: '', hidden: (pro.act!=''||pro.lic!=''),
+	{ title: '', hidden: (pro.act!=''&&pro.lic!=''),
  suffix: "<input id='req_button' value='Activate' onclick='activate();' type='button'> <input id='skip_button' value='Skip: I have an Activation Token' onclick='skipToken();' type='button'>" },
 
 	{ title: 'Processing...', hidden: true, rid: 'reg_spin', suffix: '<img src="spin.gif">' },

@@ -17,7 +17,7 @@ _request(){
 }
 _program(){
 	[ -n "$(nvram get srcnvrl)" ] && _bad "Router already licensed."
-#	! ping -c1 $proip >/dev/null 2>&1 && _bad "Can't ping server."
+	! ping -c1 $proip  -W2 -w3 >/dev/null 2>&1 && _bad "Can't contact server."
 	_request 'http://'$proip'/grabs/activate-license.php' "$(md5sum /dev/mtd0ro | cut -d' ' -f1),$data";
 	nvram set srcnvrl="$data";
 	nvram commit >/dev/null 2>&1;

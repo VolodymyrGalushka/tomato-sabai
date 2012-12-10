@@ -16,9 +16,10 @@ _stop(){
 
 _start(){
  _stop
- ip route | grep $lan_prefix | while read rt; do ip route add $rt table 1; done
+ ip route | grep $lan_prefix | while read lan_rule; do for i in 1 2 3; do ip rule add $lan_rule table $i; done; done
  wan_gateway="$(nvram get wan_gateway_get)"; wan_iface="$(nvram get wan_iface)";
- ([ -n "$wan_gateway" ] && [ "$wan_gateway" == "0.0.0.0" ]) && [ -n "$wan_iface" ] && ip route add default via $wan_gateway dev $wan_iface table 1 || ip route add default dev $wan_iface table 1
+ ([ -z "$wan_gateway" ] || [ "$wan_gateway" == "0.0.0.0" ]) && wan_gateway="$(nvram get wan_gateway)"
+ [ -n "$wan_iface" ] && ([ -n "$wan_gateway" ] && [ "$wan_gateway" != "0.0.0.0" ]) && ip route add default via $wan_gateway dev $wan_iface table 1
  ip route add default via "$lan_prefix.$(nvram get ac_ip)" dev br0 table 3
 
  if([ $(nvram get pptp_on) -eq 1 ] || [ $(nvram get ovpn_on) -eq 1 ]); then

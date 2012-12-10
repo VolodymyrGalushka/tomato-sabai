@@ -67,7 +67,7 @@ function savegw(){ report('Saving...'); async(true); var new_dhcpd_static=[]; va
 }
 function verify_gw(dgw){ dgw=parseInt(dgw); if(dgw=='') return 0; if(dgw<0||dgw>3) return 0; return dgw; }
 function defgw(gw){ for(var i in list){ f['gw_'+i][list[i].gw = gw].checked = true; } }
-function chgw(ip,gw){ if(!list[ip]) return; list[ip].gw = gw; for(var i=0; i<f['gw_all'].length; i++){ f['gw_all'][i].checked = false; } }
+function chgw(ip,gw){ if(!list[ip]) return; list[ip].gw = gw; }
 function verifyFields(){}
 function init(){ window.VPN_test=0; f=E('gw_form'); setupGrid(); hidden=E('hideme'); hide=E('hiddentext'); }
 // /* END DUAL GATEWAY JS */
