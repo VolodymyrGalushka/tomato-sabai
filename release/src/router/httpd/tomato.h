@@ -28,9 +28,7 @@
 
 #include "httpd.h"
 
-
 //	#define BLACKHOLE		// for testing
-
 
 extern int rboot;
 
@@ -44,31 +42,23 @@ extern int resmsg_fread(const char *fname);
 
 
 // BEGIN SABAI
-extern void asp_sabaaiVPN(int argc, char **argv);
+
+extern int isSabai();
 extern void asp_sabaaiMenu();
-extern void asp_sabai_version();
-extern void asp_isitsafe();
+extern void asp_lanMacStr();
+extern void asp_sabaiMsg();
 extern void asp_isitsabai();
-extern void asp_sabai_msg();
-extern void asp_sabai_init_token();
-extern void wo_sabaai_register();
-
-extern void wi_grabovpn_script();
-extern void wo_sabaai_OVPN_start();
-extern void wo_sabaai_OVPN_erase();
-extern void wo_sabaai_OVPN_stop();
+extern void asp_sabaid();
+extern void asp_sabaiErr();
+//extern void asp_sabaiToken();
+extern void wi_sabaai_ovpn_get();
+extern void wi_sabaai_ovpn_parts();
 extern void wo_sabaai_gw();
-extern void wo_sabaai_PPTP();
-extern void wo_sabaai_vpns();
-extern void wo_sabaai_vypr();
-extern void wo_sabaai_vpna();
-extern void wo_sabaai_hwmac();
+extern void wo_sabaai_pptp();
+extern void wo_sabaai_ovpn();
+//extern void wo_sabaai_show();
+//extern void wo_sabaai_vpna();
 
-extern void asp_vpnstatus(int argc, char **argv);
-extern void asp_vpnconnectiontype(int argc, char **argv);
-extern void asp_vpnipaddress(int argc, char **argv);
-extern void asp_vpnnetmask(int argc, char **argv);
-extern void asp_vpngateway(int argc, char **argv);
 // END SABAI
 
 
@@ -76,6 +66,7 @@ extern void asp_vpngateway(int argc, char **argv);
 extern void asp_nvram(int argc, char **argv);
 extern void asp_nvramseq(int argc, char **argv);
 extern void asp_nv(int argc, char **argv);
+extern void asp_nv_bool(int argc, char **argv);
 extern void asp_nvstat(int argc, char **argv);
 
 // misc.c
@@ -98,9 +89,9 @@ extern void asp_compmac(int argc, char **argv);
 extern void asp_ident(int argc, char **argv);
 extern void asp_lanip(int argc, char **argv);
 extern void asp_psup(int argc, char **argv);
-#ifdef TCONFIG_OPENVPN
-extern void wo_vpn_status(char *url);
-#endif
+//#ifdef TCONFIG_OPENVPN
+//extern void wo_vpn_status(char *url);
+//#endif
 extern void asp_sysinfo(int argc, char **argv);
 extern void asp_statfs(int argc, char **argv);
 extern void asp_notice(int argc, char **argv);
@@ -124,10 +115,10 @@ extern void wo_usbcommand(char *url);
 #endif
 
 //pptpd.c
-#ifdef TCONFIG_PPTPD
-extern void asp_pptpd_userol(int argc, char **argv);
-extern void wo_pptpdcmd(char *url);
-#endif
+//#ifdef TCONFIG_PPTPD
+//extern void asp_pptpd_userol(int argc, char **argv);
+//extern void wo_pptpdcmd(char *url);
+//#endif
 
 // devlist.c
 extern void asp_arplist(int argc, char **argv);

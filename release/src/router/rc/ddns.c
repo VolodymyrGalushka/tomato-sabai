@@ -222,7 +222,7 @@ SCHED:
 		n = (11 + (errors * 5));
 		if ((exitcode == 1) || (exitcode == 2)) {
 			if (exitcode == 2) n = 30;
-			sprintf(s, "\n#RETRY %d %d\n", n, errors);	// should be localized in basic-ddns.asp
+			sprintf(s, "\n#RETRY %d %d\n", n, errors);	// should be localized in advanced-ddns.asp
 			f_write_string(msg_fn, s, FW_APPEND, 0);
 			DLOG("%s: msg='retry n=%d errors=%d'", __FUNCTION__, n, errors);
 		}

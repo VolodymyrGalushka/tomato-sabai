@@ -39,6 +39,8 @@ OBJECTS		:= head.o data.o
 
 vpath %.c $(SRCBASE)/lzma/C/Compress/Lzma
 
+.PHONY: all
+
 all: loader.gz
 
 # Don't build dependencies, this may die if $(CC) isn't gcc

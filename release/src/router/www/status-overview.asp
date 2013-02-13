@@ -41,11 +41,10 @@ bgmo = {'disabled':'-','mixed':'Auto','b-only':'B Only','g-only':'G Only','bg-mi
 
 <script type='text/javascript'>
 
-nvram.vpn_service = "<% nv('vpn_service'); %>";
 nvram.ovpn_type = "<% nv('ovpn_type'); %>";
 
-show_dhcpc = ((nvram.wan_proto == 'dhcp') || (((nvram.wan_proto == 'l2tp') || (nvram.wan_proto == 'pptp')) && (nvram.pptp_dhcp == '1')));
-show_codi = ((nvram.wan_proto == 'pppoe') || (nvram.wan_proto == 'l2tp') || (nvram.wan_proto == 'pptp'));
+show_dhcpc = (nvram.wan_proto == 'dhcp');
+show_codi = (nvram.wan_proto == 'pppoe');
 
 show_radio = [];
 for (var uidx = 0; uidx < wl_ifaces.length; ++uidx) {
@@ -162,7 +161,7 @@ function earlyInit()
 	elem.display('b_dhcpc', show_dhcpc);
 	elem.display('b_connect', 'b_disconnect', show_codi);
 	elem.display('wan-title', 'wan-section', nvram.wan_proto != 'disabled');
-	elem.display('sabaivpn-title', 'sabaivpn-section', ( (nvram.pptp_autofire == '1') || (nvram.ovpn_type!='') ));
+	elem.display('sabaivpn-title', 'sabaivpn-section', nvram.vpn_on == '1' );
 	for (var uidx = 0; uidx < wl_ifaces.length; ++uidx) {
 		elem.display('b_wl'+uidx+'_enable', 'b_wl'+uidx+'_disable', show_radio[uidx]);
 	}
@@ -179,11 +178,11 @@ function init()
 <body onload='init()'>
 <form>
 <table id='container' cellspacing=0>
-<tr><td colspan=2 id='header'><a id='headlink' href=''><img src='' id='headlogo'></a>
-	<div class='title' id='SVPNstatus'>Sabai</div>
+<tr><td colspan=2 id='header'><a id='headlink' href='http://www.sabaitechnology.com'><img src='imgsabai.png' id='headlogo'></a>
+	<div class='title' id='SVPNstatus'><% sabaid(); %></div>
 	<div class='version' id='subversion'>version <!-- SABAI-VERSION --></div>
 </td></tr>
-<tr id='body'><td id='navi'><script type='text/javascript'>navi()</script></td>
+<tr id='body'><td id='navi'><% sabaaiMenu(); %></td>
 <td id='content'>
 
 
@@ -193,7 +192,7 @@ function init()
 <div class='section'>
 <script type='text/javascript'>
 createFieldTable('', [
-	{ title: 'Name', text: nvram.router_name },
+	{ title: 'Name', text: (nvram.router_name==''?'-':nvram.router_name) },
 	{ title: 'Model', text: nvram.t_model_name },
 	null,
 	{ title: 'Time', rid: 'time', text: stats.time },
@@ -210,7 +209,7 @@ createFieldTable('', [
 <script type='text/javascript'>
 createFieldTable('', [
 	{ title: 'MAC Address', text: nvram.wan_hwaddr },
-	{ title: 'Connection Type', text: { 'dhcp':'DHCP', 'static':'Static IP', 'pppoe':'PPPoE', 'pptp':'PPTP', 'l2tp':'L2TP' }[nvram.wan_proto] || '-' },
+	{ title: 'Connection Type', text: { 'dhcp':'DHCP', 'static':'Static IP', 'pppoe':'PPPoE' }[nvram.wan_proto] || '-' },
 	{ title: 'IP Address', rid: 'wanip', text: stats.wanip },
 	{ title: 'Subnet Mask', rid: 'wannetmask', text: stats.wannetmask },
 	{ title: 'Gateway', rid: 'wangateway', text: stats.wangateway },

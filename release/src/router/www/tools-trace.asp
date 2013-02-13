@@ -39,7 +39,7 @@
 <script type='text/javascript' src='debug.js'></script>
 
 <script type='text/javascript'>
-//	<% nvram('vpn_service'); %>	// http_id
+//	<% nvram(""); %>	// http_id
 
 var tracedata = '';
 
@@ -188,11 +188,11 @@ function init()
 <body onload='init()'>
 <form action='javascript:{}'>
 <table id='container' cellspacing=0>
-<tr><td colspan=2 id='header'><a id='headlink' href=''><img src='' id='headlogo'></a>
-	<div class='title' id='SVPNstatus'>Sabai</div>
+<tr><td colspan=2 id='header'><a id='headlink' href='http://www.sabaitechnology.com'><img src='imgsabai.png' id='headlogo'></a>
+	<div class='title' id='SVPNstatus'><% sabaid(); %></div>
 	<div class='version' id='subversion'>version <!-- SABAI-VERSION --></div>
 </td></tr>
-<tr id='body'><td id='navi'><script type='text/javascript'>navi()</script></td>
+<tr id='body'><td id='navi'><% sabaaiMenu(); %></td>
 <td id='content'>
 
 
@@ -211,7 +211,7 @@ createFieldTable('', [
 
 <div style='visibility:hidden' id='trace-error'></div>
 
-<div style='visibility:hidden;text-align:right' id='wait'>Please wait... <img src='spin.gif' style='vertical-align:top'></div>
+<div style='visibility:hidden;text-align:right' id='wait'>Please wait... <img src='imgspin.gif' style='vertical-align:top'></div>
 
 <table id='ttr-grid' class='tomato-grid' cellspacing=1></table>
 

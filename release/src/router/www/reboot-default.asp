@@ -12,26 +12,16 @@
 <meta name='robots' content='noindex,nofollow'>
 <title>[<% ident(); %>] Restoring Defaults...</title>
 <script type='text/javascript'>
-var n = 90;
-function tick()
-{
-	var e = document.getElementById('continue');
-	e.value = n--;
-	if (n < 0) {
-		e.value = 'Continue';
-		return;
-	}
-	if (n == 19) e.disabled = false;
+var e,n;
+
+function tick(){
+	e.value = --n;
+	if (n < 0) { e.value = 'Continue'; return; }
+	if (n < 20) e.disabled = false;
 	setTimeout(tick, 1000);
 }
-function go()
-{
-	window.location = 'http://192.168.199.1/';
-}
-function init()
-{
-	tick()
-}
+function go(){ window.location = 'http://192.168.199.1/'; }
+function init(){ n=60; e = document.getElementById('continue'); tick(); }
 </script></head>
 <body style='background:#fff' onload='init()'><table style='width:100%;height:100%'>
 <tr><td style='text-align:center;vertical-align:middle;font:12px sans-serif'><form>

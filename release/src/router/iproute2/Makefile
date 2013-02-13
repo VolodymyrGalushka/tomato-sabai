@@ -31,6 +31,8 @@ SUBDIRS=lib ip tc # misc netem
 
 LIBNETLINK=../lib/libnetlink.a ../lib/libutil.a
 
+.PHONY: all
+
 all: # Config
 	@for i in $(SUBDIRS); \
 	do $(MAKE) $(MFLAGS) -C $$i; done

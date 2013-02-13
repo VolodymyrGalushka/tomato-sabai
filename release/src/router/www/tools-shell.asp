@@ -16,52 +16,37 @@
 
 <!-- / / / -->
 
-<style type='text/css'>
-textarea {
-	font: 12px monospace;
-	width: 99%;
-	height: 12em;
-}
-</style>
-
-<script type='text/javascript' src='debug.js'></script>
 <script type='text/javascript'>
 
-//	<% nvram('vpn_service'); %>	// http_id
+//	<% nvram(""); %>	// http_id
 
+var s,f;
 var cmdresult = '';
 var cmd = null;
 
-function verifyFields(focused, quiet)
-{
-	return 1;
-}
+function verifyFields(focused, quiet){ return 1; }
 
-function escapeText(s)
-{
+function escapeText(s){
 	function esc(c) {
 		return '&#' + c.charCodeAt(0) + ';';
 	}
 	return s.replace(/[&"'<>]/g, esc).replace(/\n/g, ' <br>').replace(/ /g, '&nbsp;');
 }
 
-function spin(x)
-{
+function spin(x){
 	E('execb').disabled = x;
-	E('_f_cmd').disabled = x;
+	f.f_cmd.disabled = x;
 	E('wait').style.visibility = x ? 'visible' : 'hidden';
 	if (!x) cmd = null;
 }
 
-function updateResult()
-{
+function updateResult(){
 	E('result').innerHTML = '<tt>' + escapeText(cmdresult) + '</tt>';
 	cmdresult = '';
 	spin(0);
 }
 
-function execute()
-{
+function execute(){
 	// Opera 8 sometimes sends 2 clicks
 	if (cmd) return;
 	spin(1);
@@ -76,28 +61,27 @@ function execute()
 		updateResult();
 	}
 
-	var s = E('_f_cmd').value;
+	s = f.f_cmd.value;
 	cmd.post('shell.cgi', 'action=execute&command=' + escapeCGI(s.replace(/\r/g, '')));
 	cookie.set('shellcmd', escape(s));
 }
 
-function init()
-{
-	var s;
-	if ((s = cookie.get('shellcmd')) != null) E('_f_cmd').value = unescape(s);
+function init(){
+	f = E('_exec');
+	if ((s = cookie.get('shellcmd')) != null) f.f_cmd.value = unescape(s);
 }
 </script>
 
 </head>
 
 <body onload='init()'>
-<form action='javascript:{}'>
+<form id='_exec'>
 <table id='container' cellspacing=0>
-<tr><td colspan=2 id='header'><a id='headlink' href=''><img src='' id='headlogo'></a>
-	<div class='title' id='SVPNstatus'>Sabai</div>
+<tr><td colspan=2 id='header'><a id='headlink' href='http://www.sabaitechnology.com'><img src='imgsabai.png' id='headlogo'></a>
+	<div class='title' id='SVPNstatus'><% sabaid(); %></div>
 	<div class='version' id='subversion'>version <!-- SABAI-VERSION --></div>
 </td></tr>
-<tr id='body'><td id='navi'><script type='text/javascript'>navi()</script></td>
+<tr id='body'><td id='navi'><% sabaaiMenu(); %></td>
 <td id='content'>
 
 
@@ -105,15 +89,11 @@ function init()
 
 <div class='section-title'>Execute System Commands</div>
 <div class='section'>
-<script type='text/javascript'>
-createFieldTable('', [
-	{ title: 'Command', name: 'f_cmd', type: 'textarea', wrap: 'off', value: '' }
-]);
-</script>
-<div style='float:left'><input type='button' value='Execute' onclick='execute()' id='execb'></div>
-</div>
 
-<div style="visibility:hidden;text-align:right" id="wait">Please wait... <img src='spin.gif' style="vertical-align:top"></div>
+<textarea class='content' name="f_cmd" id="_f_cmd" wrap="off"></textarea>
+<input style='float:right;margin-top:.5em;' type='button' value='Execute' onclick='execute()' id='execb'></div>
+
+<div style="visibility:hidden;text-align:right" id="wait">Please wait... <img src='imgspin.gif' style="vertical-align:top"></div>
 <pre id='result'></pre>
 
 <!-- / / / -->

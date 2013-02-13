@@ -52,7 +52,8 @@ int redial_main(int argc, char **argv)
 	int proto;
 
 	proto = get_wan_proto();
-	if (proto == WP_PPPOE || proto == WP_PPP3G || proto == WP_PPTP || proto == WP_L2TP) {
+//	if (proto == WP_PPPOE || proto == WP_PPP3G || proto == WP_PPTP || proto == WP_L2TP) {
+	if (proto == WP_PPPOE || proto == WP_PPP3G ) {
 		if (nvram_get_int("ppp_demand") != 0) return 0;
 	}
 

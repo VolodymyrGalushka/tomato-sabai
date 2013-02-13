@@ -735,31 +735,6 @@ static void nat_table(void)
 			// ICMP packets are always redirected to INPUT chains
 			ipt_write("-A %s -p icmp -j DNAT --to-destination %s\n", chain_wan_prerouting, lanaddr);
 
-
-			//force remote access to router if DMZ is enabled - shibby
-			if( (nvram_match("dmz_enable", "1")) && (nvram_match("dmz_ra", "1")) ) {
-				strlcpy(t, nvram_safe_get("rmgt_sip"), sizeof(t));
-				p = t;
-				do {
-					if ((c = strchr(p, ',')) != NULL) *c = 0;
-					ipt_source(p, src, "ra", NULL);
-
-					if (remotemanage) {
-						ipt_write("-A %s -p tcp -m tcp %s --dport %s -j DNAT --to-destination %s:%d\n",
-							chain_wan_prerouting, src, nvram_safe_get("http_wanport"), lanaddr, web_lanport);
-					}
-
-					if (nvram_get_int("sshd_remote")) {
-						ipt_write("-A %s %s -p tcp -m tcp --dport %s -j DNAT --to-destination %s:%s\n",
-							chain_wan_prerouting, src, nvram_safe_get("sshd_rport"), lanaddr, nvram_safe_get("sshd_port"));
-					}
-
-					if (!c) break;
-					p = c + 1;
-				} while (*p);
-			}
-
-
 			ipt_forward(IPT_TABLE_NAT);
 			ipt_triggered(IPT_TABLE_NAT);
 		}
@@ -1088,15 +1063,6 @@ static void filter_input(void)
 		ipt_write("-A INPUT -p udp --dport 520 -j ACCEPT\n");
 	}
 
-	//BT Client ports from WAN interface
-	if (nvram_match("bt_enable", "1")) {
-		ipt_write( "-A INPUT -p tcp --dport %s -j ACCEPT\n", nvram_safe_get( "bt_port" ) );
-		if (nvram_match( "bt_rpc_wan", "1") )
-		{
-			ipt_write( "-A INPUT -p tcp --dport %s -j ACCEPT\n", nvram_safe_get( "bt_port_gui" ) );
-		}
-	}
-
 	// if logging
 	if (*chain_in_drop == 'l') {
 		ipt_write( "-A INPUT -j %s\n", chain_in_drop);
@@ -1247,14 +1213,15 @@ static void filter_forward(void)
 //		ip46t_write("-A FORWARD -i %s -j %s\n", nvram_safe_get(lanN_ifname), chain_out_accept);
 		}
 	}
-
-#ifdef TCONFIG_PPTPD
-	//Add for pptp server
-	if (nvram_match("pptpd_enable", "1")) {
-		ipt_write("-A INPUT -p tcp --dport 1723 -j ACCEPT\n");
-		ipt_write("-A INPUT -p 47 -j ACCEPT\n");
-	}
 #endif
+
+//#ifdef TCONFIG_PPTPD
+//	//Add for pptp server
+//	if (nvram_match("pptpd_enable", "1")) {
+//		ipt_write("-A INPUT -p tcp --dport 1723 -j ACCEPT\n");
+//		ipt_write("-A INPUT -p 47 -j ACCEPT\n");
+//	}
+//#endif
 
 #ifdef TCONFIG_IPV6
 	// Filter out invalid WAN->WAN connections
@@ -1303,6 +1270,23 @@ static void filter_forward(void)
 			ip46t_write("-A FORWARD -i %s -j %s\n", nvram_safe_get(lanN_ifname), chain_out_accept);
 		}
 	}
+
+// #ifdef TCONFIG_VLAN
+/*	for (i = 0; i < wanfaces.count; ++i) {
+		if (*(wanfaces.iface[i].name)) {
+			ipt_write("-A FORWARD -i %s -o %s -j %s\n", lanface, wanfaces.iface[i].name, chain_out_accept);
+			if (strcmp(lan1face,"")!=0)
+				ipt_write("-A FORWARD -i %s -o %s -j %s\n", lan1face, wanfaces.iface[i].name, chain_out_accept);
+			if (strcmp(lan2face,"")!=0)
+				ipt_write("-A FORWARD -i %s -o %s -j %s\n", lan2face, wanfaces.iface[i].name, chain_out_accept);
+			if (strcmp(lan3face,"")!=0)
+				ipt_write("-A FORWARD -i %s -o %s -j %s\n", lan3face, wanfaces.iface[i].name, chain_out_accept);
+		}
+	}
+*/
+// #else
+//	ipt_write("-A FORWARD -i %s -j %s\n", lanface, chain_out_accept);
+// #endif
 
 #ifdef TCONFIG_IPV6
 //IPv6 forward LAN->WAN accept
@@ -1487,6 +1471,7 @@ static void filter6_input(void)
 	}
 
 	// ICMPv6 rules
+	const int allowed_icmpv6[6] = { 1, 2, 3, 4, 128, 129 };
 	for (n = 0; n < sizeof(allowed_icmpv6)/sizeof(int); n++) {
 		ip6t_write("-A INPUT -p ipv6-icmp --icmpv6-type %i -j %s\n", allowed_icmpv6[n], chain_in_accept);
 	}
@@ -1589,6 +1574,7 @@ int start_firewall(void)
 	simple_lock("firewall");
 	simple_lock("restrictions");
 
+	wanproto = get_wan_proto();
 	wanup = check_wanup();
 
 	f_write_string("/proc/sys/net/ipv4/tcp_syncookies", nvram_get_int("ne_syncookies") ? "1" : "0", 0, 0);
@@ -1735,8 +1721,6 @@ int start_firewall(void)
 #else
 	modprobe("ipt_IMQ");
 #endif
-//	}
-
 
 	mangle_table();
 	nat_table();
@@ -1852,10 +1836,11 @@ int start_firewall(void)
 	unlink("/var/webmon/domain");
 	unlink("/var/webmon/search");
 
-#ifdef TCONFIG_OPENVPN
-	run_vpn_firewall_scripts();
-#endif
+//#ifdef TCONFIG_OPENVPN
+//	run_vpn_firewall_scripts();
+//#endif
 	run_nvscript("script_fire", NULL, 1);
+//	start_arpbind();
 
 //* SABAI GW BEGIN */
 //	char *args[] = { "/bin/sh", "/www/gw.sh", "init", NULL, NULL };

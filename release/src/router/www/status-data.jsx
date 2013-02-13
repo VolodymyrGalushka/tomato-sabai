@@ -7,7 +7,7 @@
 	No part of this file may be used without permission.
 */
 
-//<% nvram("ppp_get_ip,pptp_server_ip,router_name,wan_domain,wan_gateway,wan_gateway_get,wan_get_domain,wan_hostname,wan_hwaddr,wan_ipaddr,wan_netmask,wan_proto,wan_run_mtu,et0macaddr,lan_proto,lan_ipaddr,dhcp_start,dhcp_num,dhcpd_startip,dhcpd_endip,lan_netmask,wl_security_mode,wl_crypto,wl_mode,wl_wds_enable,wl_hwaddr,wl_net_mode,wl_radio,wl_channel,lan_gateway,wl_ssid,t_model_name,t_features,pptp_dhcp,pptp_autofire,script_init"); %>
+//<% nvram("ppp_get_ip,router_name,vpn_ipaddr,vpn_gateway,vpn_on,vpn_up,vpn_type,wan_domain,wan_gateway,wan_gateway_get,wan_get_domain,wan_hostname,wan_hwaddr,wan_ipaddr,wan_netmask,wan_proto,wan_run_mtu,et0macaddr,lan_proto,lan_ipaddr,dhcp_start,dhcp_num,dhcpd_startip,dhcpd_endip,lan_netmask,wl_security_mode,wl_crypto,wl_mode,wl_wds_enable,wl_hwaddr,wl_net_mode,wl_radio,wl_channel,lan_gateway,wl_ssid,t_model_name,t_features,pptp_dhcp"); %>
 //<% uptime(); %>
 //<% sysinfo(); %>
 //<% wlstats(); %>
@@ -53,31 +53,10 @@ do {
 	if (stats.wangateway == '0.0.0.0' || stats.wangateway == '')
 		stats.wangateway = nvram.wan_gateway;
 
-	switch (nvram.wan_proto) {
-	case 'pptp':
-	case 'l2tp':
-		if (stats.wanup) {
-			stats.wanip = nvram.ppp_get_ip;
-			if (nvram.pptp_dhcp == '1') {
-				if (nvram.wan_ipaddr != '' && nvram.wan_ipaddr != '0.0.0.0' && nvram.wan_ipaddr != stats.wanip)
-					stats.wanip += '&nbsp;&nbsp;<small>(DHCP: ' + nvram.wan_ipaddr + ')</small>';
-				if (nvram.wan_gateway != '' && nvram.wan_gateway != '0.0.0.0' && nvram.wan_gateway != stats.wangateway)
-					stats.wangateway += '&nbsp;&nbsp;<small>(DHCP: ' + nvram.wan_gateway + ')</small>';
-			}
-			if (stats.wannetmask == '0.0.0.0')
-				stats.wannetmask = '255.255.255.255';
-		}
-		else {
-			if (nvram.wan_proto == 'pptp')
-				stats.wangateway = nvram.pptp_server_ip;
-		}
-		break;
-	default:
-		if (!stats.wanup) {
-			stats.wanip = '0.0.0.0';
-			stats.wannetmask = '0.0.0.0';
-			stats.wangateway = '0.0.0.0';
-		}
+	if (!stats.wanup) {
+		stats.wanip = '0.0.0.0';
+		stats.wannetmask = '0.0.0.0';
+		stats.wangateway = '0.0.0.0';
 	}
 
 /* IPV6-BEGIN */
@@ -89,11 +68,10 @@ do {
 	stats.wanstatus = '<% wanstatus(); %>';
 	if (stats.wanstatus != 'Connected') stats.wanstatus = '<b>' + stats.wanstatus + '</b>';
 
-	stats.vpnstatus = '<% vpnstatus(); %>';
-	stats.vpnconnectiontype = '<% vpnconnectiontype(); %>';
-	stats.vpnipaddress = '<% vpnipaddress(); %>';
-	stats.vpnnetmask = '<% vpnnetmask(); %>';
-	stats.vpngateway = '<% vpngateway(); %>';
+	stats.vpnstatus =(nvram.vpn_up=='1'?'Connected':(nvram.vpn_on=='1'?'Connecting...':'Disconnected'));
+	stats.vpnconnectiontype = nvram.vpn_type;
+	stats.vpnipaddress = nvram.vpn_ipaddr;
+	stats.vpngateway = nvram.vpn_gateway;
 
 	stats.channel = [];
 	stats.interference = [];
@@ -122,7 +100,7 @@ do {
 			if (wlstats[uidx].client) {
 				if (wlstats[uidx].rssi == 0) a = 0;
 					else a = MAX(wlstats[uidx].rssi - wlstats[uidx].noise, 0);
-				stats.qual.push(a + ' <img src="bar' + MIN(MAX(Math.floor(a / 10), 1), 6) + '.gif">');
+				stats.qual.push(a + ' <img src="imgbar' + MIN(MAX(Math.floor(a / 10), 1), 6) + '.gif">');
 			}
 			else {
 				stats.qual.push('');

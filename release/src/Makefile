@@ -428,6 +428,10 @@ define RouterOptions
 		sed -i "/TCONFIG_CIFS/d" $(1); \
 		echo "# TCONFIG_CIFS is not set" >>$(1); \
 	fi; \
+	if [ "$(NO_FTP)" = "y" ]; then \
+		sed -i "/TCONFIG_FTP/d" $(1); \
+		echo "# TCONFIG_FTP is not set" >>$(1); \
+	fi; \
 	if [ "$(NO_SSH)" = "y" ]; then \
 		sed -i "/TCONFIG_SSH/d" $(1); \
 		echo "# TCONFIG_SSH is not set" >>$(1); \

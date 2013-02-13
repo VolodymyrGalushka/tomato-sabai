@@ -125,7 +125,8 @@ ppc-mont.s:	asm/ppc-mont.pl;$(PERL) asm/ppc-mont.pl $(PERLASM_SCHEME) $@
 ppc64-mont.s:	asm/ppc64-mont.pl;$(PERL) asm/ppc64-mont.pl $(PERLASM_SCHEME) $@
 
 alpha-mont.s:	asm/alpha-mont.pl
-	$(PERL) $< | $(CC) -E - | tee $@ > /dev/null
+#	$(PERL) $< | $(CC) -E - | tee $@ > /dev/null
+	$(PERL) $< | $(CC) -E - > $@
 
 # GNU make "catch all"
 %-mont.s:	asm/%-mont.pl;	$(PERL) $< $(PERLASM_SCHEME) $@

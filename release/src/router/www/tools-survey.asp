@@ -50,7 +50,7 @@
 <script type='text/javascript' src='debug.js'></script>
 
 <script type='text/javascript'>
-//	<% nvram('vpn_service'); %>	// http_id
+//	<% nvram(""); %>	// http_id
 
 var wlscandata = [];
 var entries = [];
@@ -219,7 +219,7 @@ sg.populate = function()
 			mac,
 			(e.rssi == -999) ? '' : (e.rssi + ' <small>dBm</small>'),
 			(e.noise == -999) ? '' : (e.noise + ' <small>dBm</small>'),
-			'<small>' + e.qual + '</small> <img src="bar' + MIN(MAX(Math.floor(e.qual / 10), 1), 6) + '.gif">',
+			'<small>' + e.qual + '</small> <img src="imgbar' + MIN(MAX(Math.floor(e.qual / 10), 1), 6) + '.gif">',
 			'' + e.channel,
 			'' + e.cap,
 			'' + e.rates], false);
@@ -280,11 +280,11 @@ function init()
 <body onload='init()'>
 <form action='javascript:{}'>
 <table id='container' cellspacing=0>
-<tr><td colspan=2 id='header'><a id='headlink' href=''><img src='' id='headlogo'></a>
-	<div class='title' id='SVPNstatus'>Sabai</div>
+<tr><td colspan=2 id='header'><a id='headlink' href='http://www.sabaitechnology.com'><img src='imgsabai.png' id='headlogo'></a>
+	<div class='title' id='SVPNstatus'><% sabaid(); %></div>
 	<div class='version' id='subversion'>version <!-- SABAI-VERSION --></div>
 </td></tr>
-<tr id='body'><td id='navi'><script type='text/javascript'>navi()</script></td>
+<tr id='body'><td id='navi'><% sabaaiMenu(); %></td>
 <td id='content'>
 
 
@@ -295,7 +295,7 @@ function init()
 	<table id='survey-grid' class='tomato-grid' cellspacing=0></table>
 	<div id='survey-msg'></div>
 	<div id='survey-controls'>
-		<img src="spin.gif" id="refresh-spinner">
+		<img src="imgspin.gif" id="refresh-spinner">
 		<script type='text/javascript'>
 		genStdTimeList('expire-time', 'Auto Expire', 0);
 		genStdTimeList('refresh-time', 'Auto Refresh', 0);

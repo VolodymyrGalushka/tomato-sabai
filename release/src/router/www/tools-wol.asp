@@ -45,7 +45,7 @@ textarea {
 <script type='text/javascript'>
 
 //	<% arplist(); %>
-//	<% nvram('vpn_service,dhcpd_static,lan_ifname'); %>
+//	<% nvram("dhcpd_static,lan_ifname"); %>
 
 var wg = new TomatoGrid();
 wg.setup = function() {
@@ -173,11 +173,11 @@ function init()
 <body onload='init()'>
 <form id='_fom' action='wakeup.cgi' method='post'>
 <table id='container' cellspacing=0>
-<tr><td colspan=2 id='header'><a id='headlink' href=''><img src='' id='headlogo'></a>
-	<div class='title' id='SVPNstatus'>Sabai</div>
+<tr><td colspan=2 id='header'><a id='headlink' href='http://www.sabaitechnology.com'><img src='imgsabai.png' id='headlogo'></a>
+	<div class='title' id='SVPNstatus'><% sabaid(); %></div>
 	<div class='version' id='subversion'>version <!-- SABAI-VERSION --></div>
 </td></tr>
-<tr id='body'><td id='navi'><script type='text/javascript'>navi()</script></td>
+<tr id='body'><td id='navi'><% sabaaiMenu(); %></td>
 <td id='content'>
 
 
@@ -190,7 +190,7 @@ function init()
 <div class='section-title'>Wake On LAN</div>
 <div class='section'>
 	<table id='wol-grid' class='tomato-grid' cellspacing=1></table>
-	<div style='float:right'><img src='spin.gif' id='spin' style='vertical-align:middle;visibility:hidden'> &nbsp; <input type='button' value='Refresh' onclick='refreshClick()' id='refreshb'></div>
+	<div style='float:right'><img src='imgspin.gif' id='spin' style='vertical-align:middle;visibility:hidden'> &nbsp; <input type='button' value='Refresh' onclick='refreshClick()' id='refreshb'></div>
 </div>
 <div id='msg' style='visibility:hidden;background:#ffffa0;margin:auto;width:50%;text-align:center;padding:2px;border:1px solid #fee'></div>
 <div class='section-title'></div>

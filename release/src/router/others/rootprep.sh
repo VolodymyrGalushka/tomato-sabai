@@ -24,10 +24,13 @@ ln -sf tmp/home home
 ln -sf tmp/home/root root
 (cd usr && ln -sf ../tmp)
 
+#mkdir tmp/err
+
 # !!TB
 [ -e www/sabaivpn-astrill.asp ] && ln -sf /tmp/var/wwwext/cgi-bin/astrill.cgi /www/astrill.cgi
 ln -sf /tmp/var/wwwext www/ext
 ln -sf /tmp/var/wwwext www/user
+ln -sf /tmp/ovpn/ovpn.log www/ovpnlog.txt
 ln -sf /www/ext/proxy.pac www/proxy.pac
 ln -sf /www/ext/proxy.pac www/wpad.dat
 

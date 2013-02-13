@@ -91,6 +91,7 @@ int post;
 int connfd = -1;
 FILE *connfp = NULL;
 struct sockaddr_storage clientsai;
+bool sabai = FALSE;
 
 int header_sent;
 char *user_agent;
@@ -196,51 +197,15 @@ int skip_header(int *len)
 	}
 	return 0;
 }
- // SABAI BEGIN ADDED 2012-10-24
-int skip_header_get_filename(int *len, char * filename,  int iMaxFileNameLength)
-{
-	/* iMaxFileNameLength is the maximum filename length including '\0' */
-	char buf[2048];
-	char * first_c , * cp;
-
-	while (*len > 0) {
-		if (!web_getline(buf, MIN(*len, sizeof(buf)))) {
-			break;
-		}
-		cprintf ("%s\n", buf);
-		*len -= strlen(buf);
-		if ((strcmp(buf, "\n") == 0) || (strcmp(buf, "\r\n") == 0)) {
-			return 1;
-		}
-		else if ( (cp = strstr(buf, "filename=")) ) {
-			first_c = &cp[9];
-			first_c += strspn(first_c, " \t\""); // skip spaces, tabs and "
-			cp = strchr (first_c, (int)'"'); // look for closing "
-			if (cp == NULL) return 0;
-			*cp = '\0';
-			if ((cp = strrchr (first_c, (int)'/')) || (cp = strrchr (first_c, (int)'\\')))
-				first_c = cp + 1;
-			strcpy (filename, first_c);	
-		}
-	}
-	return 0;
-}
- // SABAI END ADDED 2012-10-24
 
 // -----------------------------------------------------------------------------
 
-static void eat_garbage(void)
-{
+static void eat_garbage(void){
 	int i;
 	int flags;
-
-	// eat garbage \r\n (IE6, ...) or browser ends up with a tcp reset error message
-	if ((!do_ssl) && (post)) {
+	if ((!do_ssl) && (post)) { // eat garbage \r\n (IE6, ...) or browser ends up with a tcp reset error message
 		if (((flags = fcntl(connfd, F_GETFL)) != -1) && (fcntl(connfd, F_SETFL, flags | O_NONBLOCK) != -1)) {
-//					if (fgetc(connfp) != EOF) fgetc(connfp);
-			for (i = 0; i < 1024; ++i) {
-				if (fgetc(connfp) == EOF) break;
-			}
+			for (i = 0; i < 1024; ++i) { if (fgetc(connfp) == EOF) break; }
 			fcntl(connfd, F_SETFL, flags);
 		}
 	}
@@ -248,23 +213,20 @@ static void eat_garbage(void)
 
 // -----------------------------------------------------------------------------
 
-
-static void send_authenticate(void)
-{
+static void send_authenticate(void){
 	char header[128];
 	const char *realm;
 
 	realm = nvram_get("router_name");
-	if ((realm == NULL) || (*realm == 0) || (strlen(realm) > 64)) realm = "unknown";
+	if ((realm == NULL) || (*realm == 0) || (strcmp(realm,"Sabai")==0) || (strlen(realm) > 64)) realm = "";
 
-	sprintf(header, "WWW-Authenticate: Basic realm=\"%s\"", realm);
+	sprintf(header, "WWW-Authenticate: Basic realm=\"Sabai%s\"", realm);
 	send_error(401, header, NULL);
 }
 
 typedef enum { AUTH_NONE, AUTH_OK, AUTH_BAD } auth_t;
 
-static auth_t auth_check(const char *authorization)
-{
+static auth_t auth_check(const char *authorization){
 	char buf[512];
 	const char *u, *p;
 	char* pass;
@@ -291,21 +253,18 @@ static auth_t auth_check(const char *authorization)
 	return AUTH_NONE;
 }
 
-static void auth_fail(int clen)
-{
+static void auth_fail(int clen){
 	if (post) web_eat(clen);
 	eat_garbage();
 	send_authenticate();
 }
 
-static int check_wif(int idx, int unit, int subunit, void *param)
-{
+static int check_wif(int idx, int unit, int subunit, void *param){
 	sta_info_t *sti = param;
 	return (wl_ioctl(nvram_safe_get(wl_nvname("ifname", unit, subunit)), WLC_GET_VAR, sti, sizeof(*sti)) == 0);
 }
 
-static int check_wlaccess(void)
-{
+static int check_wlaccess(void){
 	char mac[32];
 	char ifname[32];
 	sta_info_t sti;
@@ -359,8 +318,7 @@ static int match_one(const char* pattern, int patternlen, const char* string)
 	return 0;
 }
 
-//	Simple shell-style filename matcher.  Only does ? * and **, and multiple
-//	patterns separated by |.  Returns 1 or 0.
+//	Simple shell-style filename matcher.  Only does ? * and **, and multiple patterns separated by |.  Returns 1 or 0.
 static int match(const char* pattern, const char* string)
 {
 	const char* p;
@@ -386,12 +344,8 @@ void do_file(char *path)
 	}
 }
 
-static void handle_request(void)
-{
-	char line[10000], *cur;
-	char *method, *path, *protocol, *authorization, *boundary;
-	char *cp;
-	char *file;
+static void handle_request(void){
+	char line[10000]; char *cur, *method, *path, *protocol, *authorization, *boundary, *cp, *file;
 	const struct mime_handler *handler;
 	int cl = 0;
 	auth_t auth;
@@ -401,56 +355,24 @@ static void handle_request(void)
 	authorization = boundary = NULL;
 	bzero(line, sizeof(line));
 
-	// Parse the first line of the request.
-	if (!web_getline(line, sizeof(line))) {
-		send_error(400, NULL, NULL);
-		return;
-	}
+	if (!web_getline(line, sizeof(line))) { send_error(400, NULL, NULL); return; } // Parse the first line of the request.
 
 	_dprintf("%s\n", line);
 
 	method = path = line;
 	strsep(&path, " ");
-	if (!path) {	// Avoid http server crash, added by honor 2003-12-08
-		send_error(400, NULL, NULL);
-		return;
-	}
+	if (!path){ send_error(400, NULL, NULL); return; } // Avoid http server crash, added by honor 2003-12-08
 	while (*path == ' ') path++;
 
-	if ((strcasecmp(method, "GET") != 0) && (strcasecmp(method, "POST") != 0)) {
-		send_error(501, NULL, NULL);
-		return;
-	}
+	if((strcasecmp(method, "GET") != 0) && (strcasecmp(method, "POST") != 0)){ send_error(501, NULL, NULL); return; }
 
 	protocol = path;
 	strsep(&protocol, " ");
-	if (!protocol) {	// Avoid http server crash, added by honor 2003-12-08
-		send_error(400, NULL, NULL);
-		return;
-	}
+	if(!protocol){ send_error(400, NULL, NULL); return; } // Avoid http server crash, added by honor 2003-12-08
 	while (*protocol == ' ') protocol++;
 
-	if (path[0] != '/') {
-		send_error(400, NULL, NULL);
-		return;
-	}
+	if(path[0] != '/'){ send_error(400, NULL, NULL); return; }
 	file = path + 1;
-
-#if 0
-	const char *hid;
-	int n;
-
-	hid = nvram_safe_get("http_id");
-	n = strlen(hid);
-	cprintf("file=%s hid=%s n=%d +n=%s\n", file, hid, n, path + n + 1);
-	if ((strncmp(file, hid, n) == 0) && (path[n + 1] == '/')) {
-		path += n + 1;
-		file = path + 1;
-		hidok = 1;
-
-		cprintf("OK path=%s file=%s\n", path, file);
-	}
-#endif
 
 	if ((cp = strchr(file, '?')) != NULL) {
 		*cp = 0;
@@ -464,22 +386,17 @@ static void handle_request(void)
 		return;
 	}
 
-	if ((file[0] == 0) || (strcmp(file, "index.asp") == 0)) {
-			file = (strcmp(nvram_safe_get("srcnvrv"),"")==0) ? "sabaivpn-act.asp" : "status-overview.asp";
-//			file = "status-overview.asp";
-	}
-	else if ((strcmp(file, "ext/") == 0) || (strcmp(file, "ext") == 0)) {
-		file = "ext/index.asp";
-	}
+	if( !sabai && ( (file[0] == 0) || (strncmp(file,"sabai-",6)==0) ) && !(sabai=isSabai()) ){ file = "sabai-act.asp"; }
+
+	if ((file[0] == 0) || (strncmp(file, "index.asp",9) == 0)){ file = "status-overview.asp"; }
+	else if ((strcmp(file, "ext/") == 0) || (strcmp(file, "ext") == 0)) { file = "ext/index.asp"; }
 
 	cp = protocol;
 	strsep(&cp, " ");
 	cur = protocol + strlen(protocol) + 1;
 
 	while (web_getline(cur, line + sizeof(line) - cur)) {
-		if ((strcmp(cur, "\n") == 0) || (strcmp(cur, "\r\n") == 0)) {
-			break;
-		}
+		if ((strcmp(cur, "\n") == 0) || (strcmp(cur, "\r\n") == 0)) break;
 
 		if (strncasecmp(cur, "Authorization:", 14) == 0) {
 			cp = &cur[14];
@@ -514,68 +431,32 @@ static void handle_request(void)
 
 	auth = auth_check(authorization);
 
-#if 0
-	cprintf("UserAgent: %s\n", user_agent);
-	switch (auth) {
-	case AUTH_NONE:
-		cprintf("AUTH_NONE\n");
-		break;
-	case AUTH_OK:
-		cprintf("AUTH_OK\n");
-		break;
-	case AUTH_BAD:
-		cprintf("AUTH_BAD\n");
-		break;
-	default:
-		cprintf("AUTH_?\n");
-		break;
-	}
-#endif
 
-	/*
-
-	Chrome 1.0.154:
+/*	Chrome 1.0.154:
 	- User-Agent: Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US) AppleWebKit/525.19 (KHTML, like Gecko) Chrome/1.0.154.53 Safari/525.19
-	- It *always* sends an 'AUTH_NONE request' first. This results in a
-	  send_authenticate, then finally sends an 'AUTH_OK request'.
+	- It *always* sends an 'AUTH_NONE request' first. This results in a send_authenticate, then finally sends an 'AUTH_OK request'.
 	- It does not clear the authentication even if AUTH_NONE request succeeds.
-	- If user doesn't enter anything (blank) for credential, it sends the
-	  previous credential.
-
-	*/
+	- If user doesn't enter anything (blank) for credential, it sends the previous credential.
+*/
 
 	if (strcmp(file, "logout") == 0) {	// special case
 		wi_generic(file, cl, boundary);
 		eat_garbage();
 
-		if (strstr(user_agent, "Chrome/") != NULL) {
-			if (auth != AUTH_BAD) {
-				send_authenticate();
-				return;
-			}
-		}
-		else {
-			if (auth == AUTH_OK) {
-				send_authenticate();
-				return;
-			}
+		if(strstr(user_agent, "Chrome/") != NULL) {
+			if(auth != AUTH_BAD){ send_authenticate(); return; }
+		} else {
+			if(auth == AUTH_OK){ send_authenticate(); return; }
 		}
 		send_error(404, NULL, "Goodbye");
 		return;
 	}
 
-	if (auth == AUTH_BAD) {
-		auth_fail(cl);
-		return;
-	}
+	if(auth == AUTH_BAD){ auth_fail(cl); return; }
 
 	for (handler = &mime_handlers[0]; handler->pattern; handler++) {
 		if (match(handler->pattern, file)) {
-			if ((handler->auth) && (auth != AUTH_OK)) {
-				auth_fail(cl);
-				return;
-			}
-
+			if((handler->auth) && (auth != AUTH_OK)){ auth_fail(cl); return; }
 			if (handler->input) handler->input(file, cl, boundary);
 			eat_garbage();
 			if (handler->mime_type != NULL) send_header(200, NULL, handler->mime_type, handler->cache);
@@ -584,35 +465,7 @@ static void handle_request(void)
 		}
 	}
 
-	if (auth != AUTH_OK) {
-		auth_fail(cl);
-		return;
-	}
-
-/*
-	if ((!post) && (strchr(file, '.') == NULL)) {
-		cl = strlen(file);
-		if ((cl > 1) && (cl < 64)) {
-			char alt[128];
-
-			path = alt + 1;
-			strcpy(path, file);
-
-			cp = path + cl - 1;
-			if (*cp == '/') *cp = 0;
-
-			if ((cp = strrchr(path, '/')) != NULL) *cp = '-';
-
-			strcat(path, ".asp");
-			if (f_exists(path)) {
-				alt[0] = '/';
-				redirect(alt);
-				return;
-			}
-		}
-	}
-*/
-
+	if(auth != AUTH_OK){ auth_fail(cl); return; }
 	send_error(404, NULL, NULL);
 }
 
@@ -1028,16 +881,10 @@ int main(int argc, char **argv)
 	signal(SIGCHLD, SIG_IGN);
 
 	for (;;) {
-
-		/* Do a select() on at least one and possibly many listen fds.
-		** If there's only one listen fd then we could skip the select
-		** and just do the (blocking) accept(), saving one system call;
-		** that's what happened up through version 1.18. However there
-		** is one slight drawback to that method: the blocking accept()
-		** is not interrupted by a signal call. Since we definitely want
-		** signals to interrupt a waiting server, we use select() even
-		** if there's only one fd.
-		*/
+// Do a select() on at least one and possibly many listen fds.
+// If there's only one listen fd then we could skip the select and just do the (blocking) accept(), saving one system call; that's what happened up
+// through version 1.18. However there is one slight drawback to that method: the blocking accept() is not interrupted by a signal call. Since we
+// definitely want signals to interrupt a waiting server, we use select() even if there's only one fd.
 		rfdset = listeners.lfdset;
 		_dprintf("%s: calling select(maxfd=%d)...\n", __FUNCTION__, maxfd);
 		if (select(maxfd + 1, &rfdset, NULL, NULL, NULL) < 0) {

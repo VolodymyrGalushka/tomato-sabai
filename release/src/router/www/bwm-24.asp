@@ -39,7 +39,7 @@
 
 <script type='text/javascript'>
 
-//	<% nvram("vpn_service,wan_ifname,lan_ifname,wl_ifname,wan_proto,wan_iface,web_svg,rstats_enable,rstats_colors"); %>
+//	<% nvram("wan_ifname,lan_ifname,wl_ifname,wan_proto,wan_iface,web_svg,rstats_enable,rstats_colors"); %>
 
 var cprefix = 'bw_24';
 var updateInt = 120;
@@ -149,11 +149,11 @@ function init()
 <body onload='init()'>
 <form>
 <table id='container' cellspacing=0>
-<tr><td colspan=2 id='header'><a id='headlink' href=''><img src='' id='headlogo'></a>
-	<div class='title' id='SVPNstatus'>Sabai</div>
+<tr><td colspan=2 id='header'><a id='headlink' href='http://www.sabaitechnology.com'><img src='imgsabai.png' id='headlogo'></a>
+	<div class='title' id='SVPNstatus'><% sabaid(); %></div>
 	<div class='version' id='subversion'>version <!-- SABAI-VERSION --></div>
 </td></tr>
-<tr id='body'><td id='navi'><script type='text/javascript'>navi()</script></td>
+<tr id='body'><td id='navi'><% sabaaiMenu(); %></td>
 <td id='content'>
 
 
@@ -195,7 +195,7 @@ function init()
 		Color:&nbsp; <a href='javascript:switchColor()' id='drawcolor'>-</a><br>
 		<small><a href='javascript:switchColor(1)' id='drawrev'>[reverse]</a></small><br>
 		<br><br>
-		&nbsp; &raquo; <a href="admin-bwm.asp">Configure</a>
+		&nbsp; &raquo; <a href="bwm-monitoring.asp">Configure</a>
 	</div>
 
 	<br><br>
@@ -228,11 +228,11 @@ function init()
 
 <script type='text/javascript'>
 if (nvram.rstats_enable != '1') {
-	W('<div class="note-disabled">Bandwidth monitoring disabled.</b><br><br><a href="admin-bwm.asp">Enable &raquo;</a><div>');
+	W('<div class="note-warn">Bandwidth monitoring disabled.</b><br><br><a href="bwm-monitoring.asp">Enable &raquo;</a><div>');
 	E('rstats').style.display = 'none';
 }
 else {
-	W('<div class="note-warning" style="display:none" id="rbusy">The rstats program is not responding or is busy. Try reloading after a few seconds.</div>');
+	W('<div class="note-warn" style="display:none" id="rbusy">The rstats program is not responding or is busy. Try reloading after a few seconds.</div>');
 }
 </script>
 
@@ -241,7 +241,7 @@ else {
 </td></tr>
 <tr><td id='footer' colspan=2>
 	<span id='dtime'></span>
-	<img src='spin.gif' id='refresh-spinner' onclick='debugTime=1'>
+	<img src='imgspin.gif' id='refresh-spinner' onclick='debugTime=1'>
 	<input type='button' value='Refresh' id='refresh-button' onclick='ref.toggleX()'>
 </td></tr>
 </table>

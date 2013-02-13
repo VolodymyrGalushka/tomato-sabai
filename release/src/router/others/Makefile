@@ -1,5 +1,7 @@
 include ../common.mak
 
+.PHONY: all
+
 all:
 
 install:

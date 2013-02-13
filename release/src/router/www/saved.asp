@@ -14,8 +14,7 @@
 <script language='javascript'>
 wait = parseInt('<% cgi_get("_nextwait"); %>', 10);
 if (isNaN(wait)) wait = 5;
-function tick()
-{
+function tick(){
 	clock.innerHTML = wait;
 	opacity -= step;
 	if (opacity < 0) opacity = 0;
@@ -23,18 +22,9 @@ function tick()
 	if (--wait >= 0) setTimeout(tick, 1000);
 		else go();
 }
-function go()
-{
-	clock.style.visibility = 'hidden';
-	window.location.replace('<% cgi_get("_nextpage"); %>');
-}
-function setSpin(x)
-{
-	document.getElementById('spin').style.visibility = x ? 'visible' : 'hidden';
-	spun = x;
-}
-function init()
-{
+function go(){ clock.style.visibility = 'hidden'; window.location.replace('<% cgi_get("_nextpage"); %>'); }
+function setSpin(x){ document.getElementById('spin').style.visibility = x ? 'visible' : 'hidden'; spun = x; }
+function init(){
 	if (wait > 0) {
 		spin = document.getElementById('spin');
 		opacity = 1;
@@ -52,7 +42,7 @@ function init()
 <form>
 <script type='text/javascript'>
 if (wait <= 0) s = '<b>Changes Saved...</b> &nbsp; <input type="button" value="Continue" onclick="go()" style="font:10px sans-serif;vertical-align:top">';
-	else s = '<b>Please Wait...</b><span id="xclock" style="font-size:9px;background:#f7f7f7;padding:1px;visibility:hidden">&nbsp;</span> <img src="spin.gif" id="spin" onload="setSpin(1)">';
+	else s = '<b>Please Wait...</b><span id="xclock" style="font-size:9px;background:#f7f7f7;padding:1px;visibility:hidden">&nbsp;</span> <img src="imgspin.gif" id="spin" onload="setSpin(1)">';
 document.write(s);
 </script>
 </form>

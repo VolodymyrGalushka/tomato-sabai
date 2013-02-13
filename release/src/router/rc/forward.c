@@ -1,12 +1,6 @@
-/*
-
-	Tomato Firmware
-	Copyright (C) 2006-2009 Jonathan Zarate
-
-*/
+/* Tomato Firmware Copyright (C) 2006-2009 Jonathan Zarate */
 
 #include "rc.h"
-
 #include <arpa/inet.h>
 
 extern char chain_wan_prerouting[];
@@ -14,11 +8,15 @@ extern char chain_wan_prerouting[];
 static const char tcpudp[2][4] = {"tcp", "udp"};
 
 void ipt_forward(ipt_table_t table){
- char *lanip = nvram_safe_get("lan_ipaddr"); char *vpnip = nvram_safe_get("vpn_ipaddr"); char *wanip = nvram_safe_get("wan_ipaddr");
- char *nv, *nvp, *b; const char *proto, *vpnpf, *saddr, *xports, *iport, *iaddr, *desc, *c, *mdport; int n,i,j,v,vpn_on;
+ char *lanip = nvram_safe_get("lan_ipaddr"); char *wanip = nvram_safe_get("wan_ipaddr");
+ char *vpnip = nvram_safe_get("vpn_ipaddr"); char *vpnif = nvram_safe_get("vpn_device");
+ char *nv, *nvp, *b;
+ const char *proto, *vpnpf, *saddr, *xports, *iport, *iaddr, *desc, *c, *mdport; int n,i,j,v,vpn_up;
  char *wanvpn[2] = { wanip , vpnip };
- vpn_on = ( nvram_get_int("pptp_on")==1 || nvram_get_int("ovpn_on")==1 );
- v=(1+(vpn_on<<1));
+
+ vpn_up = ( (nvram_get_int("vpn_up")==1) && ( (strcmp(vpnif,"")!=0) && (strcmp(vpnip,"")!=0) ) );
+ v=(vpn_up?3:1); // v=(1+(vpn_up<<1));
+
  nvp = nv = strdup(nvram_safe_get("portforward"));
  if (!nv) return;
  while ((b = strsep(&nvp, ">")) != NULL) {
@@ -41,8 +39,21 @@ void ipt_forward(ipt_table_t table){
 
  }
  free(nv);
- if((table==IPT_TABLE_FILTER)&&(nvram_get_int("wan_route")==1)){ ipt_write("-I FORWARD -s %s/%s -j ACCEPT\n", wanip, nvram_safe_get("wan_netmask")); }
- if((table==IPT_TABLE_NAT)&&(nvram_get_int("ovpn_on")==1)){ ipt_write("-A POSTROUTING -o %s -j MASQUERADE\n", nvram_get("vpn_device")); }
+// if((table==IPT_TABLE_FILTER)&&(nvram_get_int("wan_route")==1)){ ipt_write("-I FORWARD -s %s/%s -j ACCEPT\n", wanip, nvram_safe_get("wan_netmask")); }
+ if(table==IPT_TABLE_FILTER){
+  if(nvram_get_int("wan_route")==1){ ipt_write("-I FORWARD -s %s/%s -j ACCEPT\n", wanip, nvram_safe_get("wan_netmask")); }
+  if(vpn_up){
+   ipt_write("-I INPUT -i br0 -d %s -j DROP\n", vpnip);
+   ipt_write("-A FORWARD -i %s -j wanin\n", vpnif);
+   ipt_write("-A FORWARD -o %s -j wanout\n", vpnif);
+   ipt_write("-A FORWARD -i %s -j upnp\n", vpnif);
+  }
+ }
+ if((table==IPT_TABLE_NAT)&&vpn_up){
+  ipt_write("-A PREROUTING -d %s -j WANPREROUTING\n",vpnip);
+  ipt_write("-A PREROUTING -i %s -d %s/%s -j DROP\n",vpnif,lanip,nvram_safe_get("lan_netmask"));
+  ipt_write("-A POSTROUTING -o %s -j MASQUERADE\n", vpnif);
+ }
 }
 
 /*

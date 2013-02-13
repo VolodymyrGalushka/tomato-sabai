@@ -300,6 +300,7 @@ void start_dnsmasq(){
 			fprintf(hf, "%s %s-wan\n", p, nv);
 	}
 
+
 	mkdir_if_none(dmdhcp);
 	snprintf(buf, sizeof(buf), "%s/dhcp-hosts", dmdhcp);
 	df = fopen(buf, "w");
@@ -673,6 +674,10 @@ void start_6rd_tunnel(void)
 	char tmp_ipv6[INET6_ADDRSTRLEN + 4], tmp_ipv4[INET_ADDRSTRLEN + 4];
 	char tmp[256];
 	FILE *f;
+	char *prefix, *ip, *mtu;
+	int do_dns, do_6to4;
+	char *argv[] = { "radvd", NULL, NULL, NULL };
+	int pid, argc, service, cnt;
 
 	service = get_ipv6_service();
 	wanip = get_wanip();
@@ -781,7 +786,6 @@ void stop_6rd_tunnel(void)
 	eval("ip", "-6", "addr", "flush", "dev", nvram_safe_get("lan_ifname"), "scope", "global");
 	modprobe_r("sit");
 }
-
 
 void start_ipv6(void)
 {
@@ -933,9 +937,12 @@ void start_upnp(void)
 							// by default allow only redirection of ports above 1024
 							fprintf(f, "allow 1024-65535 %s/%s 1024-65535\n", lanip, lanmask);
 						}
+#ifdef TCONFIG_VLAN
 					}
 				}
+#endif
 
+				fappend(f, "/jffs/upnpconfig.custom");
 				fappend(f, "/etc/upnp/config.custom");
 				fprintf(f, "%s\n", nvram_safe_get("upnp_custom"));
 				fprintf(f, "\ndeny 0-65535 0.0.0.0/0 0-65535\n");
@@ -1020,20 +1027,26 @@ void start_zebra(void)
 
 	char *lan_tx = nvram_safe_get("dr_lan_tx");
 	char *lan_rx = nvram_safe_get("dr_lan_rx");
+#ifdef TCONFIG_VLAN
 	char *lan1_tx = nvram_safe_get("dr_lan1_tx");
 	char *lan1_rx = nvram_safe_get("dr_lan1_rx");
 	char *lan2_tx = nvram_safe_get("dr_lan2_tx");
 	char *lan2_rx = nvram_safe_get("dr_lan2_rx");
 	char *lan3_tx = nvram_safe_get("dr_lan3_tx");
 	char *lan3_rx = nvram_safe_get("dr_lan3_rx");
+#endif
 	char *wan_tx = nvram_safe_get("dr_wan_tx");
 	char *wan_rx = nvram_safe_get("dr_wan_rx");
 
+#ifdef TCONFIG_VLAN
 	if ((*lan_tx == '0') && (*lan_rx == '0') && 
 		(*lan1_tx == '0') && (*lan1_rx == '0') && 
 		(*lan2_tx == '0') && (*lan2_rx == '0') && 
 		(*lan3_tx == '0') && (*lan3_rx == '0') && 
 		(*wan_tx == '0') && (*wan_rx == '0')) {
+#else
+	if ((*lan_tx == '0') && (*lan_rx == '0') && (*wan_tx == '0') && (*wan_rx == '0')) {
+#endif
 		return;
 	}
 
@@ -1045,20 +1058,24 @@ void start_zebra(void)
 	//
 	if ((fp = fopen("/etc/ripd.conf", "w")) != NULL) {
 		char *lan_ifname = nvram_safe_get("lan_ifname");
+#ifdef TCONFIG_VLAN
 		char *lan1_ifname = nvram_safe_get("lan1_ifname");
 		char *lan2_ifname = nvram_safe_get("lan2_ifname");
 		char *lan3_ifname = nvram_safe_get("lan3_ifname");
+#endif
 		char *wan_ifname = nvram_safe_get("wan_ifname");
 
 		fprintf(fp, "router rip\n");
 		if(strcmp(lan_ifname,"")!=0)
 			fprintf(fp, "network %s\n", lan_ifname);
+#ifdef TCONFIG_VLAN
 		if(strcmp(lan1_ifname,"")!=0)
 			fprintf(fp, "network %s\n", lan1_ifname);
 		if(strcmp(lan2_ifname,"")!=0)
 			fprintf(fp, "network %s\n", lan2_ifname);
 		if(strcmp(lan3_ifname,"")!=0)
 			fprintf(fp, "network %s\n", lan3_ifname);
+#endif
 		fprintf(fp, "network %s\n", wan_ifname);
 		fprintf(fp, "redistribute connected\n");
 		//fprintf(fp, "redistribute static\n");
@@ -1071,6 +1088,7 @@ void start_zebra(void)
 			if (*lan_tx != '0') fprintf(fp, "ip rip send version %s\n", lan_tx);
 			if (*lan_rx != '0') fprintf(fp, "ip rip receive version %s\n", lan_rx);
 		}
+#ifdef TCONFIG_VLAN
 		if(strcmp(lan1_ifname,"")!=0) {
 			fprintf(fp, "interface %s\n", lan1_ifname);
 			if (*lan1_tx != '0') fprintf(fp, "ip rip send version %s\n", lan1_tx);
@@ -1086,6 +1104,7 @@ void start_zebra(void)
 			if (*lan3_tx != '0') fprintf(fp, "ip rip send version %s\n", lan3_tx);
 			if (*lan3_rx != '0') fprintf(fp, "ip rip receive version %s\n", lan3_rx);
 		}
+#endif
 		fprintf(fp, "interface %s\n", wan_ifname);
 		if (*wan_tx != '0') fprintf(fp, "ip rip send version %s\n", wan_tx);
 		if (*wan_rx != '0') fprintf(fp, "ip rip receive version %s\n", wan_rx);
@@ -1095,6 +1114,7 @@ void start_zebra(void)
 			if (*lan_tx == '0') fprintf(fp, "distribute-list private out %s\n", lan_ifname);
 			if (*lan_rx == '0') fprintf(fp, "distribute-list private in %s\n", lan_ifname);
 		}
+#ifdef TCONFIG_VLAN
 		if(strcmp(lan1_ifname,"")!=0) {
 			if (*lan1_tx == '0') fprintf(fp, "distribute-list private out %s\n", lan1_ifname);
 			if (*lan1_rx == '0') fprintf(fp, "distribute-list private in %s\n", lan1_ifname);
@@ -1107,6 +1127,7 @@ void start_zebra(void)
 			if (*lan3_tx == '0') fprintf(fp, "distribute-list private out %s\n", lan3_ifname);
 			if (*lan3_rx == '0') fprintf(fp, "distribute-list private in %s\n", lan3_ifname);
 		}
+#endif
 		if (*wan_tx == '0') fprintf(fp, "distribute-list private out %s\n", wan_ifname);
 		if (*wan_rx == '0') fprintf(fp, "distribute-list private in %s\n", wan_ifname);
 		fprintf(fp, "access-list private deny any\n");
@@ -1756,7 +1777,7 @@ static void start_samba(void)
 		" bind interfaces only = yes\n"
 		" workgroup = %s\n"
 		" netbios name = %s\n"
-		" server string = %s\n"
+		" server string = Sabai_%s\n"
 		" guest account = nobody\n"
 		" security = user\n"
 		" %s\n"
@@ -1771,8 +1792,8 @@ static void start_samba(void)
 		" short preserve case = yes\n",
 		nvram_safe_get("lan_ifname"),
 		nvram_get("smbd_wgroup") ? : "WORKGROUP",
-		nvram_safe_get("lan_hostname"),
-		nvram_get("router_name") ? : "Tomato",
+		lan_name,
+		lan_name,
 		mode == 2 ? "" : "map to guest = Bad User",
 		mode == 2 ? "no" : "yes"	// guest ok
 	);
@@ -1975,6 +1996,9 @@ static void start_media_server(void)
 				if (!(*dbdir)) dbdir = NULL;
 				mkdir_if_none(dbdir ? : "/var/run/"MEDIA_SERVER_APP);
 
+				char *router_name = nvram_get("router_name");
+				if( router_name==NULL || strcmp(router_name,"") == 0 ) router_name = "Sabato";
+
 				fprintf(f,
 					"network_interface=%s\n"
 					"port=%d\n"
@@ -1989,7 +2013,7 @@ static void start_media_server(void)
 					"\n",
 					nvram_safe_get("lan_ifname"),
 					(port < 0) || (port >= 0xffff) ? 0 : port,
-					nvram_get("router_name") ? : "Tomato",
+					router_name,
 					dbdir ? : "/var/run/"MEDIA_SERVER_APP,
 					nvram_get_int("ms_tivo") ? "yes" : "no",
 					nvram_get_int("ms_stdlna") ? "yes" : "no",

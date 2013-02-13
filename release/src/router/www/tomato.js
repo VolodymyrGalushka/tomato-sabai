@@ -16,6 +16,11 @@ Array.prototype.remove = function(v) {
 String.prototype.trim = function() {
 	return this.replace(/^\s+/, '').replace(/\s+$/, '');
 }
+String.prototype.rpad = function(len,pad) {
+	var str = this.toString();
+	while(str.length < len){ str+=pad; }
+	return str;
+}
 Number.prototype.pad = function(min) {
 	var s = this.toString();
 	while (s.length < min) s = '0' + s;
@@ -868,14 +873,9 @@ function v_iptport(e, quiet)
 	return 1;
 }
 
-function _v_netmask(mask)
-{
-	var v = aton(mask) ^ 0xFFFFFFFF;
-	return (((v + 1) & v) == 0);
-}
+function _v_netmask(mask){ var v = aton(mask) ^ 0xFFFFFFFF; return (((v + 1) & v) == 0); }
 
-function v_netmask(e, quiet)
-{
+function v_netmask(e, quiet){
 	var n, b;
 
 	if ((e = E(e)) == null) return 0;
@@ -1334,11 +1334,11 @@ TomatoGrid.prototype = {
 		n = 0;
 		s = '';
 		if (me.canMove) {
-			s = '<img src="rpu.gif" onclick="this.parentNode.tgo.rpUp(this.parentNode.ref)" title="Move Up"><img src="rpd.gif" onclick="this.parentNode.tgo.rpDn(this.parentNode.ref)" title="Move Down"><img src="rpm.gif" onclick="this.parentNode.tgo.rpMo(this,this.parentNode.ref)" title="Move">';
+			s = '<img src="imgrpu.gif" onclick="this.parentNode.tgo.rpUp(this.parentNode.ref)" title="Move Up"><img src="imgrpd.gif" onclick="this.parentNode.tgo.rpDn(this.parentNode.ref)" title="Move Down"><img src="imgrpm.gif" onclick="this.parentNode.tgo.rpMo(this,this.parentNode.ref)" title="Move">';
 			n += 3;
 		}
 		if (me.canDelete) {
-			s += '<img src="rpx.gif" onclick="this.parentNode.tgo.rpDel(this.parentNode.ref)" title="Delete">';
+			s += '<img src="imgrpx.gif" onclick="this.parentNode.tgo.rpDel(this.parentNode.ref)" title="Delete">';
 			++n;
 		}
 		x = PR(evt.target);
@@ -2081,7 +2081,7 @@ function genStdTimeList(id, zero, min)
 function genStdRefresh(spin, min, exec)
 {
 	W('<div style="text-align:right">');
-	if (spin) W('<img src="spin.gif" id="refresh-spinner"> ');
+	if (spin) W('<img src="imgspin.gif" id="refresh-spinner"> ');
 	genStdTimeList('refresh-time', 'Auto Refresh', min);
 	W('<input type="button" value="Refresh" onclick="' + (exec ? exec : 'refreshClick()') + '" id="refresh-button"></div>');
 }
@@ -2135,81 +2135,39 @@ var cookie = {
 
 // -----------------------------------------------------------------------------
 
-function checkEvent(evt)
-{
-	if (typeof(evt) == 'undefined') {
-		// ---- IE
-		evt = event;
-		evt.target = evt.srcElement;
-		evt.relatedTarget = evt.toElement;
-	}
+function checkEvent(evt){
+	if (typeof(evt) == 'undefined'){ evt = event; evt.target = evt.srcElement; evt.relatedTarget = evt.toElement; } // ---- IE
 	return evt;
 }
 
-function W(s)
-{
-	document.write(s);
-}
-
+function W(s){ document.write(s); }
 function A(e){ return document.createElement(e); }
+function T(t){ return document.createTextNode(t); }
+function E(e){ return (typeof(e) == 'string') ? document.getElementById(e) : e; }
+function PR(e){ return elem.parentElem(e, 'TR'); }
 
-function E(e)
-{
-	return (typeof(e) == 'string') ? document.getElementById(e) : e;
-}
+function THIS(obj, func){ return function() { return func.apply(obj, arguments); } }
 
-function PR(e)
-{
-	return elem.parentElem(e, 'TR');
-}
+function UT(v){ return (typeof(v) == 'undefined') ? '' : '' + v; }
 
-function THIS(obj, func)
-{
-	return function() { return func.apply(obj, arguments); }
-}
-
-function UT(v)
-{
-	return (typeof(v) == 'undefined') ? '' : '' + v;
-}
-
-function escapeHTML(s)
-{
-	function esc(c) {
-		return '&#' + c.charCodeAt(0) + ';';
-	}
+function escapeHTML(s){
+	function esc(c){ return '&#' + c.charCodeAt(0) + ';'; }
 	return s.replace(/[&"'<>\r\n]/g, esc);
 }
 
-function escapeCGI(s)
-{
-	return escape(s).replace(/\+/g, '%2B');	// escape() doesn't handle +
-}
+function escapeCGI(s){ return escape(s).replace(/\+/g, '%2B'); }	// escape() doesn't handle +
 
-function escapeD(s)
-{
-	function esc(c) {
-		return '%' + c.charCodeAt(0).hex(2);
-	}
+function escapeD(s){
+	function esc(c){ return '%' + c.charCodeAt(0).hex(2); }
 	return s.replace(/[<>|%]/g, esc);
 }
 
-function ellipsis(s, max) {
-	return (s.length <= max) ? s : s.substr(0, max - 3) + '...';
-}
+function ellipsis(s, max) { return (s.length <= max) ? s : s.substr(0, max - 3) + '...'; }
 
-function MIN(a, b)
-{
-	return a < b ? a : b;
-}
+function MIN(a, b){ return a < b ? a : b; }
+function MAX(a, b){ return a > b ? a : b; }
 
-function MAX(a, b)
-{
-	return a > b ? a : b;
-}
-
-function fixInt(n, min, max, def)
-{
+function fixInt(n, min, max, def){
 	if (n === null) return def;
 	n *= 1;
 	if (isNaN(n)) return def;
@@ -2218,80 +2176,53 @@ function fixInt(n, min, max, def)
 	return n;
 }
 
-function comma(n)
-{
+function comma(n){
 	n = '' + n;
 	var p = n;
 	while ((n = n.replace(/(\d+)(\d{3})/g, '$1,$2')) != p) p = n;
 	return n;
 }
 
-function doScaleSize(n, sm)
-{
+function doScaleSize(n, sm){
 	if (isNaN(n *= 1)) return '-';
 	if (n <= 9999) return '' + n;
 	var s = -1;
-	do {
-		n /= 1024;
-		++s;
-	} while ((n > 9999) && (s < 2));
+	do { n /= 1024; ++s; } while ((n > 9999) && (s < 2));
 	return comma(n.toFixed(2)) + (sm ? '<small> ' : ' ') + (['KB', 'MB', 'GB'])[s] + (sm ? '</small>' : '');
 }
 
-function scaleSize(n)
-{
-	return doScaleSize(n, 1);
-}
+function scaleSize(n){ return doScaleSize(n, 1); }
 
-function timeString(mins)
-{
+function timeString(mins){
 	var h = Math.floor(mins / 60);
 	if ((new Date(2000, 0, 1, 23, 0, 0, 0)).toLocaleString().indexOf('23') != -1)
 		return h + ':' + (mins % 60).pad(2);
 	return ((h == 0) ? 12 : ((h > 12) ? h - 12 : h)) + ':' + (mins % 60).pad(2) + ((h >= 12) ? ' PM' : ' AM');
 }
 
-function features(s)
-{
-	var features = ['ses','brau','aoss','wham','hpamp','!nve','11n','1000et'];
-	var i;
+function features(s){ var features = ['ses','brau','aoss','wham','hpamp','!nve','11n','1000et']; for(var i = features.length - 1; i >= 0; --i){ if (features[i] == s) return (parseInt(nvram.t_features) & (1 << i)) != 0; }; return 0; }
 
-	for (i = features.length - 1; i >= 0; --i) {
-		if (features[i] == s) return (parseInt(nvram.t_features) & (1 << i)) != 0;
-	}
-	return 0;
-}
+//function get_config(name, def){ return ((typeof(nvram) != 'undefined') && (typeof(nvram[name]) != 'undefined')) ? nvram[name] : def; }
 
-function get_config(name, def)
-{
-	return ((typeof(nvram) != 'undefined') && (typeof(nvram[name]) != 'undefined')) ? nvram[name] : def;
-}
-
-function nothing()
-{
-}
-
-// -----------------------------------------------------------------------------
-
-function show_notice1(s)
-{
-// ---- !!TB - USB Support: multi-line notices
-	if (s.length) document.write('<div id="notice1">' + s.replace(/\n/g, '<br>') + '</div><br style="clear:both">');
-}
-
-// -----------------------------------------------------------------------------
-
-function myName()
-{
-	var name, i;
-	name = document.location.pathname;
-	name = name.replace(/\\/g, '/');	// IE local testing
-	if ((i = name.lastIndexOf('/')) != -1) name = name.substring(i + 1, name.length);
-	if (name == '') name = 'status-overview.asp';
-	return name;
-}
+function showNotice(s){ if (s.length) document.write('<div class="note-warn">' + s.replace(/\n/g, '<br>') + '</div><br style="clear:both">'); }
 
 // /* DAVID BEGIN */
+function whereAmI(){
+ var i, tag, name = document.location.pathname.replace(/\\/g, '/');
+ if ( (i = (name.lastIndexOf('/'))+1) ) name = name.substr(i);
+ if('<% isitsabai(); %>'!=='true' && (name == '' || name.substr(0,6)=='sabai-') ) name = 'sabai-act.asp'; else if (name == '') name = 'status-overview.asp';
+ var mult = document.location.search; if(mult=='?advanced' || mult=='?firewall') name += mult; // Just in case
+ if(tag = E('topMenu').querySelector("a[href='"+ name +"']")){ tag.className = 'here'; if(tag.parentNode.id != 'topMenu') peeky(tag.parentNode); if( tag.parentNode.parentNode.id=='advanced' || (cookie.get('_advOpen') == 'show') ){ E('advancedLink').className = 'advSup'; E('advanced').className=''; } }
+ if( ('<% isitsabai(); %>'==='true') ) peek('actLink',false);
+}
+
+function toggleAdv(){ var alcl = peeky('advanced'); cookie.set('_advOpen', ( alcl ? 'show' : 'hide' ) , 1 ); E('advancedLink').className = ( alcl ? 'advSup' : 'menuSup'); }
+function peeky(el){ el=E(el); if(!el) return null; var elcl = el.className; var hid=(elcl.search('hidey')!=-1); el.className = ( hid ? elcl.replace('hidey','') : (elcl + ' hidey') ).trim(); return hid; }
+
+function peek(el,aboo){ el=E(el); if(!el) return; var hasHidey = (el.className.search('hidey')==-1);
+ if(aboo && !hasHidey) el.className = el.className.replace('hidey','').trim();
+ if(!aboo && hasHidey) el.className = (el.className + ' hidey').trim();
+}
 function requeue(){
 var queue = []; var workingNow = false; var me = this; var client; var current = {};
 this.handle = function(){ if((client!=null)&&(client.readyState == 4)&&(client.status==200)){ current.handler(client.responseText); me.crunch(); } }
@@ -2302,140 +2233,9 @@ this.add = function(q_path, q_handler, q_args, q_type, q_header){ queue.push({ p
 }
 var que = new requeue();
 
-function toggleChildMenu(){
- var ch = E('sub-'+this.id);
- ch.className = (ch.className == 'shownChildMenu') ? 'hiddenChildMenu' : 'shownChildMenu';
-}
-
-function toggleAdvancedMenu(){
- if( cookie.get('_AdvancedMenuOpen') == 'show' ){
-  toggleChildMenu.call(this);
- }else if( confirm("Some advanced settings may render your router unusable.  Are you sure you want to continue?") ){
-  cookie.set('_AdvancedMenuOpen', 'show' , 1 );
-  toggleChildMenu.call(this);
- }
-}
-
-function redoMenu(text){ eval(text);
- var vm = document.createDocumentFragment(); addMenu(vm,[sabaaiMenu]);
- var svmi = E('sup-Register'); svmi.parentNode.replaceChild(vm,svmi);
- E('sabaivpn').className+=' electMenuParent'; var svm=E('sub-sabaivpn'); svm.className='shownChildMenu'; svm.childNodes[0].className+=' electMenu';
-}
-function grabMenu(newMenu){ que.drop('sabaimenu.asp',redoMenu); }
-
-vpn_service='sabai';
-function navi(){ E('headlogo').src='sabai.png'; E('headlink').href='http://www.sabaitechnology.com';
-
-var menu = [
-['Network', 		'basic-network.asp'],
-((<% sabaaiMenu(); %>)||'1'),
-1,
-['Status', 		'status', 0, [
-	['Overview',		'status-overview.asp'],
-	['Device List',		'status-devices.asp'],
-	['Time',		'basic-time.asp'],
-	['Identification',	'basic-ident.asp'],
-	['Web Usage',		'status-webmon.asp'],
-	['Logs',		'status-log.asp'] ] ],
-['Diagnostics', 	'tools', 0, [
-	['Ping',		'tools-ping.asp'],
-	['Trace',		'tools-trace.asp'],
-	['Route',		'tools-route.asp'],
-	['System',		'tools-shell.asp'],
-	['Wireless Survey',	'tools-survey.asp'],
-	['WOL',			'tools-wol.asp'] ] ],
-['Advanced',		'advanced'],
-1,
-['About',			'about.asp'],
-['Backup',			'admin-config.asp'],
-['Upgrade',			'admin-upgrade.asp'],
-['Reboot...',			'javascript:reboot()'],
-['Logout',			'javascript:logout()']
-];
-
-var adv = [
-['Settings', 		'settings', 0, [
-	['DDNS',		'basic-ddns.asp'],
-	['Static DHCP',		'basic-static.asp'],
-	['DHCP / DNS',		'advanced-dhcpdns.asp'],
-	['MAC Address',		'advanced-mac.asp'],
-	['Routing',		'advanced-routing.asp'],
-	['Wireless',		'advanced-wireless.asp'] ] ],
-['Controls', 		'control', 0, [
-	['Conntrack Netfilter',	'advanced-ctnf.asp'],
-	['Wireless Filter',	'basic-wfilter.asp'],
-	['Firewall',		'advanced-firewall.asp'] ] ],
-['Port Forwarding', 	'forward', 0, [
-	['Basic',		'forward-basic.asp'],
-	['Basic IPv6',		'basic-ipv6.asp'],
-	['DMZ',			'forward-dmz.asp'],
-	['Triggered',		'forward-triggered.asp'],
-	['UPnP / NAT-PMP',	'forward-upnp.asp'] ] ],
-['QoS',			'qos', 0, [
-	['Basic Settings',	'qos-settings.asp'],
-	['Classification',	'qos-classify.asp'],
-	['View Graphs',		'qos-graphs.asp'],
-	['View Details',	'qos-detailed.asp'],
-	['Transfer Rates',	'qos-ctrate.asp'] ] ],
-['USB and NAS',		'nas', 0, [
-	['USB Support',		'nas-usb.asp'],
-	['FTP Server',		'nas-ftp.asp'],
-	['File Sharing',	'nas-samba.asp'],
-	['Media Server',	'nas-media.asp'] ] ],
-['Administration',	'admin', 0, [
-	['Admin Access',	'admin-access.asp'],
-	['Bandwidth Monitoring','admin-bwm.asp'],
-	['Buttons / LED',	'admin-buttons.asp'],
-	['CIFS Client',		'admin-cifs.asp'],
-	['Debugging',		'admin-debug.asp'],
-	['JFFS',		'admin-jffs2.asp'],
-	['Logging',		'admin-log.asp'],
-	['Scheduler',		'admin-sched.asp'],
-	['Scripts',		'admin-scripts.asp'],
-	['Miscellaneous',	'advanced-misc.asp'] ] ],
-['Bandwidth', 		'bwm', 0, [
-	['Real-Time',		'bwm-realtime.asp'],
-	['Last 24 Hours',	'bwm-24.asp'],
-	['Daily',		'bwm-daily.asp'],
-	['Weekly',		'bwm-weekly.asp'],
-	['Monthly',		'bwm-monthly.asp'] ] ]
-];
- addMenu(E('navi'),menu);
- addMenu(E('sub-advanced'),adv);
-}
-
-function addMenu(parent,menu){ var highlight,m; var name = myName(); var frag = document.createDocumentFragment();
- while(m = menu.shift()){
-  if(m==1){ frag.appendChild(A('br')); }else{
-   var ha = A('a'); ha.appendChild(document.createTextNode(m[0])); ha.className = 'indent1'; frag.appendChild(ha);
-   if( m[1]=='advanced' ){
-    ha.onclick = toggleAdvancedMenu; ha.id = 'advanced';
-    var di = A('div'); di.id = 'sub-advanced'; di.className = ( cookie.get('_AdvancedMenuOpen') == 'show' ) ? 'shownChildMenu' : 'hiddenChildMenu'; frag.appendChild(di);
-   }else{
-    var mm;
-    if( mm = m[3] ){
-     ha.onclick = toggleChildMenu; ha.id = m[1]; var di = A('div'); di.id = 'sub-'+m[1];
-     if(m[2]==1){ di.className = 'shownChildMenu'; }else{ di.className = 'hiddenChildMenu'; }
-     var sm;
-     while(sm = mm.shift()){
-      var li = A('a'); li.appendChild(document.createTextNode(sm[0])); li.className = 'indent2'; li.href = sm[1]; di.appendChild(li);
-      if( name == sm[1] ){ di.className = 'shownChildMenu'; li.className += ' electMenu'; highlight=li.parentNode.id.substring(4); }
-     }
-     frag.appendChild(di);
-    }else{
-     ha.id='sup-'+m[0]; ha.href = m[1]; if(m[1]==name){ ha.className += ' electMenuParent'; }
-    }
-   }
-  }
- }
- parent.appendChild(frag);
- if(highlight != undefined){ E(highlight).className += ' electMenuParent'; }
-}
-
 ///* DAVID END */
 
-function createFieldTable(flags, desc)
-{
+function createFieldTable(flags, desc){
 	var common;
 	var i, n;
 	var name;
@@ -2541,8 +2341,7 @@ function createFieldTable(flags, desc)
 	document.write(buf.join(''));
 }
 
-function peekaboo(id, show)
-{
+function peekaboo(id, show){
 	try {
 		var o = A('INPUT');
 		var e = E(id);
@@ -2581,25 +2380,13 @@ REMOVE-END */
 
 // -----------------------------------------------------------------------------
 
-function reloadPage()
-{
-	document.location.reload(1);
-}
+function reloadPage(resp){ location.reload(); }
 
-function reboot()
-{
-	if (confirm("Reboot?")) form.submitHidden('tomato.cgi', { _reboot: 1, _commit: 0, _nvset: 0 });
-}
+function reboot(){ if (confirm("Reboot?")) form.submitHidden('tomato.cgi', { _reboot: 1, _commit: 0, _nvset: 0 }); }
 
-function shutdown()
-{
-	if (confirm("Shutdown?")) form.submitHidden('shutdown.cgi', { });
-}
+function shutdown(){ if (confirm("Shutdown?")) form.submitHidden('shutdown.cgi', { }); }
 
-function logout()
-{
-	form.submitHidden('logout.asp', { });
-}
+function logout(){ form.submitHidden('logout.asp', { }); }
 
 // -----------------------------------------------------------------------------
 
@@ -2607,14 +2394,9 @@ function logout()
 
 // ---- debug
 
-function isLocal()
-{
-	return location.href.search('file://') == 0;
-}
+function isLocal(){ return location.href.search('file://') == 0; }
 
-function console(s)
-{
-}
+function console(s){}
 
 
 

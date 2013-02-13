@@ -23,7 +23,7 @@
 
 <script type='text/javascript'>
 
-//	<% nvram("vpn_service,wan_ifname,lan_ifname,rstats_enable"); %>
+//	<% nvram("wan_ifname,lan_ifname,rstats_enable"); %>
 try {
 //	<% bandwidth("daily"); %>
 }
@@ -230,11 +230,11 @@ function init()
 <body onload='init()'>
 <form>
 <table id='container' cellspacing=0>
-<tr><td colspan=2 id='header'><a id='headlink' href=''><img src='' id='headlogo'></a>
-	<div class='title' id='SVPNstatus'>Sabai</div>
+<tr><td colspan=2 id='header'><a id='headlink' href='http://www.sabaitechnology.com'><img src='imgsabai.png' id='headlogo'></a>
+	<div class='title' id='SVPNstatus'><% sabaid(); %></div>
 	<div class='version' id='subversion'>version <!-- SABAI-VERSION --></div>
 </td></tr>
-<tr id='body'><td id='navi'><script type='text/javascript'>navi()</script></td>
+<tr id='body'><td id='navi'><% sabaaiMenu(); %></td>
 <td id='content'>
 
 
@@ -248,7 +248,7 @@ function init()
 <b>Start</b> <select onchange='changeStart(this)' id='startwk'><option value=0 selected>Sun<option value=1>Mon<option value=2>Tue<option value=3>Wed<option value=4>Thu<option value=5>Fri<option value=6>Sat</select><br>
 <b>Scale</b> <select onchange='changeScale(this)' id='scale'><option value=0>KB</option><option value=1>MB</option><option value=2 selected>GB</option></select><br>
 <br>
-&raquo; <a href="admin-bwm.asp">Configure</a>
+&raquo; <a href="bwm-monitoring.asp">Configure</a>
 <br><br><br>
 </div>
 <br>

@@ -1033,6 +1033,15 @@ absolute_pathname (const char *pathname)
  * Get and store a username/password
  */
 
+// BEGIN ADDITION TO SUPPLY USERNAME/PASS
+bool get_user_pass_inline (struct user_pass *up, const char *iuser, const char *ipass){
+ if ( strncpy (up->username, iuser, USER_PASS_LEN) == NULL || strncpy (up->password, ipass, USER_PASS_LEN) == NULL ) msg (M_FATAL, "Error reading authline: '%s/%s'",iuser,ipass);
+ chomp (up->username); chomp (up->password); string_mod(up->username, CC_PRINT, CC_CRLF, 0); string_mod(up->password, CC_PRINT, CC_CRLF, 0);
+ up->defined = true;
+ return true;
+}
+// END ADDITION TO SUPPLY USERNAME/PASS
+
 bool
 get_user_pass_cr (struct user_pass *up,
 		  const char *auth_file,

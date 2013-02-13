@@ -120,6 +120,7 @@ void wi_cgi_bin(char *url, int len, char *boundary)
 			post_buf[len] = 0;
 		}
 	}
+	setenv("BOUNDARY", boundary, 1);
 }
 
 static void _execute_command(char *url, char *command, char *query, wofilter_t wof)
@@ -332,25 +333,24 @@ const struct mime_handler mime_handlers[] = {
 	{ "service.cgi",	NULL,						0,	wi_generic,			wo_service,		1 },
 //	{ "logout.cgi",		NULL,	   		 			0,	wi_generic,			wo_logout,		0 },
 // see httpd.c
-	{ "shutdown.cgi",	mime_html,					0,	wi_generic,			wo_shutdown,	1 },
-//	/* ----------------------- SABAI VPN Proprietary Functions BEGIN ----------------------- */
-	{ "vpna.cgi",		mime_javascript,	0,	wi_generic_noid,	wo_sabaai_vpna,		1 },
-	{ "sabaai-init.cgi",	NULL,			0,	wi_generic,		wo_sabaai_register,	1 },
-	{ "s_sabaipptp.cgi",	NULL,			0,	wi_generic,		wo_sabaai_PPTP,		1 },
+	{ "shutdown.cgi",	mime_html,		0,	wi_generic,		wo_shutdown,		1 },
+// SABAI CGI BEGIN
+//	{ "vpna.cgi",		mime_javascript,	0,	wi_generic_noid,	wo_sabaai_vpna,		1 },
+	{ "s_sabaipptp.cgi",	NULL,			0,	wi_generic,		wo_sabaai_pptp,		1 },
+	{ "s_sabaiovpn.cgi",	NULL,			0,	wi_generic,		wo_sabaai_ovpn,		1 },
+	{ "s_ovpn_get.cgi",	NULL,			0,	wi_sabaai_ovpn_get,	NULL,			1 },
+	{ "s_ovpn_parts.cgi",	NULL,			0,	wi_sabaai_ovpn_parts,	NULL,			1 },
 	{ "s_sabaigw.cgi",	NULL,			0,	wi_generic,		wo_sabaai_gw,		1 },
-	{ "s_grabovpn.cgi",	NULL,			0,	wi_grabovpn_script,	NULL,			1 },
-	{ "s_startovpn.cgi",	NULL,			0,	NULL,			wo_sabaai_OVPN_start,	1 },
-	{ "s_eraseovpn.cgi",	NULL,			0,	NULL,			wo_sabaai_OVPN_erase,	1 },
-	{ "s_stopovpn.cgi",	NULL,			0,	NULL,			wo_sabaai_OVPN_stop,	1 },
-	{ "s_vpns.cgi",		NULL,			0,	wi_generic,		wo_sabaai_vpns,		1 },
-	{ "s_vypr.cgi",		NULL,			0,	wi_generic,		wo_sabaai_vypr,		1 },
-	{ "s_gethwmac.cgi",	mime_javascript,	0,	wi_generic_noid,	wo_sabaai_hwmac,	1 },
-#ifdef TCONFIG_OPENVPN
-	{ "vpnstatus.cgi",	mime_javascript,			0,	wi_generic,			wo_vpn_status,		1 },
-#endif
-#ifdef TCONFIG_PPTPD
-	{ "pptpd.cgi",		mime_javascript,				0,	wi_generic,			wo_pptpdcmd,	1 },	//!!AB - PPTPD
-#endif
+//	{ "s_sabaaiShow.cgi",	mime_javascript,	0,	wi_generic_noid,	wo_sabaai_show,		1 },
+// SABAI CGI END
+
+
+//#ifdef TCONFIG_OPENVPN
+//	{ "vpnstatus.cgi",	mime_javascript,	0,	wi_generic,		wo_vpn_status,		1 },
+//#endif
+//#ifdef TCONFIG_PPTPD
+//	{ "pptpd.cgi",		mime_javascript,	0,	wi_generic,		wo_pptpdcmd,		1 },	//!!AB - PPTPD
+//#endif
 #ifdef TCONFIG_USB
 	{ "usbcmd.cgi",			mime_javascript,			0,	wi_generic,		wo_usbcommand,		1 },	//!!TB - USB
 #endif
@@ -366,116 +366,84 @@ const struct mime_handler mime_handlers[] = {
 
 const aspapi_t aspapi[] = {
 	{ "activeroutes",		asp_activeroutes	},
-	{ "arplist",			asp_arplist			},
+	{ "arplist",			asp_arplist		},
 	{ "bandwidth",			asp_bandwidth		},
 	{ "build_time",			asp_build_time		},
-	{ "cgi_get",			asp_cgi_get			},
-	{ "compmac",			asp_compmac			},
-	{ "ctcount",			asp_ctcount			},
-	{ "ctdump",				asp_ctdump			},
-	{ "ctrate",				asp_ctrate			},
-	{ "ddnsx",				asp_ddnsx			},
-	{ "devlist",			asp_devlist			},
-	{ "webmon",				asp_webmon			},
+	{ "cgi_get",			asp_cgi_get		},
+	{ "compmac",			asp_compmac		},
+	{ "ctcount",			asp_ctcount		},
+	{ "ctdump",			asp_ctdump		},
+	{ "ctrate",			asp_ctrate		},
+	{ "ddnsx",			asp_ddnsx		},
+	{ "devlist",			asp_devlist		},
+	{ "webmon",			asp_webmon		},
 	{ "dhcpc_time",			asp_dhcpc_time		},
-	{ "dns",				asp_dns				},
-	{ "ident",				asp_ident			},
-	{ "lanip",				asp_lanip			},
-	{ "layer7",				asp_layer7			},
+	{ "dns",			asp_dns			},
+	{ "ident",			asp_ident		},
+	{ "lanip",			asp_lanip		},
+	{ "layer7",			asp_layer7		},
 	{ "link_uptime",		asp_link_uptime		},
 	{ "link_starttime",		asp_link_starttime	},
-	{ "lipp",				asp_lipp			},
-	{ "netdev",				asp_netdev			},
+	{ "lipp",			asp_lipp		},
+	{ "netdev",			asp_netdev		},
 	{ "iptraffic",			asp_iptraffic		},
-	{ "iptmon",				asp_iptmon			},
+	{ "iptmon",			asp_iptmon		},
 	{ "ipt_bandwidth",		asp_ipt_bandwidth	},
-	{ "notice",				asp_notice			},
-	{ "nv",					asp_nv				},
-	{ "nvram",				asp_nvram 			},
+	{ "notice",			asp_notice		},
+	{ "nv",				asp_nv			},
+	{ "nv_bool",			asp_nv_bool		},
+	{ "nvram",			asp_nvram 		},
 	{ "nvramseq",			asp_nvramseq		},
-	{ "nvstat",				asp_nvstat 			},
-	{ "psup",				asp_psup			},
-	{ "qrate",				asp_qrate			},
-	{ "resmsg",				asp_resmsg			},
-	{ "rrule",				asp_rrule			},
-	{ "statfs",				asp_statfs			},
-	{ "sysinfo",			asp_sysinfo			},
-	{ "jiffies",			asp_jiffies			},
-	{ "time",				asp_time			},
+	{ "nvstat",			asp_nvstat 		},
+	{ "psup",			asp_psup		},
+	{ "qrate",			asp_qrate		},
+	{ "resmsg",			asp_resmsg		},
+	{ "rrule",			asp_rrule		},
+	{ "statfs",			asp_statfs		},
+	{ "sysinfo",			asp_sysinfo		},
+	{ "jiffies",			asp_jiffies		},
+	{ "time",			asp_time		},
 	{ "upnpinfo",			asp_upnpinfo		},
-	{ "version",			asp_version			},
+	{ "version",			asp_version		},
 	{ "wanstatus",			asp_wanstatus		},
-	{ "wanup",				asp_wanup			},
+	{ "wanup",			asp_wanup		},
 #ifdef TCONFIG_PPTPD
 	{ "pptpd_userol",		asp_pptpd_userol	},
 #endif
 	{ "wlstats",			asp_wlstats		},
 	{ "wlclient",			asp_wlclient		},
-	{ "wlnoise",			asp_wlnoise			},
-	{ "wlscan",				asp_wlscan			},
-	{ "wlchannels",			asp_wlchannels	},	//!!TB
-	{ "wlcountries",		asp_wlcountries	},
+	{ "wlnoise",			asp_wlnoise		},
+	{ "wlscan",			asp_wlscan		},
+	{ "wlchannels",			asp_wlchannels		},	//!!TB
+	{ "wlcountries",		asp_wlcountries		},
 	{ "wlifaces",			asp_wlifaces		},
 	{ "wlbands",			asp_wlbands		},
 #ifdef TCONFIG_USB
 	{ "usbdevices",			asp_usbdevices	},	//!!TB - USB Support
 #endif
-#ifdef TCONFIG_SDHC
-	{ "mmcid",			asp_mmcid	},	//MMC Support
-#endif
-	{ "etherstates",		asp_etherstates	},	//Ethernet States
-	{ "anonupdate",			asp_anonupdate	},	//Tomato update notification system
-#ifdef TCONFIG_IPV6
-	{ "calc6rdlocalprefix",		asp_calc6rdlocalprefix	},
-#endif
-	{ "sabaaiVPN",			asp_sabaaiVPN		},
+// SABAI ASP BEGIN
 	{ "sabaaiMenu",			asp_sabaaiMenu		},
-	{ "sabaaiMSG",			asp_sabai_msg		},
-	{ "sabaaiInitToken",		asp_sabai_init_token	},
-	{ "sabaiversion",		asp_sabai_version	},
-	{ "isitsafe",			asp_isitsafe		},
+	{ "lanMac",			asp_lanMacStr		},
+	{ "sabaaiMSG",			asp_sabaiMsg		},
 	{ "isitsabai",			asp_isitsabai		},
-
-	{ "vpnconnectiontype",		asp_vpnconnectiontype	},
-	{ "vpnstatus",			asp_vpnstatus		},
-	{ "vpnipaddress",		asp_vpnipaddress	},
-	{ "vpnnetmask",			asp_vpnnetmask		},
-	{ "vpngateway",			asp_vpngateway		},
-
+	{ "sabaid",			asp_sabaid		},
+	{ "sabaiErr",			asp_sabaiErr		},
+//	{ "sabaaiToken",		asp_sabaiToken		},
+// SABAI ASP END
 //	{ "css",				asp_css		},
 	{ NULL,					NULL		}
 };
 
 // -----------------------------------------------------------------------------
-/*
-static void asp_css(int argc, char **argv)
-{
-	const char *css = nvram_safe_get("web_css");
-	const char *ttb = nvram_safe_get("ttb_css");
 
-	if( nvram_match( "web_css", "online" ) ) {
-		web_printf("<link rel='stylesheet' type='text/css' href='ext/%s.css'>", ttb);
-	} else {
-		if (strcmp(css, "tomato") != 0) {
-			web_printf("<link rel='stylesheet' type='text/css' href='%s.css'>", css);
-		}
-	}
-}
-*/
+//static void asp_css(int argc, char **argv){ const char *css = nvram_safe_get("web_css"); if (strcmp(css, "tomato") != 0) { web_printf("<link rel='stylesheet' type='text/css' href='%s.css'>", css); } }
+
 // -----------------------------------------------------------------------------
 
-const char *resmsg_get(void)
-{
-	return webcgi_safeget("resmsg", "");
-}
+const char *resmsg_get(void){ return webcgi_safeget("resmsg", ""); }
+void resmsg_set(const char *msg){ webcgi_set("resmsg", strdup(msg)); }
 
-void resmsg_set(const char *msg)
-{
-	webcgi_set("resmsg", strdup(msg));	// m ok
-}
-
-int resmsg_fread(const char *fname)
-{
+int resmsg_fread(const char *fname){
 	char s[256];
 	char *p;
 
@@ -488,8 +456,7 @@ int resmsg_fread(const char *fname)
 	return 0;
 }
 
-static void asp_resmsg(int argc, char **argv)
-{
+static void asp_resmsg(int argc, char **argv){
 	char *p;
 
 	if ((p = js_string(webcgi_safeget("resmsg", (argc > 0) ? argv[0] : ""))) == NULL) return;
@@ -545,23 +512,26 @@ typedef struct {
 #endif
 
 static const nvset_t nvset_list[] = {
+	{ "srcnvrv",			V_LENGTH(0,31)			},
+	{ "srcnvrl",			V_LENGTH(0,89)			},
+	{ "srcnvrp",			V_LENGTH(0,256)			},
+	{ "srcnvrn",			V_RANGE(0,16)			},
 
-	{ "srcnvrv",			V_LENGTH(0, 31)			},
-	{ "vpn_service",		V_LENGTH(0, 64)			},
+	{ "vpn_on",			V_01				},
+	{ "vpn_up",			V_01				},
+	{ "vpn_ready",			V_01				},
+	{ "vpn_type",			V_LENGTH(0, 16)			},
+	{ "vpn_file",			V_LENGTH(0, 2)			},
 
-	{ "ovpn_on",			V_01				},
-	{ "pptp_on",			V_01				},
-
-	{ "vpn_user",	 		V_LENGTH(0, 64)			},
-	{ "vpn_pass",	 		V_LENGTH(0, 64)			},
-	{ "vpn_fix",	 		V_TEXT(0, 64)			},
-	{ "vpn_server", 		V_LENGTH(0, 64)			},
-
+	{ "pptp_user",	 		V_LENGTH(0, 64)			},
+	{ "pptp_pass",	 		V_LENGTH(0, 64)			},
+	{ "pptp_server", 		V_LENGTH(0, 256)		},
 	{ "pptp_mppe",			V_01				},
 	{ "pptp_stateful",		V_01				},
 	{ "pptp_defgw",			V_01				}, 
 
-	{ "ovpn_type",			V_LENGTH(0, 7)			},
+	{ "ovpn_user",	 		V_LENGTH(0, 64)			},
+	{ "ovpn_pass",	 		V_LENGTH(0, 64)			},
 	{ "ovpn_file",			V_LENGTH(0, 256)		},
 
 	{ "ovpn_si",	 		V_TEXT(0, 4096)			},
@@ -572,10 +542,9 @@ static const nvset_t nvset_list[] = {
 	{ "gw_run",			V_01				},
 	{ "gw_on",			V_01				},
 	{ "gw_def",			V_01				},
-	{ "gw_1",			V_TEXT(0, 1024)			},
-	{ "gw_2",			V_TEXT(0, 1024)			},
-	{ "gw_3",			V_TEXT(0, 1024)			},
-	{ "ac_on",			V_01				},
+	{ "gw_1",			V_LENGTH(0, 1024)		},
+	{ "gw_2",			V_LENGTH(0, 1024)		},
+	{ "gw_3",			V_LENGTH(0, 1024)		},
 	{ "ac_ip",			V_OCTET				},
 
 	{ "wan_route",			V_01				},

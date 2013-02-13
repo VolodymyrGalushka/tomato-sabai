@@ -35,7 +35,7 @@
 
 <script type='text/javascript'>
 
-//	<% nvram("vpn_service,log_wm,log_wmdmax,log_wmsmax"); %>
+//	<% nvram("log_wm,log_wmdmax,log_wmsmax"); %>
 
 list = [];
 wm_domains = [];
@@ -67,7 +67,7 @@ function clearLog(clear)
 	}
 
 	xob.post('webmon.cgi', 'clear=' + clear);
-	E('clear' + clear).innerHTML = 'Please wait... <img src="spin.gif" style="vertical-align:top">';
+	E('clear' + clear).innerHTML = 'Please wait... <img src="imgspin.gif" style="vertical-align:top">';
 }
 
 function resolve()
@@ -356,11 +356,11 @@ function earlyInit()
 <body onload='init()'>
 <form id='_fom' action='javascript:{}'>
 <table id='container' cellspacing=0>
-<tr><td colspan=2 id='header'><a id='headlink' href=''><img src='' id='headlogo'></a>
-	<div class='title' id='SVPNstatus'>Sabai</div>
+<tr><td colspan=2 id='header'><a id='headlink' href='http://www.sabaitechnology.com'><img src='imgsabai.png' id='headlogo'></a>
+	<div class='title' id='SVPNstatus'><% sabaid(); %></div>
 	<div class='version' id='subversion'>version <!-- SABAI-VERSION --></div>
 </td></tr>
-<tr id='body'><td id='navi'><script type='text/javascript'>navi()</script></td>
+<tr id='body'><td id='navi'><% sabaaiMenu(); %></td>
 <td id='content'>
 
 

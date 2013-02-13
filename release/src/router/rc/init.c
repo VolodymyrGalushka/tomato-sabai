@@ -216,7 +216,7 @@ static void shutdn(int rb)
 	set_action(ACT_REBOOT);
 
 	// Disconnect pppd - need this for PPTP/L2TP to finish gracefully
-	stop_pptp();
+//	stop_pptp();
 	stop_l2tp();
 
 	_dprintf("TERM\n");
@@ -2063,7 +2063,7 @@ int init_main(int argc, char *argv[])
 			create_passwd();
 			start_vlan();
 			start_lan();
-			start_arpbind();
+//			start_arpbind();
 			start_wan(BOOT);
 			start_services();
 			start_wl();

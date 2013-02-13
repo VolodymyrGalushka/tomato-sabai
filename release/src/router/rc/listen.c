@@ -206,7 +206,8 @@ static int listen_interface(char *interface, int wan_proto)
 			close(fd);
 			LOG("couldn't read on raw listening socket -- ignoring\n");
 			usleep(500000); // possible down interface, looping condition
-			return L_FAIL;
+			ret = L_FAIL;
+			goto EXIT;
 		}
 
 		if (bytes < (int) (sizeof(struct iphdr))) {
@@ -231,12 +232,6 @@ static int listen_interface(char *interface, int wan_proto)
 
 		LOG("inet_addr=%x, packet.daddr=%x",inet_addr(nvram_safe_get("lan_ipaddr")),*(u_int32_t *)packet.daddr);
 
-		//for (i=0; i<34;i++) {
-		//	if (i%16==0) printf("\n");
-		//	printf("%02x ",*(((u_int8_t *)packet)+i));
-		//}
-		//printf ("\n");
-
 		LOG("%02X%02X%02X%02X%02X%02X,%02X%02X%02X%02X%02X%02X,%02X%02X\n",
 			packet.dst_mac[0], packet.dst_mac[1], packet.dst_mac[2],
 			packet.dst_mac[3], packet.dst_mac[4], packet.dst_mac[5],
@@ -259,14 +254,11 @@ static int listen_interface(char *interface, int wan_proto)
 			ret = L_FAIL;
 			goto EXIT;
 		}
+		
+		bytes = ntohs(packet.tot_len); /* ignore any extra garbage bytes */
 
-		/* ignore any extra garbage bytes */
-		bytes = ntohs(packet.tot_len);
-
-		/* check IP checksum */
-		check = packet.check;
-		packet.check = 0;
-
+		
+		check = packet.check; packet.check = 0; /* check IP checksum */
 		if (check != checksum(&(packet.version), sizeof(struct iphdr))) {
 			LOG("bad IP header checksum, ignoring\n");
 			LOG("check received = %X, should be %X",check, checksum(&(packet.version), sizeof(struct iphdr)));
@@ -274,34 +266,14 @@ static int listen_interface(char *interface, int wan_proto)
 			goto EXIT;
 		}
 
-		LOG("oooooh!!! got some!\n");
-
-		switch (wan_proto) {
-		case WP_PPTP:
-			inet_aton(nvram_safe_get("pptp_server_ip"), &ipaddr);
-			break;
-		case WP_L2TP:
-#ifdef TCONFIG_L2TP
-			inet_aton(nvram_safe_get("lan_ipaddr"), &ipaddr);	// checkme: why?	zzz
-#endif
-			break;
-		default:
-			inet_aton(nvram_safe_get("wan_ipaddr"), &ipaddr);
-			break;
-		}
+		inet_aton(nvram_safe_get("wan_ipaddr"), &ipaddr);
 		inet_aton(nvram_safe_get("wan_netmask"), &netmask);
 		LOG("gateway=%08x", ipaddr.s_addr);
 		LOG("netmask=%08x", netmask.s_addr);
 
 		if ((ipaddr.s_addr & netmask.s_addr) != (*(u_int32_t *)&(packet.daddr) & netmask.s_addr)) {
-			if (wan_proto == WP_L2TP) {
-				ret = L_SUCCESS;
-				goto EXIT;
-			}
-			else {
-				ret = L_FAIL;
-				goto EXIT;
-			}
+			ret = L_FAIL;
+			goto EXIT;
 		}
 	}
 

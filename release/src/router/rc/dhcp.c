@@ -269,14 +269,14 @@ static int bound(char *ifname, int renew)
 		/* clear dns from the resolv.conf */
 		nvram_set("wan_get_dns", renew ? dns : "");
 
-		switch (wan_proto) {
-		case WP_PPTP:
-			start_pptp(BOOT);
-			break;
-		case WP_L2TP:
-			start_l2tp();
-			break;
-		}
+//		switch (wan_proto) {
+//		case WP_PPTP:
+//			start_pptp(BOOT);
+//			break;
+//		case WP_L2TP:
+//			start_l2tp();
+//			break;
+//		}
 	}
 	else {
 		start_wan_done(ifname);

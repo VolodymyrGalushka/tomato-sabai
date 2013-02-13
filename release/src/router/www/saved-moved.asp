@@ -12,28 +12,18 @@
 <meta name='robots' content='noindex,nofollow'>
 <title>[<% ident(); %>] Restarting...</title>
 <script language='javascript'>
-var n = 20;
-function tick()
-{
+var e,n;
+function tick(){
 	var e = document.getElementById('continue');
 	e.value = n;
-	if (n == 10) {
-		e.disabled = false;
-	}
-	if (n == 0) {
-		e.value = 'Continue';
-	}
-	else {
-		--n;
-		setTimeout(tick, 1000);
-	}
+	if (n < 10) { e.disabled = false; }
+	if (n < 1) { e.value = 'Continue'; }
+	else { --n; setTimeout(tick, 1000); }
 }
-function go()
-{
-	window.location = window.location.protocol + '//<% nv("lan_ipaddr"); %>/';
-}
+function go(){ window.location = window.location.protocol + '//<% nv("lan_ipaddr"); %>/'; }
+function init(){ n=20; e = document.getElementById('continue'); tick(); }
 </script></head>
-<body style='background:#fff' onload='tick()'>
+<body style='background:#fff' onload='init()'>
 <table style='width:100%;height:100%'>
 <tr><td style='text-align:center;vertical-align:middle;font:12px sans-serif'>
 <form>

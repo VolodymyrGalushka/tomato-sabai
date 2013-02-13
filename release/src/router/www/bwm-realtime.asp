@@ -38,7 +38,7 @@
 <script type='text/javascript' src='bwm-common.js'></script>
 
 <script type='text/javascript'>
-//	<% nvram("vpn_service,wan_ifname,lan_ifname,wl_ifname,wan_proto,wan_iface,web_svg,rstats_colors"); %>
+//	<% nvram("wan_ifname,lan_ifname,wl_ifname,wan_proto,wan_iface,web_svg,rstats_colors"); %>
 
 var cprefix = 'bw_r';
 var updateInt = 2;
@@ -140,11 +140,11 @@ function init()
 <body onload='init()'>
 <form>
 <table id='container' cellspacing=0>
-<tr><td colspan=2 id='header'><a id='headlink' href=''><img src='' id='headlogo'></a>
-	<div class='title' id='SVPNstatus'>Sabai</div>
+<tr><td colspan=2 id='header'><a id='headlink' href='http://www.sabaitechnology.com'><img src='imgsabai.png' id='headlogo'></a>
+	<div class='title' id='SVPNstatus'><% sabaid(); %></div>
 	<div class='version' id='subversion'>version <!-- SABAI-VERSION --></div>
 </td></tr>
-<tr id='body'><td id='navi'><script type='text/javascript'>navi()</script></td>
+<tr id='body'><td id='navi'><% sabaaiMenu(); %></td>
 <td id='content'>
 
 
@@ -179,7 +179,7 @@ function init()
 		<small><a href='javascript:switchColor(1)' id='drawrev'>[reverse]</a></small><br>
 
 		<br><br>
-		&nbsp; &raquo; <a href="admin-bwm.asp">Configure</a>
+		&nbsp; &raquo; <a href="bwm-monitoring.asp">Configure</a>
 	</div>
 
 	<br><br>
@@ -217,7 +217,7 @@ function init()
 <tr><td id='footer' colspan=2>
 	<span id='warnwd' style='display:none'>Warning: 10 second timeout, restarting...&nbsp;</span>
 	<span id='dtime'></span>
-	<img src='spin.gif' id='refresh-spinner' onclick='javascript:debugTime=1'>
+	<img src='imgspin.gif' id='refresh-spinner' onclick='javascript:debugTime=1'>
 </td></tr>
 </table>
 </form>

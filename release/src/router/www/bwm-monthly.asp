@@ -23,7 +23,7 @@
 
 <script type='text/javascript'>
 
-//	<% nvram("vpn_service,wan_ifname,lan_ifname,rstats_enable"); %>
+//	<% nvram("wan_ifname,lan_ifname,rstats_enable"); %>
 try {
 //	<% bandwidth("monthly"); %>
 }
@@ -103,11 +103,11 @@ function init()
 <body onload='init()'>
 <form>
 <table id='container' cellspacing=0>
-<tr><td colspan=2 id='header'><a id='headlink' href=''><img src='' id='headlogo'></a>
-	<div class='title' id='SVPNstatus'>Sabai</div>
+<tr><td colspan=2 id='header'><a id='headlink' href='http://www.sabaitechnology.com'><img src='imgsabai.png' id='headlogo'></a>
+	<div class='title' id='SVPNstatus'><% sabaid(); %></div>
 	<div class='version' id='subversion'>version <!-- SABAI-VERSION --></div>
 </td></tr>
-<tr id='body'><td id='navi'><script type='text/javascript'>navi()</script></td>
+<tr id='body'><td id='navi'><% sabaaiMenu(); %></td>
 <td id='content'>
 
 
@@ -121,7 +121,7 @@ function init()
 <br>
 &raquo; <a href="javascript:genData()">Data</a>
 <br>
-&raquo; <a href="admin-bwm.asp">Configure</a>
+&raquo; <a href="bwm-monitoring.asp">Configure</a>
 <br><br><br>
 </div>
 <br>

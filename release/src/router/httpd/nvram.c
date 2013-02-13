@@ -85,12 +85,8 @@ void asp_nvramseq(int argc, char **argv)
 	web_puts("];\n");
 }
 
-void asp_nv(int argc, char **argv)
-{
-	if (argc == 1) {
-		web_puts(nvram_safe_get(argv[0]));
-	}
-}
+void asp_nv(int argc, char **argv){ if (argc == 1) web_puts(nvram_safe_get(argv[0])); }
+void asp_nv_bool(int argc, char **argv){ if (argc == 1) web_puts( (nvram_get_int(argv[0])==1)?"true":"false" ); }
 
 void asp_nvstat(int argc, char **argv)
 {

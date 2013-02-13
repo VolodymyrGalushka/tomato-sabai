@@ -30,6 +30,9 @@
 #include <wlioctl.h>
 #include <wlutils.h>
 
+//extern int get_cpuinfo(char *system_type, char *cpu_model, char *bogomips, char *cpuclk);
+extern int get_cpuinfo(char*, char*, char*, char*);
+
 // to javascript-safe string
 char *js_string(const char *s)
 {
@@ -150,9 +153,9 @@ fe80::201:2ff:fe3:405 dev br0 lladdr 00:01:02:03:04:05 REACHABLE
 
 //	<% lanip(mode); %>
 //	<mode>
-//		1		return first 3 octets (192.168.1)
+//		1		return first 3 octets (192.168.199)
 //		2		return last octet (1)
-//		else	return full (192.168.1.1)
+//		else	return full (192.168.199.1)
 
 void asp_lanip(int argc, char **argv)
 {
@@ -738,6 +741,12 @@ void asp_wanup(int argc, char **argv)
 	web_puts(check_wanup() ? "1" : "0");
 }
 
+
+void asp_wanup(int argc, char **argv)
+{
+	web_puts(check_wanup() ? "1" : "0");
+}
+
 void asp_wanstatus(int argc, char **argv)
 {
 	const char *p;
@@ -779,13 +788,12 @@ void asp_wanstatus(int argc, char **argv)
 
 	// /* BEGIN SABAI VPN STATUS CODE */
 
-char * sabai_getinterface(){
-	if(nvram_get_int("pptp_on")==1 || nvram_get_int("ovpn_on")==1 ){ return nvram_safe_get("vpn_device");	}else{ return NULL; }
-}
+// char * sabai_getinterface(){ return (nvram_get_int("vpn_up")==1) ? nvram_safe_get("vpn_device") : NULL; }
 
+/*
 void asp_vpnconnectiontype(int argc, char **argv){
-	if (nvram_get_int("pptp_on")){		web_puts("PPTP");	}
-	else if (nvram_get_int("ovpn_on")){	web_puts("OpenVPN");	}
+	if (nvram_get_int("//pptp_on//")){		web_puts("PPTP");	}
+	else if (nvram_get_int("//ovpn_on//")){	web_puts("OpenVPN");	}
 	else{					web_puts("-");			}
 }
 
@@ -815,16 +823,13 @@ void asp_vpnipaddress(int argc, char **argv){
 	int active = (interface==NULL) ? 0 : 1;
 
 	if (active && ((fd = socket(AF_INET, SOCK_DGRAM, 0)) >=0)){
-		/* I want to get an IPv4 IP address */
-		ifr.ifr_addr.sa_family = AF_INET;
-
-		/* I want IP address attached to "interface" */
-		strncpy(ifr.ifr_name, interface, IFNAMSIZ-1);
+		ifr.ifr_addr.sa_family = AF_INET;	// I want to get an IPv4 IP address
+		strncpy(ifr.ifr_name, interface, IFNAMSIZ-1);	// I want IP address attached to "interface"
 
 		if (ioctl(fd, SIOCGIFADDR, &ifr)<0) web_puts("-");
 		else{
 			sprintf(ipaddress,"%s", inet_ntoa(((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr));
-			web_puts(ipaddress); /* display result */
+			web_puts(ipaddress); // display result
 		}
 		close(fd); 
 	}else web_puts("-");
@@ -837,18 +842,15 @@ void asp_vpngateway(int argc, char **argv){
 	char * interface = sabai_getinterface();
 	int active = (interface==NULL) ? 0 : 1;
 
-	if (active && ((fd = socket(AF_INET, SOCK_DGRAM, 0)) >=0))
-	{
-		/* I want to get an IPv4 IP address */
-		ifr.ifr_addr.sa_family = AF_INET;
+	if (active && ((fd = socket(AF_INET, SOCK_DGRAM, 0)) >=0)){
+		ifr.ifr_addr.sa_family = AF_INET; // I want to get an IPv4 IP address
 
-		/* I want IP address attached to "ppp5" */
-		strncpy(ifr.ifr_name, interface, IFNAMSIZ-1);
+		strncpy(ifr.ifr_name, interface, IFNAMSIZ-1); // I want IP address attached to "ppp5" or "tun0"
 
 		if (ioctl(fd, SIOCGIFDSTADDR, &ifr)<0) web_puts("-");
 		else{
 			sprintf(ipaddress,"%s", inet_ntoa(((struct sockaddr_in *)&ifr.ifr_dstaddr)->sin_addr));
-			web_puts(ipaddress); /* display result */
+			web_puts(ipaddress); // display result
 		}
 		close(fd);
 	}else web_puts("-");
@@ -864,21 +866,20 @@ void asp_vpnnetmask(int argc, char **argv)
 
 	if (active && ((fd = socket(AF_INET, SOCK_DGRAM, 0)) >=0))
 	{
-		/* I want to get an IPv4 IP address */
-		ifr.ifr_addr.sa_family = AF_INET;
+		ifr.ifr_addr.sa_family = AF_INET; // I want to get an IPv4 IP address
 
-		/* I want IP address attached to 'interface' */
-		strncpy(ifr.ifr_name, interface, IFNAMSIZ-1);
+		strncpy(ifr.ifr_name, interface, IFNAMSIZ-1); // I want IP address attached to "ppp5" or "tun0"
 
 		if (ioctl(fd, SIOCGIFNETMASK , &ifr)<0) web_puts("-");
 		else{
 			sprintf(ipaddress,"%s", inet_ntoa(((struct sockaddr_in *)&ifr.ifr_netmask)->sin_addr));
-			web_puts(ipaddress); /* display result */
+			web_puts(ipaddress); // display result
 		}
 		close(fd);
 	}else web_puts("-");
 }
 
+*/
 	// /* END SABAI VPN STATUS CODE */
 
 void asp_link_uptime(int argc, char **argv)

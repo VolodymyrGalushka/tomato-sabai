@@ -176,40 +176,40 @@ depend:	config.h
 	testgetroute.c
 
 miniupnpd: config.h $(ALLOBJS)
-	$(CC) $(CFLAGS) -o $@ $(ALLOBJS) $(LIBS)
+	@$(CC) $(CFLAGS) -o $@ $(ALLOBJS) $(LIBS)
 
 # BSDmake :
-#	$(CC) $(CFLAGS) -o $@ $> $(LIBS)
+#	@$(CC) $(CFLAGS) -o $@ $> $(LIBS)
 
 miniupnpdctl:	config.h $(MINIUPNPDCTLOBJS)
-	$(CC) $(CFLAGS) -o $@ $(MINIUPNPDCTLOBJS)
+	@$(CC) $(CFLAGS) -o $@ $(MINIUPNPDCTLOBJS)
 
 testupnpdescgen:	config.h $(TESTUPNPDESCGENOBJS)
-	$(CC) $(CFLAGS) -o $@ $(TESTUPNPDESCGENOBJS)
+	@$(CC) $(CFLAGS) -o $@ $(TESTUPNPDESCGENOBJS)
 
 testgetifstats:	config.h $(TESTGETIFSTATSOBJS)
-	$(CC) $(CFLAGS) -o $@ $(TESTGETIFSTATSOBJS) $(LIBS)
+	@$(CC) $(CFLAGS) -o $@ $(TESTGETIFSTATSOBJS) $(LIBS)
 
 testgetifaddr:	config.h $(TESTGETIFADDROBJS)
-	$(CC) $(CFLAGS) -o $@ $(TESTGETIFADDROBJS)
+	@$(CC) $(CFLAGS) -o $@ $(TESTGETIFADDROBJS)
 
 testupnppermissions:	config.h $(TESTUPNPPERMISSIONSOBJS)
-	$(CC) $(CFLAGS) -o $@ $(TESTUPNPPERMISSIONSOBJS)
+	@$(CC) $(CFLAGS) -o $@ $(TESTUPNPPERMISSIONSOBJS)
 
 testgetroute:	config.h $(TESTGETROUTEOBJS)
 	$(CC) $(CFLAGS) -o $@ $(TESTGETROUTEOBJS)
 
 # gmake :
-#	$(CC) $(CFLAGS) -o $@ $^
+#	@$(CC) $(CFLAGS) -o $@ $^
 # BSDmake :
-#	$(CC) $(CFLAGS) -o $@ $>
+#	@$(CC) $(CFLAGS) -o $@ $>
 
 config.h:	genconfig.sh VERSION
 	./genconfig.sh $(CONFIG_OPTIONS)
 
 .SUFFIXES:	.o .c
 .c.o:
-	$(CC) $(CFLAGS) -c -o $@ $<
+	@$(CC) $(CFLAGS) -c -o $@ $<
 
 #	$(CC) $(CFLAGS) -c -o $(.TARGET) $(.IMPSRC)
 

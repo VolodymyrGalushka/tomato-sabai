@@ -5,29 +5,19 @@ EXTRAVERSION =
 NAME = Unnamed
 
 # *DOCUMENTATION*
-# To see a list of typical targets execute "make help"
-# More info can be located in ./README
-# Comments in this file are targeted only to the developer, do not
-# expect to learn how to build the kernel reading this file.
+# To see a list of typical targets execute "make help"; More info can be located in ./README
+# Comments in this file are targeted only to the developer, do not expect to learn how to build the kernel reading this file.
 
 # Do not print "Entering directory ..."
 MAKEFLAGS += --no-print-directory
 
-# We are using a recursive build, so we need to do a little thinking
-# to get the ordering right.
+# We are using a recursive build, so we need to do a little thinking to get the ordering right.
+# Most importantly: sub-Makefiles should only ever modify files in their own directory. If in some directory we have a dependency on a file in another
+# dir (which doesn't happen often, but it's often unavoidable when linking the built-in.o targets which finally turn into busybox), we will call a sub
+# make in that other dir, and after that we are sure that everything which is in that other dir is now up to date.
 #
-# Most importantly: sub-Makefiles should only ever modify files in
-# their own directory. If in some directory we have a dependency on
-# a file in another dir (which doesn't happen often, but it's often
-# unavoidable when linking the built-in.o targets which finally
-# turn into busybox), we will call a sub make in that other dir, and
-# after that we are sure that everything which is in that other dir
-# is now up to date.
-#
-# The only cases where we need to modify files which have global
-# effects are thus separated out and done before the recursive
-# descending is started. They are now explicitly listed as the
-# prepare rule.
+# The only cases where we need to modify files which have global effects are thus separated out and done before the recursive descending is started. They
+# are now explicitly listed as the prepare rule.
 
 # To put more focus on warnings, be less verbose as default
 # Use 'make V=1' to see the full commands
@@ -250,16 +240,15 @@ export KBUILD_CHECKSRC KBUILD_SRC KBUILD_EXTMOD
 # If KBUILD_VERBOSE equals 0 then the above command will be hidden.
 # If KBUILD_VERBOSE equals 1 then the above command is displayed.
 
-ifeq ($(KBUILD_VERBOSE),1)
-  quiet =
-  Q =
-else
+#ifeq ($(KBUILD_VERBOSE),1)
+#  quiet =
+#  Q =
+#else
   quiet=quiet_
   Q = @
-endif
+#endif
 
-# If the user is running make -s (silent mode), suppress echoing of
-# commands
+# If the user is running make -s (silent mode), suppress echoing of commands
 
 ifneq ($(findstring s,$(MAKEFLAGS)),)
   quiet=silent_
@@ -435,13 +424,15 @@ ifeq ($(config-targets),1)
 export KBUILD_DEFCONFIG
 
 config: scripts_basic outputmakefile gen_build_files FORCE
+	# [ busybox ] MK $@
 	$(Q)mkdir -p include
-	$(Q)$(MAKE) $(build)=scripts/kconfig $@
+	$(Q)$(MAKE) $(build)=scripts/kconfig $@ > kconfig.sabai.2.log
 	$(Q)$(MAKE) -C $(srctree) KBUILD_SRC= .kernelrelease
 
 %config: scripts_basic outputmakefile gen_build_files FORCE
+	# [ busybox ] MK $@
 	$(Q)mkdir -p include
-	$(Q)$(MAKE) $(build)=scripts/kconfig $@
+	$(Q)$(MAKE) $(build)=scripts/kconfig $@ > kconfig.sabai.2.log
 	$(Q)$(MAKE) -C $(srctree) KBUILD_SRC= .kernelrelease
 
 else
@@ -715,10 +706,12 @@ endif # ifdef CONFIG_KALLSYMS
 
 # busybox image - including updated kernel symbols
 busybox_unstripped: $(busybox-all) FORCE
+	# [ busybox ] MK $@
 	$(call if_changed_rule,busybox__)
 	$(Q)rm -f .old_version
 
 busybox: busybox_unstripped
+	# [ busybox ] MK $@
 ifeq ($(SKIP_STRIP),y)
 	$(Q)cp $< $@
 else

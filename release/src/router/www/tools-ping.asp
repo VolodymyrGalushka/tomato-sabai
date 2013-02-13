@@ -39,7 +39,7 @@
 
 <script type='text/javascript'>
 
-//	<% nvram('vpn_service'); %>	// http_id
+//	<% nvram(""); %>	// http_id
 
 var pingdata = '';
 
@@ -56,33 +56,6 @@ pg.populate = function()
 	var last = -1;
 	var resolv = [];
 	var stats = '';
-
-/* REMOVE-BEGIN
-1.9
-PING 192.168.1.3 (192.168.1.3): 56 data bytes
-64 bytes from 192.168.1.3: seq=0 ttl=64 time=1.165 ms
-64 bytes from 192.168.1.3: seq=1 ttl=64 time=0.675 ms
-64 bytes from 192.168.1.3: seq=2 ttl=64 time=0.683 ms
-64 bytes from 192.168.1.3: seq=3 ttl=64 time=0.663 ms
-64 bytes from 192.168.1.3: seq=4 ttl=64 time=0.682 ms
-
---- 192.168.1.3 ping statistics ---
-5 packets transmitted, 5 packets received, 0% packet loss
-round-trip min/avg/max = 0.663/0.773/1.165 ms
-
-
-1.2
-PING 192.168.5.5 (192.168.1.5): 56 data bytes
-64 bytes from 192.168.1.5: icmp_seq=0 ttl=64 time=1.2 ms
-64 bytes from 192.168.1.5: icmp_seq=1 ttl=64 time=0.7 ms
-64 bytes from 192.168.1.5: icmp_seq=2 ttl=64 time=0.7 ms
-64 bytes from 192.168.1.5: icmp_seq=3 ttl=64 time=0.7 ms
-64 bytes from 192.168.1.5: icmp_seq=4 ttl=64 time=0.8 ms
-
---- 192.168.5.5 ping statistics ---
-5 packets transmitted, 5 packets received, 0% packet loss
-round-trip min/avg/max = 0.7/0.8/1.2 ms
-REMOVE-END */
 
 	this.removeAllData();
 	for (i = 0; i < buf.length; ++i) {
@@ -189,11 +162,11 @@ function init()
 <body onload='init()'>
 <form action='javascript:{}'>
 <table id='container' cellspacing=0>
-<tr><td colspan=2 id='header'><a id='headlink' href=''><img src='' id='headlogo'></a>
-	<div class='title' id='SVPNstatus'>Sabai</div>
+<tr><td colspan=2 id='header'><a id='headlink' href='http://www.sabaitechnology.com'><img src='imgsabai.png' id='headlogo'></a>
+	<div class='title' id='SVPNstatus'><% sabaid(); %></div>
 	<div class='version' id='subversion'>version <!-- SABAI-VERSION --></div>
 </td></tr>
-<tr id='body'><td id='navi'><script type='text/javascript'>navi()</script></td>
+<tr id='body'><td id='navi'><% sabaaiMenu(); %></td>
 <td id='content'>
 
 
@@ -211,7 +184,7 @@ createFieldTable('', [
 </script>
 </div>
 
-<div style="visibility:hidden;text-align:right" id="wait">Please wait... <img src='spin.gif' style="vertical-align:top"></div>
+<div style="visibility:hidden;text-align:right" id="wait">Please wait... <img src='imgspin.gif' style="vertical-align:top"></div>
 
 <table id='tp-grid' class='tomato-grid' cellspacing=1></table>
 <pre id='stats'></pre>

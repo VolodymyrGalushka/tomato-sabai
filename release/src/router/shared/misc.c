@@ -41,6 +41,16 @@ int get_wan_proto(void)
 		"ppp3g",
 		NULL
 	};
+
+/*	const char *names[] = {	// order must be synced with def at shared.h
+		"static",
+		"dhcp",
+		"pppoe",
+		"ppp3g",
+		NULL
+	};
+*/
+
 	int i;
 	const char *p;
 
@@ -134,17 +144,16 @@ int calc_6rd_local_prefix(const struct in6_addr *prefix,
 }
 #endif
 
-int using_dhcpc(void)
-{
+int using_dhcpc(void){ return (get_wan_proto()==WP_DHCP) ? 1 : 0; }
+
+/*int using_dhcpc(void){
 	switch (get_wan_proto()) {
-	case WP_DHCP:
-		return 1;
-	case WP_L2TP:
-	case WP_PPTP:
-		return nvram_get_int("pptp_dhcp");
+		case WP_DHCP: return 1;
+		case WP_L2TP:
+		case WP_PPTP: return nvram_get_int("pptp_dhcp");
+		default: return 0;
 	}
-	return 0;
-}
+}*/
 
 int wl_client(int unit, int subunit)
 {
@@ -242,7 +251,7 @@ int check_wanup(void)
 		 return 0;
 	}
 
-	if ((proto == WP_PPTP) || (proto == WP_L2TP) || (proto == WP_PPPOE) || (proto == WP_PPP3G)) {
+	if ((proto == WP_PPPOE) || (proto == WP_PPP3G)) {
 		if (f_read_string("/tmp/ppp/link", buf1, sizeof(buf1)) > 0) {
 				// contains the base name of a file in /var/run/ containing pid of a daemon
 				snprintf(buf2, sizeof(buf2), "/var/run/%s.pid", buf1);
@@ -378,29 +387,29 @@ const wanface_list_t *get_wanfaces(void)
 	int proto;
 
 	wanfaces.count = 0;
-
-	switch ((proto = get_wan_proto())) {
-		case WP_PPTP:
-		case WP_L2TP:
-			while (wanfaces.count < 2) {
-				if (wanfaces.count == 0) {
-					ip = nvram_safe_get("ppp_get_ip");
-					iface = nvram_safe_get("wan_iface");
-					if (!(*iface)) iface = "ppp+";
-				}
-				else /* if (wanfaces.count == 1) */ {
-					ip = nvram_safe_get("wan_ipaddr");
-					if ((!(*ip) || strcmp(ip, "0.0.0.0") == 0) && (wanfaces.count > 0))
-						iface = "";
-					else
-						iface = nvram_safe_get("wan_ifname");
-				}
-				strlcpy(wanfaces.iface[wanfaces.count].ip, ip, sizeof(wanfaces.iface[0].ip));
-				strlcpy(wanfaces.iface[wanfaces.count].name, iface, IFNAMSIZ);
-				++wanfaces.count;
-			}
-			break;
-		default:
+proto = get_wan_proto();
+//	switch ((proto = get_wan_proto())) {
+//		case WP_PPTP:
+//		case WP_L2TP:
+//			while (wanfaces.count < 2) {
+//				if (wanfaces.count == 0) {
+//					ip = nvram_safe_get("ppp_get_ip");
+//					iface = nvram_safe_get("wan_iface");
+//					if (!(*iface)) iface = "ppp+";
+//				}
+//				else /* if (wanfaces.count == 1) */ {
+//					ip = nvram_safe_get("wan_ipaddr");
+//					if ((!(*ip) || strcmp(ip, "0.0.0.0") == 0) && (wanfaces.count > 0))
+//						iface = "";
+//					else
+//						iface = nvram_safe_get("wan_ifname");
+//				}
+//				strlcpy(wanfaces.iface[wanfaces.count].ip, ip, sizeof(wanfaces.iface[0].ip));
+//				strlcpy(wanfaces.iface[wanfaces.count].name, iface, IFNAMSIZ);
+//				++wanfaces.count;
+//			}
+//			break;
+//		default:
 			ip = (proto == WP_DISABLED) ? "0.0.0.0" : nvram_safe_get("wan_ipaddr");
 			if ((proto == WP_PPPOE) || (proto == WP_PPP3G)) {
 				iface = nvram_safe_get("wan_iface");
@@ -411,8 +420,8 @@ const wanface_list_t *get_wanfaces(void)
 			}
 			strlcpy(wanfaces.iface[wanfaces.count].ip, ip, sizeof(wanfaces.iface[0].ip));
 			strlcpy(wanfaces.iface[wanfaces.count++].name, iface, IFNAMSIZ);
-			break;
-	}
+//			break;
+//	}
 
 	return &wanfaces;
 }

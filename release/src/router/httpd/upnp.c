@@ -7,8 +7,7 @@
 
 #include "tomato.h"
 
-void asp_upnpinfo(int argc, char **argv)
-{
+void asp_upnpinfo(int argc, char **argv){
 	if (nvram_get_int("upnp_enable")) {
 		f_write_string("/etc/upnp/info", "", 0, 0);
 		if (killall("miniupnpd", SIGUSR2) == 0) {

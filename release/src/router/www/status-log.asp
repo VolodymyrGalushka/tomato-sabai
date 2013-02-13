@@ -22,7 +22,7 @@
 
 <script type='text/javascript'>
 
-//	<% nvram("vpn_service,log_file"); %>
+//	<% nvram("log_file"); %>
 
 
 ///* DAVID BEGIN */
@@ -89,11 +89,11 @@ function init()
 <body onload='init()'>
 <form id='_fom' action='javascript:{}'>
 <table id='container' cellspacing=0>
-<tr><td colspan=2 id='header'><a id='headlink' href=''><img src='' id='headlogo'></a>
-	<div class='title' id='SVPNstatus'>Sabai</div>
+<tr><td colspan=2 id='header'><a id='headlink' href='http://www.sabaitechnology.com'><img src='imgsabai.png' id='headlogo'></a>
+	<div class='title' id='SVPNstatus'><% sabaid(); %></div>
 	<div class='version' id='subversion'>version <!-- SABAI-VERSION --></div>
 </td></tr>
-<tr id='body'><td id='navi'><script type='text/javascript'>navi()</script></td>
+<tr id='body'><td id='navi'><% sabaaiMenu(); %></td>
 <td id='content'>
 
 
@@ -122,7 +122,7 @@ function init()
 
 <script type='text/javascript'>
 if (nvram.log_file != '1') {
-	W('<div class="note-disabled">Internal logging disabled.</b><br><br><a href="admin-log.asp">Enable &raquo;</a></div>');
+	W('<div class="note-warn">Internal logging disabled.</b><br><br><a href="admin-log.asp">Enable &raquo;</a></div>');
 	E('logging').style.display = 'none';
 }
 </script>

@@ -4,32 +4,21 @@
 <meta name='robots' content='noindex,nofollow'>
 <title>[<% ident(); %>] Rebooting...</title>
 <script type='text/javascript'>
-var n = 90 + parseInt('0<% nv("wait_time"); %>');
-function tick()
-{
-	var e = document.getElementById('continue');
-	e.value = n--;
-	if (n < 0) {
-		e.value = 'Continue';
-		return;
-	}
-	if (n == 19) e.disabled = false;
+var e;
+var n = 50 + parseInt('0<% nv("wait_time"); %>');
+function tick(){
+	e.value = --n;
+	if (n < 0) { e.value = 'Continue'; return; }
+	if (n < 20) e.disabled = false;
 	setTimeout(tick, 1000);
 }
-function go()
-{
-	window.location.replace('/');
-}
-function init()
-{
+function go(){ window.location.replace('/'); }
+function init(){
 	resmsg = '';
 	//<% resmsg(); %>
-	if (resmsg.length) {
-		e = document.getElementById('msg');
-		e.innerHTML = resmsg;
-		e.style.display = '';
-	}
-	tick()
+	if (resmsg.length) { e = document.getElementById('msg'); e.innerHTML = resmsg; e.style.display = ''; }
+	e = document.getElementById('continue');
+	tick();
 }
 </script></head>
 <body style='background:#fff' onload='init()'><table style='width:100%;height:100%'>

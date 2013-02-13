@@ -11,6 +11,8 @@ LDFLAGS	+= -L$(TOP)/nvram -L$(INSTALLDIR)/nvram/usr/lib -lnvram -L$(TOP)/shared 
 
 OBJS := et.o
 
+.PHONY: all clean
+
 all: et
 
 clean:

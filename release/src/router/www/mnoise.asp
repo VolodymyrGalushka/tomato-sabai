@@ -12,14 +12,13 @@
 <meta name='robots' content='noindex,nofollow'>
 <title>[<% ident(); %>] Measuring Noise...</title>
 <script language='javascript'>
-function tick()
-{
+var t;
+function tick(){
 	t.innerHTML = tock + ' second' + ((tock == 1) ? '' : 's');
 	if (--tock >= 0) setTimeout(tick, 1000);
 		else history.go(-1);
 }
-function init()
-{
+function init(){
 	t = document.getElementById('time');
 	tock = 15;
 	tick();

@@ -1,12 +1,6 @@
-var vpnstats = {
-	ovpn_status: '<% nv('ovpn_on'); %>',
-	pptp_status: '<% nv('pptp_on'); %>',
-	vpn_mesg: '<% nv('vpn_mesg'); %>',
-	vpnstatus: '<% vpnstatus(); %>',
-	gw_run: '<% nv('gw_run') %>',
-	gw_on: '<% nv('gw_on') %>',
-	vpnconnectiontype: '<% vpnconnectiontype(); %>',
-	vpnipaddress: '<% vpnipaddress(); %>',
-	vpnnetmask: '<% vpnnetmask(); %>',
-	vpngateway: '<% vpngateway(); %>'
+{
+	"type": "<% nv('vpn_type'); %>",
+	"on": <% nv_bool('vpn_on'); %>,
+	"up": <% nv_bool('vpn_up'); %>,
+	"ready":  <% nv_bool('vpn_ready'); %>
 }

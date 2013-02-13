@@ -58,7 +58,7 @@
 <script type='text/javascript'>
 
 ipp = '<% lipp(); %>.';
-//<% nvram('vpn_service,lan_ifname,wl_ifname,wl_mode,wl_radio'); %>
+//<% nvram("lan_ifname,wl_ifname,wl_mode,wl_radio"); %>
 //	<% devlist(); %>
 
 list = [];
@@ -137,14 +137,14 @@ function addStatic(n)
 {
 	var e = list[n];
 	cookie.set('addstatic', [e.mac, e.ip, e.name.split(',')[0]].join(','), 1);
-	location.href = 'basic-static.asp';
+	location.href = 'advanced-static.asp';
 }
 
 function addWF(n)
 {
 	var e = list[n];
 	cookie.set('addmac', [e.mac, e.name.split(',')[0]].join(','), 1);
-	location.href = 'basic-wfilter.asp';
+	location.href = 'firewall-wfilter.asp';
 }
 
 
@@ -293,7 +293,7 @@ dg.populate = function()
 		this.insert(-1, e, [
 			e.ifname, b, (e.ip == '-') ? '' : e.ip, e.name,
 			(e.rssi != 0) ? e.rssi + ' <small>dBm</small>' : '',
-			(e.qual < 0) ? '' : '<small>' + e.qual + '</small> <img src="bar' + MIN(MAX(Math.floor(e.qual / 10), 1), 6) + '.gif">',
+			(e.qual < 0) ? '' : '<small>' + e.qual + '</small> <img src="imgbar' + MIN(MAX(Math.floor(e.qual / 10), 1), 6) + '.gif">',
 			e.txrx,	e.lease], false);
 	}
 }
@@ -320,11 +320,11 @@ function init()
 </head>
 <body onload='init()'>
 <table id='container' cellspacing=0>
-<tr><td colspan=2 id='header'><a id='headlink' href=''><img src='' id='headlogo'></a>
-	<div class='title' id='SVPNstatus'>Sabai</div>
+<tr><td colspan=2 id='header'><a id='headlink' href='http://www.sabaitechnology.com'><img src='imgsabai.png' id='headlogo'></a>
+	<div class='title' id='SVPNstatus'><% sabaid(); %></div>
 	<div class='version' id='subversion'>version <!-- SABAI-VERSION --></div>
 </td></tr>
-<tr id='body'><td id='navi'><script type='text/javascript'>navi()</script></td>
+<tr id='body'><td id='navi'><% sabaaiMenu(); %></td>
 <td id='content'>
 
 
@@ -333,7 +333,7 @@ function init()
 <div class='section-title'>Device List</div>
 <div class='section'>
 	<table id='dev-grid' class='tomato-grid' cellspacing=0></table>
-<br>Select the <a href='basic-static.asp'>[static]</a> link in the MAC Address column to assign your device a static IP.
+<br>Select the <a href='advanced-static.asp'>[static]</a> link in the MAC Address column to assign your device a static IP.
 <span id='footer' colspan=2><script type='text/javascript'>genStdRefresh(1,0,'ref.toggle()');</script></span><br>
 <script type='text/javascript'>
 f = [];
