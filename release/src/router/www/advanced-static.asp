@@ -10,10 +10,9 @@
 
 <!-- / / / -->
 <style type='text/css'>
-#bs-grid .co1 { min-width: 25%; }
-#bs-grid .co2 { min-width: 25%; }
-#bs-grid .co3 { min-width: 25%; }
-#bs-grid .co4 { min-width: 5%; max-width: 10%; }
+#bs-grid .co1 { min-width: 30%; }
+#bs-grid .co2 { min-width: 30%; }
+#bs-grid .co3 { min-width: 40%; }
 </style>
 
 <script type='text/javascript'>
@@ -38,18 +37,10 @@ sg.inStatic = function(n){ return this.exist(2, n); }
 
 sg.dataToView = function(data) {
 	var v = [];
-	
-	var s = data[0];
-	if (!isMAC0(data[1])) s += '<br>' + data[1];
-	v.push(s);
-	
-	for (var i = 2; i < data.length-1; ++i)
-		v.push(escapeHTML('' + data[i]));
-
-	v.push(data[4]==1?'Y':'N');
-
+	v.push(data[0] + (isMAC0(data[1])?'':'<br>'+ data[1]));
+	for (var i = 2; i < data.length; ++i) v.push(escapeHTML('' + data[i]));
 	return v;
-},
+}
 
 sg.sortCompare = function(a, b) {
 	var da = a.getRowData();
@@ -61,6 +52,9 @@ sg.sortCompare = function(a, b) {
 		break;
 	case 1:
 		r = cmpIP(da[2], db[2]);
+		break;
+	case 2:
+		r = cmpText(da[3], db[3]);
 		break;
 	}
 	if (r == 0) r = cmpText(da[3], db[3]);
@@ -128,8 +122,6 @@ sg.verifyFields = function(row, quiet){
 		}
 	}
 
-	f[4].checked = false; f[4].value = false; f[4].disabled = true;
-
 	return 1;
 }
 
@@ -165,26 +157,25 @@ sg.resetNewEditor = function() {
 	} while (((c = fixIP(ntoa(autonum), 1)) == null) || (c == nvram.lan_ipaddr) || (this.inStatic(c)));
 
 	f[2].value = c;
-	f[4].checked = false; f[4].value = false; f[4].disabled = true;
 }
 
 sg.setup = function(){
 	this.init('bs-grid', 'sort', 140, [
 		{ multi: [ { type: 'text', maxlen: 17 }, { type: 'text', maxlen: 17 } ] },
 		{ type: 'text', maxlen: 15 },
-		{ type: 'text', maxlen: 63 },
-		{ type: 'checkbox', attrib: 'disabled' } ] );
+		{ type: 'text', maxlen: 63 }
+	] );
 
-	this.headerSet(['MAC Address', 'IP Address', 'Hostname', 'Auto']);
+	this.headerSet(['MAC Address', 'IP Address', 'Hostname']);
 
 	var s = nvram.dhcpd_static.split('>');
 
 	for (var i = 0; i < s.length; ++i) { if(s[i]=='') continue;
 		var t = s[i].split('<');
-		if (t.length != 4) continue;
+		if (t.length != 3) continue;
 
 		var d = t[0].split(',');
-		this.insertData(-1, [d[0], (d.length >= 2) ? d[1] : '00:00:00:00:00:00', (t[1].indexOf('.') == -1) ? (ipp + t[1]) : t[1], t[2], t[3]==1 ]);
+		this.insertData(-1, [d[0], (d.length >= 2) ? d[1] : '00:00:00:00:00:00', (t[1].indexOf('.') == -1) ? (ipp + t[1]) : t[1], t[2] ]);
 	}
 
 	this.sort(2);
@@ -208,7 +199,10 @@ function save(){
 	var fom = E('_fom'); fom.dhcpd_static.value = sdhcp; form.submit(fom, 1);
 }
 
-function init(){ sg.recolor(); }
+function init(){
+ sg.setup();
+ sg.recolor();
+}
 </script>
 </head>
 <body onload='init()'>
@@ -239,7 +233,7 @@ function init(){ sg.recolor(); }
 	<input type='button' value='Cancel' id='cancel-button' onclick='javascript:reloadPage();'>
 </div>
 
-<!-- pre id='testing'>T</pre -->
+<pre id='testing'>T</pre>
 
 <div>
 <ul class='explain dots'>
@@ -247,7 +241,7 @@ function init(){ sg.recolor(); }
 <li>Please ensure that the IP address you assign does not already belong to another device.
 <li>You may visit the <a href='status-devices.asp'>Devices</a> page to find MAC addresses for your device.
 <li>To specify multiple hostnames per device, separate them with spaces.
-<li>Auto designates devices made static by the <a href='sabai-gw.asp'>Gateways</a> feature; editing these entries will remove the 'auto' flag.  Deleting an auto entry for a device that is still connected to the network will cause the Gateways feature to malfunction.
+<li>If editing devices automatically added by the <a href='sabai-gw.asp'>Gateways</a> feature, please visit that page and update its settings to avoid malfunctions.
 </ul>
 </div>
 
@@ -258,6 +252,5 @@ function init(){ sg.recolor(); }
 </td></tr>
 </table>
 </form>
-<script type='text/javascript'>sg.setup();</script>
 </body>
 </html>

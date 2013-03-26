@@ -91,7 +91,7 @@ function checkInlines(){ if( (conf=='') || !conf.match(/\n(ca|cert|key|tls-auth)
  E('uploadPieces').innerHTML = '<tr>'+frm.join('</tr><tr>') +'</tr>';
 }
 
-function updateLog(){ que.drop('ovpnlog.txt',function(resp){ if(resp!='') E('logPane').innerHTML = escapeHTML(resp); }); }
+function updateLog(){ que.drop('ext/ovpn.txt',function(resp){ if(resp!='') E('logPane').innerHTML = escapeHTML(resp); }); }
 function toggleLog(){ report(''); var swap=(logButton.value=='Show Log'); logButton.value = ( swap ? 'Hide' : 'Show' )+' Log'; peek(logShow,swap); if(swap) updateLog(); }
 function toggleShow(){ report(''); var swap=(showButton.value=='Show File'); showButton.value = ( swap ? 'Hide' : 'Show' )+' File'; peek(editButton,swap); peek(confShow,swap); }
 function updateAuth(user,pass){ user = user || nvram.ovpn_user; pass = pass || nvram.ovpn_pass; E('authText').innerHTML = ( ( (user == '') && (pass == '') )?'None': user +'/'+ pass.replace(/./g,'*') ); }

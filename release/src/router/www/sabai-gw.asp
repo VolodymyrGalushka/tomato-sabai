@@ -32,7 +32,7 @@ var ipp='<% lipp(); %>.';
 <% devlist(); %>
 // /* BEGIN GATEWAYS JS */
 
-var f; var list={}; var vpna = false;
+var f; var list={}; var vpna = false; var statics = false;
 var gw_vpna=['<a href="http://','">VPN Accelerator</a>'];
 var gw_radio=["<input type='radio' class='gw_def' name='gw_","' onclick='chgw(",",0)'><input type='radio' name='gw_","' onclick='chgw(",",1)'><input type='radio' name='gw_","' onclick='chgw(",",2)'><input type='radio' name='gw_","' onclick='chgw(",",3)'>"];
 
@@ -44,15 +44,15 @@ function report(text){ E('messages').innerHTML=text; }
 function populateGrid(){
  var i, j;
  var arp = arplist.slice(0); var dyn = dhcpd_lease.slice(0); var sta = dhcpd_static.slice(0,-1); for(j=0; j<sta.length; j++){ sta[j] = sta[j].split('<'); }
- for(i=0; i<dyn.length; i++){ var stat = 0; var gwAuto = 1; var atip = dyn[i][1];
-  for(j=0; j<sta.length; j++){ if( sta[j][0].search( dyn[i][2] ) != -1 ){ atip=sta[j][1]; gwAuto = sta[j][3]; stat=1; sta.splice(j,1); } }
+ for(i=0; i<dyn.length; i++){ var stat = 0; var atip = dyn[i][1];
+  for(j=0; j<sta.length; j++){ if( sta[j][0].search( dyn[i][2] ) != -1 ){ atip=sta[j][1]; stat=1; sta.splice(j,1); } }
   for(j=0; j<arp.length; j++){ if( arp[j][1].search( dyn[i][2] ) != -1 ){ arp.splice(j,1); } }
-  list[ atip.replace(ipp,'') ] = { name: dyn[i][0], ip: atip, mac: dyn[i][2], ips: stat, gws: gwAuto, gw: 0 };
+  list[ atip.replace(ipp,'') ] = { name: dyn[i][0], ip: atip, mac: dyn[i][2], ips: stat, gw: 0 };
  }
- for(j=0; j<sta.length; j++){ for(i=0; i<arp.length; i++){ if( sta[j][0].search( arp[i][1] ) != -1 ){ arp.splice(i,1); } }; list[ sta[j][1].replace(ipp,'') ] = { name: sta[j][2], ip: sta[j][1], mac: sta[j][0], ips: 1, gws: (sta[j][3]=='1'?1:0), gw: 0 }; }
- for(j=0; j<arp.length; j++){ if( arp[j][0].search(ipp) != -1 ){ var alip = arp[j][0].replace(ipp,''); if(!list[ alip ]) list[ alip ] = { name: 'i:'+arp[j][2]+'@'+alip, ip: arp[j][0], mac: arp[j][1] , ips: 0, gws: 1, gw: 0 }; } }
+ for(j=0; j<sta.length; j++){ for(i=0; i<arp.length; i++){ if( sta[j][0].search( arp[i][1] ) != -1 ){ arp.splice(i,1); } }; list[ sta[j][1].replace(ipp,'') ] = { name: sta[j][2], ip: sta[j][1], mac: sta[j][0], ips: 1, gw: 0 }; }
+ for(j=0; j<arp.length; j++){ if( arp[j][0].search(ipp) != -1 ){ var alip = arp[j][0].replace(ipp,''); if(!list[ alip ]) list[ alip ] = { name: alip+'@'+arp[j][2], ip: arp[j][0], mac: arp[j][1] , ips: 0, gw: 0 }; } }
  for(i=1; i<4; i++){ if(nvram['gw_'+i]=='') continue; var gwl = nvram['gw_'+i].split(' '); for(j=0; j<gwl.length; j++){ if(list[gwl[j]]!=undefined) list[gwl[j]].gw=i; } }
- if(vpna=list[nvram.ac_ip]){ delete list[nvram.ac_ip]; vpna.gw=1; vpna.gws=0; gw_grid.insert( -1, vpna, [vpna.mac.replace(/,/,'\n'), vpna.ip, vpna.name, gw_vpna.join(vpna.ip) ], false ); }
+ if(vpna=list[nvram.ac_ip]){ delete list[nvram.ac_ip]; vpna.gw=1; gw_grid.insert( -1, vpna, [vpna.mac.replace(/,/,'\n'), vpna.ip, vpna.name, gw_vpna.join(vpna.ip) ], false ); }
  for(var i in list){ gw_grid.insert( -1, list[i], [list[i].mac.replace(/,/,'\n'), list[i].ip, list[i].name, gw_radio.join(i) ], false ); f['gw_'+i][verify_gw(list[i].gw)].checked=true; }
 }
 function toggleExplain(){ E('toggleDesc').innerHTML= ( peeky('explanation')?'Hide':'Show' ); return false; }
@@ -60,21 +60,31 @@ function toggleExplain(){ E('toggleDesc').innerHTML= ( peeky('explanation')?'Hid
 function setupGrid(){ gw_grid.init('dev-grid', 'sort'); gw_grid.headerSet(['MAC Address', 'IP Address', 'Name',"<span class='gw_opt gw_opt_def' onclick='defgw(0)'>D</span><span class='gw_opt' onclick='defgw(1)'>L</span><span class='gw_opt' onclick='defgw(2)'>V</span><span class='gw_opt' onclick='defgw(3)'>A</span>"],null,[false,false,false,true]); populateGrid(); gw_grid.sort(1); gw_grid.recolor(); }
 function radioValue(radioGroup){ for(var i=0; i<f[radioGroup].length; i++){ if(f[radioGroup][i].checked){ return f[radioGroup][i].value; } }; return false; }
 function gw_response(text){ async(false); sv=JSON.parse(text); if(!sv.sabai) report('There was an error.'); else reloadPage(); }
-function savegw(){ report('Saving...'); async(true);
- var def=verify_gw(radioValue('gw_def')); var new_dhcpd_static=[]; var new_gw=[ [], [], [] ];
+function savegw(){
+// report('Saving...'); async(true);
+ var def=verify_gw(radioValue('gw_def')); var ns=[]; var ng=[ [], [], [] ];
  if(vpna){ list[nvram.ac_ip] = vpna; }
- for(var i in list){
-  if( (list[i].gws==0 && list[i].ips==1) || list[i].gw!=0) new_dhcpd_static.push( [ list[i].mac , list[i].ip ,  list[i].name , list[i].gws ].join('<') );
-  if(list[i].gw!=0) new_gw[ list[i].gw - 1 ].push( i )
+ var sta = dhcpd_static.slice(0,-1); for(j=0; j<sta.length; j++){ sta[j] = sta[j].split('<'); }
+ for(var i in list){ if(list[i].gw==0) continue;
+  if(list[i].ips!=1){ var addStatic = true;
+   for(var j=0; j<sta.length; j++) if(sta[j][0].search(list[i].mac) != -1){ addStatic = false; break; }
+   if(addStatic) ns.push( [ list[i].mac, list[i].ip, list[i].name ].join('<') )
+  }
+  ng[ list[i].gw - 1 ].push(i)
  }
- for(i=0; i<3; i++){ new_gw[i] = 'gw_'+(i+1)+'='+(new_gw[i].length==0?'':new_gw[i].join(' ')); }
- var sdhcp = (new_dhcpd_static.length==0?'':new_dhcpd_static.join('>') + '>');
- que.drop('s_sabaigw.cgi',gw_response,'gw_def='+ def +'&dhcpd_static='+ sdhcp +'&'+new_gw.join('&')+'&_http_id='+nvram.http_id );
+ for(i=0; i<3; i++){ ng[i] = 'gw_'+(i+1)+'='+(ng[i].length==0?'':ng[i].join(' ')); }
+ var sdhcp = nvram.dhcpd_static + (ns.length==0?'': (ns.join('>') + '>') );
+ que.drop('s_sabaigw.cgi',gw_response,'gw_def='+ def +'&dhcpd_static='+ sdhcp +'&'+ng.join('&')+'&_http_id='+nvram.http_id );
 }
 function verify_gw(dgw){ dgw=parseInt(dgw,10); if(dgw==''||isNaN(dgw)) return 0; if(dgw<0||dgw>3) return 0; return dgw; }
 function defgw(gw){ for(var i in list){ f['gw_'+i][list[i].gw = gw].checked = true; }; f.gw_all[gw].checked=false; }
 function chgw(ip,gw){ if(!list[ip]) return; list[ip].gw = gw; }
-function init(){ f=E('gw_form'); f.gw_def[verify_gw(nvram.gw_def)].checked = true; setupGrid(); new vpnStatus(); }
+function init(){
+ f=E('gw_form');
+ f.gw_def[verify_gw(nvram.gw_def)].checked = true;
+ setupGrid();
+// new vpnStatus();
+}
 // /* END GATEWAYS JS */
 
 </script></head><body onload='init();' id='topmost'><table id='container' cellspacing=0>
