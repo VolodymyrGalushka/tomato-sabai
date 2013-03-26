@@ -310,8 +310,7 @@ function cancel()
 	document.location = 'admin-restrict.asp';
 }
 
-function remove()
-{
+function removeRule(){
 	if (!confirm('Delete this rule?')) return;
 
 	E('delete-button').disabled = 1;
@@ -491,7 +490,7 @@ createFieldTable('', [
 </td></tr>
 <tr><td id='footer' colspan=2>
 	<span id='footer-msg'></span>
-	<input type='button' value='Delete...' id='delete-button' onclick='remove()'>
+	<input type='button' value='Delete...' id='delete-button' onclick='removeRule()'>
 	&nbsp;
 	<input type='button' value='Save' id='save-button' onclick='save()'>
 	<input type='button' value='Cancel' id='cancel-button' onclick='cancel()'>

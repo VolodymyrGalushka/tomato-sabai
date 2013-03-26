@@ -1,6 +1,6 @@
 <ul id='topMenu' class='menu'>
 
-<a href='#'><li class='menuSup' onclick="peeky('network')">Network</li></a>
+<a href='#'><li class='menuSup' onclick="peeky('network'); return false;">Network</li></a>
 <ul id='network' class='menu menuSub hidey'>
 	<a href='sabai-act.asp' id='actLink'><li>Activate</li></a>
 	<a href='network-basic.asp'><li>Basic</li></a>
@@ -10,7 +10,7 @@
 	<a href='firewall-forward.asp'><li>Port Forwarding</li></a>
 	<a href='advanced-static.asp'><li>Static IP</li></a>
 </ul>
-<a href='#'><li class='menuSup' onclick="peeky('status')">Status</li></a>
+<a href='#'><li class='menuSup' onclick="peeky('status'); return false;">Status</li></a>
 <ul id='status' class='menu menuSub hidey'>
 	<a href='status-overview.asp'><li>Overview</li></a>
 	<a href='status-devices.asp'><li>Device List</li></a>
@@ -21,7 +21,7 @@
 	<a href='status-about.asp'><li>About</li></a>
 </ul>
 
-<a href='#'><li class='menuSup' onclick="peeky('tools')">Diagnostics</li></a>
+<a href='#'><li class='menuSup' onclick="peeky('tools'); return false;">Diagnostics</li></a>
 <ul id='tools' class='menu menuSub hidey'>
 	<a href='tools-ping.asp'><li>Ping</li></a>
 	<a href='tools-trace.asp'><li>Trace</li></a>
@@ -33,7 +33,7 @@
 
 <a href='#'><li class='menuSup' onclick="toggleAdv();" id='advancedLink'>Advanced</li></a>
 <div class='hidey' id='advanced'>
-<a href='#'><li class='menuSup' onclick="peeky('settings')">Settings</li></a>
+<a href='#'><li class='menuSup' onclick="peeky('settings'); return false;">Settings</li></a>
 <ul id='settings' class='menu menuSub hidey'>
 	<a href='advanced-static.asp?advanced'><li>Static IP</li></a>
 	<a href='advanced-mac.asp'><li>MAC Address</li></a>
@@ -44,7 +44,7 @@
 	<a href='advanced-wireless.asp'><li>Wireless</li></a>
 </ul>
 
-<a href='#'><li class='menuSup' onclick="peeky('firewall')">Firewall</li></a>
+<a href='#'><li class='menuSup' onclick="peeky('firewall'); return false;">Firewall</li></a>
 <ul id='firewall' class='menu menuSub hidey'>
 	<a href='firewall-basic.asp'><li>Basic</li></a>
 	<a href='firewall-forward.asp?firewall'><li>Port Forwarding</li></a>
@@ -56,7 +56,7 @@
 	<a href='firewall-wfilter.asp'><li>Wireless Filter</li></a>
 </ul>
 
-<a href='#'><li class='menuSup' onclick="peeky('file')">Network Storage</li></a>
+<a href='#'><li class='menuSup' onclick="peeky('file'); return false;">Network Storage</li></a>
 <ul id='file' class='menu menuSub hidey'>
 	<a href='file-samba.asp'><li>Sharing</li></a>
 	<a href='file-usb.asp'><li>USB Support</li></a>
@@ -65,7 +65,7 @@
 	<a href='file-jffs2.asp'><li>JFFS</li></a>
 </ul>
 
-<a href='#'><li class='menuSup' onclick="peeky('admin')">Administration</li></a>
+<a href='#'><li class='menuSup' onclick="peeky('admin'); return false;">Administration</li></a>
 <ul id='admin' class='menu menuSub hidey'>
 	<a href='admin-access.asp'><li>Admin Access</li></a>
 	<a href='admin-buttons.asp'><li>Buttons &amp; LEDs</li></a>
@@ -78,7 +78,7 @@
 
 </ul>
 
-<a href='#'><li class='menuSup' onclick="peeky('qos')">QoS</li></a>
+<a href='#'><li class='menuSup' onclick="peeky('qos'); return false;">QoS</li></a>
 <ul id='qos' class='menu menuSub hidey'>
 	<a href='qos-settings.asp'><li>Basic Settings</li></a>
 	<a href='qos-classify.asp'><li>Classification</li></a>
@@ -87,7 +87,7 @@
 	<a href='qos-ctrate.asp'><li>Transfer Rates</li></a>
 </ul>
 
-<a href='#'><li class='menuSup' onclick="peeky('bwm')">Bandwidth</li></a>
+<a href='#'><li class='menuSup' onclick="peeky('bwm'); return false;">Bandwidth</li></a>
 <ul id='bwm' class='menu menuSub hidey'>
 	<a href='bwm-monitoring.asp'><li>Monitoring</li></a>
 	<a href='bwm-realtime.asp'><li>Realtime</li></a>

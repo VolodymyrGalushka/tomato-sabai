@@ -218,7 +218,7 @@ static void send_authenticate(void){
 	const char *realm;
 
 	realm = nvram_get("router_name");
-	if ((realm == NULL) || (*realm == 0) || (strcmp(realm,"Sabai")==0) || (strlen(realm) > 64)) realm = "";
+	if ((realm == NULL) || (*realm == 0) || (strncmp(realm,"Sabai",5)==0) || (strlen(realm) > 64)) realm = "";
 
 	sprintf(header, "WWW-Authenticate: Basic realm=\"Sabai%s\"", realm);
 	send_error(401, header, NULL);
