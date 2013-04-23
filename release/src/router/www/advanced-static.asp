@@ -189,7 +189,6 @@ function save(){
 	while( d = data.shift() ){
 		d[0] += ( isMAC0(d[1]) ? '' : (','+ d[1]) );
 		d.splice(1,1);
-		d[3] = ( ((d[3]==1)||(d[3]=='on')) ? 1 : 0 );
 		sdhcp.push( d.join('<') + '>' );
 	}
 	sdhcp = sdhcp.join('');

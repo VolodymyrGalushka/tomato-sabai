@@ -51,7 +51,10 @@ extern void asp_isitsabai();
 extern void asp_sabaid();
 extern void asp_sabaiErr();
 //extern void asp_sabaiToken();
-extern void wi_sabaai_ovpn_get();
+
+//extern void wi_sabaai_ovpn_getlong(char *url, int len, char *boundary);
+
+extern void wi_sabaai_ovpn_get(char *url, int len, char *boundary);
 extern void wi_sabaai_ovpn_parts();
 extern void wo_sabaai_gw();
 extern void wo_sabaai_pptp();

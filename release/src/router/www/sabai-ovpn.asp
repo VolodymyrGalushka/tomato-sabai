@@ -24,15 +24,21 @@ function restrain(el,aboo){ if(!Array.isArray(el)) el = [el]; for(var i=0; i<el.
 
 function uploadFile(){ var of=E('ovpnUpload'); var fe = of.file.value.substr(-5); if( fe!='.ovpn' && fe!='.conf' ){ report('Please supply a .conf or .ovpn file.'); return }; report("Processing file..."); form.addIdAction(of); of.submit(); }
 
-function openvpn(act){ if(act==3 && !confirm("Erase all OpenVPN settings?")) return; E('processing').innerHTML = ['Sav','Start','Stopp','Eras'][act] +'ing...'; async(true);
+function openvpn(act){
+ if(act==3 && !confirm("Erase all OpenVPN settings?")) return; E('processing').innerHTML = ['Sav','Start','Stopp','Eras'][act] +'ing...'; async(true);
  que.drop('s_sabaiovpn.cgi',
   function(resp){ async(false); report( ((res = parseJson(resp)) && res.sabai) ? res.msg : 'Bad JSON in message.' ); if(res.sabai) location.reload(); },
   'fire='+ act + (safe.auth?'&ovpn_user='+ f.ovpn_user.value +'&ovpn_pass='+ f.ovpn_pass.value:'') + (safe.conf?'&ovpn_cf='+ escapeCGI(conf):'') +'&_http_id='+nvram.http_id
  );
 }
 
-function parseFile(){ if(conf==''||ovpn!=false) return; ovpn=[]; var inline = [];
- var t; while(t = conf.match(/<([^>]*)>[^<]*<\/\1>/)){ inline.push({ name: t[1], value: t[0].replace(/<\/?[^>]*>/g,'').trim(), disabled: false, x: true, f: false }); conf=conf.replace(t[0],"").trim(); }
+function parseFile(){
+ if(conf==''||ovpn!=false) return; ovpn=[]; var inline = [];
+ var t;
+ while(t = conf.match(/<([^>]*)>[^<]*<\/\1>/)){
+  inline.push({ name: t[1], value: t[0].replace(/<\/?[^>]*>/g,'').trim(), disabled: false, x: true, f: false });
+  conf=conf.replace(t[0],"").replace(new RegExp('\n'+ t[1] +' [^\n]*'),'').trim();
+ }
  var cf = conf.split("\n"); var cfi, nin; while( (cfi = cf.shift()) != null){ if(cfi=='') continue; cfi = cfi.split(' '); var nin=(cfi[0]=='ca'|cfi[0]=='cert'|cfi[0]=='key'|cfi[0]=='tls-auth'); ovpn.push({ name: cfi[0].replace(/^;/,'').replace(/^#/,''), value: (cfi.length>1?cfi.slice(1).join(' '):false), disabled: (cfi[0][0] == ';' || cfi[0][0] == '#'), x: nin, f: nin }); }
  ovpn = ovpn.concat(inline); var frag = document.createDocumentFragment();
  for(var i=0; i<ovpn.length; i++){ ovpn[i].olddisabled = ovpn[i].disabled; ovpn[i].oldvalue = ovpn[i].value; if(ovpn[i].f) changes[i] = true; var nr = A('tr'); frag.appendChild(nr); nr.innerHTML = '<td class="title indent1"><input type="checkbox" onchange="alter(event,\'disabled\','+i+');"'+ (ovpn[i].disabled?'':' checked') +'> '+ ovpn[i].name +'</td><td class="content">'+ ( (ovpn[i].x || ovpn[i].f)?'<textarea rows="5" onchange="alter(event,\'value\','+i+');" class="ovpn_ta">'+ (ovpn[i].f?'#Paste contents of ':'') + ovpn[i].value +'</textarea>':(ovpn[i].value?'<input type="text" onchange="alter(event,\'value\','+i+');" size=33 value="'+ ovpn[i].value +'">':'') ) +'</td>'; }
@@ -47,11 +53,12 @@ function formFile(){
  if( !ovpn || !(ovpn.length>0) ){ report("Configuration error."); return; }
  var confLines = [], inline = [];
  for(var i=0; i<ovpn.length; i++){
-  if(ovpn[i].f && (ovpn[i].value == ovpn[i].oldvalue) ){ report("Please upload "+ ovpn[i].value +" or click Edit to provide its contents in the field below."); return; }
+//  if(ovpn[i].f && (ovpn[i].value == ovpn[i].oldvalue) ){ report("Please upload "+ ovpn[i].value +" or click Edit to provide its contents in the field below."); return; }
   if(ovpn[i].x){ inline.push('<'+ovpn[i].name+'>\n'+ ovpn[i].value +'\n</'+ovpn[i].name+'>'); }else{ confLines.push( (ovpn[i].disabled?';':'') + ovpn[i].name + (ovpn[i].value?' '+ovpn[i].value:'') ); }
   ovpn[i].oldvalue = ovpn[i].value; ovpn[i].olddisabled = ovpn[i].disabled;
  }
- conf = confLines.concat(inline).join('\n'); confPane.innerHTML = escapeHTML(conf);
+ conf = confLines.concat(inline).join('\n');
+ confPane.innerHTML = escapeHTML(conf);
 }
 
 function alter(event, property, i){ ovpn[i][property] = (event.target.type == 'checkbox') ? ! event.target.checked : event.target.value; if ( (ovpn[i].value == ovpn[i].oldvalue) && (ovpn[i].disabled == ovpn[i].olddisabled) ) delete changes[i]; else changes[i] = true; }
@@ -86,7 +93,7 @@ function checkInlines(){ if( (conf=='') || !conf.match(/\n(ca|cert|key|tls-auth)
  }
  if(!test) return;
  E('uploadRow').style.display = '';
- toggleShow(); toggleEdit();
+// toggleShow(); toggleEdit();
  E('uploadList').innerHTML = txt.join(', ');
  E('uploadPieces').innerHTML = '<tr>'+frm.join('</tr><tr>') +'</tr>';
 }
@@ -101,7 +108,7 @@ function checkMessages(){ if(E('sabaiErrPre').childNodes.length >0){ E('sabaiErr
 function init(){ f=E('_fom');
  confShow=E('confShow'); confEdit=E('confEdit'); showButton=E('showButton'); logButton=E('logButton'); editButton=E('editButton'); uploadButton=E('uploadButton'); confPane=E('confPane');
  peek('controlButtons',!nofile); restrain(['startButton','stopButton','eraseButton','logButton'],nofile); checkMessages(); updateAuth(); checkInlines();
- new vpnStatus();
+// new vpnStatus();
 }
 // /* END SABAI OVPN JS */
 
@@ -125,7 +132,7 @@ createFieldTable('', [
 { title: 'Current File', rid: 'ovpnUploadCurrent', text: nvram.ovpn_file, hidden: nofile },
 { title: '', hidden: true, suffix: '<span id="processing">Processing...</span><img style="float: right" src="imgspin.gif">', rid: 'reg_spin' },
 { title: '', rid: 'message_row', hidden: true, text: '<span id="message"></span>' },
-{ title: '', rid: 'uploadRow', hidden: true, text: 'The following files are required to complete setup: <span id="uploadList"></span>; please upload them now or paste their contents into the respective fields below.<form id="pieceUpload" method="post" action="s_ovpn_parts.cgi" encType="multipart/form-data"><table id="uploadPieces"></table><input type="button" onclick=\"uploadPieces();\" value="Upload" style="float: right;"></form>' }
+{ title: '', rid: 'uploadRow', hidden: true, text: 'The following files are required to complete setup: <span id="uploadList"></span>; please upload them.<form id="pieceUpload" method="post" action="s_ovpn_parts.cgi" encType="multipart/form-data"><table id="uploadPieces"></table><input type="button" onclick=\"uploadPieces();\" value="Upload" style="float: right;"></form>' }
 ]); //</script></div>
 
 <form id='_fom'>

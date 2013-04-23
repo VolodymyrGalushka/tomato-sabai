@@ -339,6 +339,7 @@ const struct mime_handler mime_handlers[] = {
 	{ "s_sabaipptp.cgi",	NULL,			0,	wi_generic,		wo_sabaai_pptp,		1 },
 	{ "s_sabaiovpn.cgi",	NULL,			0,	wi_generic,		wo_sabaai_ovpn,		1 },
 	{ "s_ovpn_get.cgi",	NULL,			0,	wi_sabaai_ovpn_get,	NULL,			1 },
+//	{ "s_ovpn_getlong.cgi",	NULL,			0,	wi_sabaai_ovpn_getlong,	NULL,			1 },
 	{ "s_ovpn_parts.cgi",	NULL,			0,	wi_sabaai_ovpn_parts,	NULL,			1 },
 	{ "s_sabaigw.cgi",	NULL,			0,	wi_generic,		wo_sabaai_gw,		1 },
 //	{ "s_sabaaiShow.cgi",	mime_javascript,	0,	wi_generic_noid,	wo_sabaai_show,		1 },

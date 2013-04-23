@@ -108,12 +108,23 @@ void wo_sabaai_ovpn(){
 	web_printf("{ \"sabai\": true, \"msg\": \"OpenVPN %i complete.\", \"committed\": \"%i\" }", fire, nc);
 }
 
+/*#define BIG_BUFFER 65536
+void wi_sabaai_ovpn_getlong(char *url, int len, char *boundary){
+	check_id(url);
+	char buf[BIG_BUFFER] = { 0 };
+	len -= web_read(buf, len);
+	f_write("/cifs1/mipsy/testovpn.boundary", boundary, strlen(boundary), 0, 0664);
+	f_write("/cifs1/mipsy/testovpn.out", buf, strlen(buf), 0, 0664);
+	redirect("sabai-ovpn.asp");
+}*/
+
 void wi_sabaai_ovpn_get(char *url, int len, char *boundary){
 	check_id(url);
 	const char *error = NULL;
-	if((16 > len) || (len > _SABAI_FILE_BUFFER)){ error = "Invalid file"; goto ERROR; }
+	if((16 > len) || (len > _SABAI_FILE_BUFFER)){ error = _SABAI_FILE_RANGE_ERROR; goto ERROR; }
 	char buf[_SABAI_FILE_BUFFER] = { 0 };
 	len -= web_read(buf, len);
+
 	char *filename, *file, *end;
 	if( (filename = strstr(buf,"filename=\"")) == NULL){ error = "Invalid file."; goto ERROR; }
 	filename += 10;
@@ -125,13 +136,28 @@ void wi_sabaai_ovpn_get(char *url, int len, char *boundary){
 	end = strrchr(filename,'.');
 	if( (strcmp(end,".ovpn")!=0)&&(strcmp(end,".conf")!=0) ){ error = "Not a .conf or .ovpn file."; goto ERROR; }
 
+	f_write("/tmp/newovpn.in", file, strlen(file), 0, 0664);
+	f_write(SABAICLEAN, cleaner_script, strlen(cleaner_script), 0, 0700);
+	eval("sh",SABAICLEAN);
+	remove(SABAICLEAN);
+
+	FILE *cleanin = fopen("/tmp/newovpn.out","r");
+	int dif = (file - buf)+1;
+	int final = fread(file,1,_SABAI_FILE_BUFFER-dif,cleanin);
+	file[final] = 0;
+	fclose(cleanin);
+	if(final > _SABAI_FILE_LIMIT){ error = _SABAI_FILE_RANGE_ERROR; goto ERROR; }
+
+	remove("/tmp/newovpn.in");
+	remove("/tmp/newovpn.out");
+
 	nvram_set("ovpn_cf",file);
 	nvram_set("ovpn_file",filename);
 	nvram_commit();
 
 ERROR:
 	web_eat(len);
-	if (error != NULL) nvram_set("sabai_err",error);
+	if (error != NULL) f_write("/tmp/sabaierr", error, strlen(error), 0, 0600);
 	redirect("sabai-ovpn.asp");
 }
 
@@ -148,7 +174,7 @@ void wi_sabaai_ovpn_parts(char *url, int len, char *boundary){
 	f_write("/tmp/parts.src", buf, len, 0, 0660);
 	f_write(SABAIPARTS, parts_script, strlen(parts_script), 0, 0700);
 	eval("sh",SABAIPARTS);
-//	remove(SABAIPARTS);
+	remove(SABAIPARTS);
 ERROR:
 	web_eat(lend);
 	redirect("sabai-ovpn.asp");

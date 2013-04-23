@@ -61,7 +61,7 @@ function setupGrid(){ gw_grid.init('dev-grid', 'sort'); gw_grid.headerSet(['MAC 
 function radioValue(radioGroup){ for(var i=0; i<f[radioGroup].length; i++){ if(f[radioGroup][i].checked){ return f[radioGroup][i].value; } }; return false; }
 function gw_response(text){ async(false); sv=JSON.parse(text); if(!sv.sabai) report('There was an error.'); else reloadPage(); }
 function savegw(){
-// report('Saving...'); async(true);
+ report('Saving...'); async(true);
  var def=verify_gw(radioValue('gw_def')); var ns=[]; var ng=[ [], [], [] ];
  if(vpna){ list[nvram.ac_ip] = vpna; }
  var sta = dhcpd_static.slice(0,-1); for(j=0; j<sta.length; j++){ sta[j] = sta[j].split('<'); }

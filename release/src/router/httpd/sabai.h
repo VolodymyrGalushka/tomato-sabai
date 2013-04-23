@@ -3,14 +3,26 @@
 
 #define T_ISITAMAC(T_START,T_MAC) ( (T_MAC[T_START+2]==':')&&(T_MAC[T_START+5]==':')&&(T_MAC[T_START+8]==':')&&(T_MAC[T_START+11]==':')&&(T_MAC[T_START+14]==':') )
 
-#define _SABAI_FILE_BUFFER 12288
+#define _SABAI_FILE_LIMIT 12288
+#define _SABAI_FILE_BUFFER 32768
 #define _SABAI_FILE_RANGE_ERROR "File size was smaller than 16 or larger than 12288 characters (~12KiB).";
 #define SABAIWANUP "/tmp/script_wanup.sh"
 #define SABAIGW "/www/gw.sh"
 #define SABAIMENU "/www/menu.asp"
 #define SABAIPARTS "/tmp/parts.sh"
+#define SABAICLEAN "/tmp/clean.sh"
 
 int nvram_update(const char *variable, const char *value);
+
+char cleaner_script[]="\
+#!/bin/sh\n\
+cat /tmp/newovpn.in |\
+ tr -d '\r' |\
+ sed\
+ -e '1,/^[^#]/{ /^#/d }'\
+ -e '/## -----BEGIN RSA SIGNATURE-----/,$d'\
+ -e '/<tls-auth>/,/^-/{ /^#/d }'\
+ -e '/^$/d' >/tmp/newovpn.out\n";
 
 char parts_script[]="\
 #!/bin/sh\n\
