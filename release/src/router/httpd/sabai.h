@@ -3,9 +3,10 @@
 
 #define T_ISITAMAC(T_START,T_MAC) ( (T_MAC[T_START+2]==':')&&(T_MAC[T_START+5]==':')&&(T_MAC[T_START+8]==':')&&(T_MAC[T_START+11]==':')&&(T_MAC[T_START+14]==':') )
 
-#define _SABAI_FILE_LIMIT 12288
+#define _SABAI_FILE_LIMIT 16384
 #define _SABAI_FILE_BUFFER 32768
-#define _SABAI_FILE_RANGE_ERROR "File size was smaller than 16 or larger than 12288 characters (~12KiB).";
+#define _SABAI_FILE_LIMIT_ERROR "File size was smaller than 16 or larger than 16384 characters (16KiB).";
+#define _SABAI_FILE_BUFFER_ERROR "File size was smaller than 16 or larger than 32768 characters (32KiB).";
 #define SABAIWANUP "/tmp/script_wanup.sh"
 #define SABAIGW "/www/gw.sh"
 #define SABAIMENU "/www/menu.asp"
@@ -17,7 +18,7 @@ int nvram_update(const char *variable, const char *value);
 char cleaner_script[]="\
 #!/bin/sh\n\
 cat /tmp/newovpn.in |\
- tr -d '\r' |\
+ tr -d '\\r' |\
  sed\
  -e '1,/^[^#]/{ /^#/d }'\
  -e '/## -----BEGIN RSA SIGNATURE-----/,$d'\
@@ -48,7 +49,11 @@ cat $src | tr -d '\\r' | sed \"{\n\
 nvram get ovpn_cf | tr -d '\\r' >$res\n\
 sed \"/<[^>]*>/,/<\\/[^>]*>/!d\" $tmp >>$res\n\
 sed -i -e \"/^$/d\" -e \"/^[;#]/d\" $res\n\
-nvram set ovpn_cf=\"$(cat $res)\"\n\
+if [ $(wc -c parts.tmp | cut -d' ' -f1) -gt 16384 ]; then\n\
+ echo 'File was too large (>32KiB).' >/tmp/sabaierr\n\
+else\n\
+ nvram set ovpn_cf=\"$(cat $res)\"\n\
+fi\n\
 #rm -f $src $res $err\n";
 
 char ovpn_script[]="\

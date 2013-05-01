@@ -121,7 +121,7 @@ void wi_sabaai_ovpn_getlong(char *url, int len, char *boundary){
 void wi_sabaai_ovpn_get(char *url, int len, char *boundary){
 	check_id(url);
 	const char *error = NULL;
-	if((16 > len) || (len > _SABAI_FILE_BUFFER)){ error = _SABAI_FILE_RANGE_ERROR; goto ERROR; }
+	if((16 > len) || (len > _SABAI_FILE_BUFFER)){ error = _SABAI_FILE_BUFFER_ERROR; goto ERROR; }
 	char buf[_SABAI_FILE_BUFFER] = { 0 };
 	len -= web_read(buf, len);
 
@@ -146,7 +146,7 @@ void wi_sabaai_ovpn_get(char *url, int len, char *boundary){
 	int final = fread(file,1,_SABAI_FILE_BUFFER-dif,cleanin);
 	file[final] = 0;
 	fclose(cleanin);
-	if(final > _SABAI_FILE_LIMIT){ error = _SABAI_FILE_RANGE_ERROR; goto ERROR; }
+	if(final > _SABAI_FILE_LIMIT){ error = _SABAI_FILE_LIMIT_ERROR; goto ERROR; }
 
 	remove("/tmp/newovpn.in");
 	remove("/tmp/newovpn.out");
@@ -165,7 +165,7 @@ void wi_sabaai_ovpn_parts(char *url, int len, char *boundary){
 	check_id(url);
 	int lend = len;
 	if((16 > len) || (len > _SABAI_FILE_BUFFER)){
-		char error[] = _SABAI_FILE_RANGE_ERROR;
+		char error[] = _SABAI_FILE_BUFFER_ERROR;
 		f_write("/tmp/sabaierr", error, strlen(error), 0, 0600);
 		goto ERROR;
 	}
