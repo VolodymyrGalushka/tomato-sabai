@@ -23,24 +23,46 @@ if (nvram.lan_ipaddr.match(/^(\d+\.\d+\.\d+)\.(\d+)$/)) ipp = RegExp.$1 + '.';
 	else ipp = '?.?.?.';
 
 autonum = aton(nvram.lan_ipaddr) & aton(nvram.lan_netmask);
-var managedDHCP=[];
+
 var sg = new TomatoGrid();
 
-sg.exist = function(f, v){
+sg.exist = function(f, v)
+{
 	var data = this.getAllData();
-	for (var i = 0; i < data.length; ++i){ if (data[i][f] == v) return true; }
+	for (var i = 0; i < data.length; ++i) {
+		if (data[i][f] == v) return true;
+	}
 	return false;
 }
-sg.existMAC = function(mac){ if (isMAC0(mac)) return false; return this.exist(0, mac) || this.exist(1, mac); }
-sg.existName = function(name){ return this.exist(3, name); }
-sg.inStatic = function(n){ return this.exist(2, n); }
+
+sg.existMAC = function(mac)
+{
+	if (isMAC0(mac)) return false;
+	return this.exist(0, mac) || this.exist(1, mac);
+}
+
+sg.existName = function(name)
+{
+	return this.exist(3, name);
+}
+
+sg.inStatic = function(n)
+{
+	return this.exist(2, n);
+}
 
 sg.dataToView = function(data) {
 	var v = [];
-	v.push(data[0] + (isMAC0(data[1])?'':'<br>'+ data[1]));
-	for (var i = 2; i < data.length; ++i) v.push(escapeHTML('' + data[i]));
+	
+	var s = data[0];
+	if (!isMAC0(data[1])) s += '<br>' + data[1];
+	v.push(s);
+	
+	for (var i = 2; i < data.length; ++i)
+		v.push(escapeHTML('' + data[i]));
+
 	return v;
-}
+},
 
 sg.sortCompare = function(a, b) {
 	var da = a.getRowData();
@@ -53,15 +75,13 @@ sg.sortCompare = function(a, b) {
 	case 1:
 		r = cmpIP(da[2], db[2]);
 		break;
-	case 2:
-		r = cmpText(da[3], db[3]);
-		break;
 	}
 	if (r == 0) r = cmpText(da[3], db[3]);
 	return this.sortAscending ? r : -r;
 }
 
-sg.verifyFields = function(row, quiet){
+sg.verifyFields = function(row, quiet)
+{
 	var f, s, i;
 
 	f = fields.getAll(row);
@@ -96,21 +116,22 @@ sg.verifyFields = function(row, quiet){
 		f[2].value = ipp + s;
 	}
 
-	if (!v_ipz(f[2], quiet)) return 0;
-
 	if ((!isMAC0(f[0].value)) && (this.inStatic(f[2].value))) {
 		ferror.set(f[2], 'Duplicate IP address', quiet);
 		return 0;
 	}
 
-	if (!v_hostname(f[3], quiet, 5)) return 0;
-	if (!v_nodelim(f[3], quiet, 'Hostname', 1)) return 0;
-	s = f[3].value;
+	s = f[3].value.trim().replace(/\s+/g, ' ');
 	if (s.length > 0) {
+		if (s.search(/^[.a-zA-Z0-9_\- ]+$/) == -1) {
+			ferror.set(f[3], 'Invalid name. Only characters "A-Z 0-9 . - _" are allowed.', quiet);
+			return 0;
+		}
 		if (this.existName(s)) {
 			ferror.set(f[3], 'Duplicate name.', quiet);
 			return 0;
 		}
+		f[3].value = s;
 	}
 
 	if (isMAC0(f[0].value)) {
@@ -159,49 +180,49 @@ sg.resetNewEditor = function() {
 	f[2].value = c;
 }
 
-sg.setup = function(){
-	this.init('bs-grid', 'sort', 140, [
+sg.setup = function()
+{
+	this.init('bs-grid', 'sort', 100, [
 		{ multi: [ { type: 'text', maxlen: 17 }, { type: 'text', maxlen: 17 } ] },
 		{ type: 'text', maxlen: 15 },
-		{ type: 'text', maxlen: 63 }
-	] );
+		{ type: 'text', maxlen: 50 } ] );
 
 	this.headerSet(['MAC Address', 'IP Address', 'Hostname']);
-
 	var s = nvram.dhcpd_static.split('>');
-
-	for (var i = 0; i < s.length; ++i) { if(s[i]=='') continue;
+	for (var i = 0; i < s.length; ++i) {
 		var t = s[i].split('<');
-		if (t.length != 3) continue;
-
-		var d = t[0].split(',');
-		this.insertData(-1, [d[0], (d.length >= 2) ? d[1] : '00:00:00:00:00:00', (t[1].indexOf('.') == -1) ? (ipp + t[1]) : t[1], t[2] ]);
+		if (t.length == 3) {
+			var d = t[0].split(',');
+			this.insertData(-1, [d[0], (d.length >= 2) ? d[1] : '00:00:00:00:00:00',
+				(t[1].indexOf('.') == -1) ? (ipp + t[1]) : t[1], t[2]]);
+		}
 	}
-
 	this.sort(2);
 	this.showNewEditor();
 	this.resetNewEditor();
 }
 
-function save(){
+function save()
+{
 	if (sg.isEditing()) return;
-	var d, sdhcp = [], data = sg.getAllData();
-	while( d = data.shift() ){
-		d[0] += ( isMAC0(d[1]) ? '' : (','+ d[1]) );
-		d.splice(1,1);
-		sdhcp.push( d.join('<') + '>' );
+
+	var data = sg.getAllData();
+	var sdhcp = '';
+	var i;
+
+	for (i = 0; i < data.length; ++i) {
+		var d = data[i];
+		sdhcp += d[0];
+		if (!isMAC0(d[1])) sdhcp += ',' + d[1];
+		sdhcp += '<' + d[2] + '<' + d[3] + '>';
 	}
-	sdhcp = sdhcp.join('');
 
-//E('testing').innerHTML = escapeHTML('SDHCP:'+ sdhcp +';\n'+ sdhcp.replace(/>/g,'>\n')) +';END;';
-
-	var fom = E('_fom'); fom.dhcpd_static.value = sdhcp; form.submit(fom, 1);
+	var fom = E('_fom');
+	fom.dhcpd_static.value = sdhcp;
+	form.submit(fom, 1);
 }
 
-function init(){
- sg.setup();
- sg.recolor();
-}
+function init(){ sg.setup(); sg.recolor(); }
 </script>
 </head>
 <body onload='init()'>
@@ -214,7 +235,6 @@ function init(){
 <tr id='body'><td id='navi'><% sabaaiMenu(); %></td>
 <td id='content'>
 
-
 <!-- / / / -->
 
 <input type='hidden' name='_nextpage' value='advanced-static.asp'>
@@ -226,13 +246,12 @@ function init(){
 <div class='section'>
 	<table class='tomato-grid' id='bs-grid'></table>
 </div>
+
 <div id='footer'>
 	<span id='footer-msg'></span>
 	<input type='button' value='Save' id='save-button' onclick='save()'>
 	<input type='button' value='Cancel' id='cancel-button' onclick='javascript:reloadPage();'>
 </div>
-
-<pre id='testing'>T</pre>
 
 <div>
 <ul class='explain dots'>
