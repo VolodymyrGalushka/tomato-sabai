@@ -108,7 +108,7 @@ function checkMessages(){ if(E('sabaiErrPre').childNodes.length >0){ E('sabaiErr
 function init(){ f=E('_fom');
  confShow=E('confShow'); confEdit=E('confEdit'); showButton=E('showButton'); logButton=E('logButton'); editButton=E('editButton'); uploadButton=E('uploadButton'); confPane=E('confPane');
  peek('controlButtons',!nofile); restrain(['startButton','stopButton','eraseButton','logButton'],nofile); checkMessages(); updateAuth(); checkInlines();
-// new vpnStatus();
+ new vpnStatus();
 }
 // /* END SABAI OVPN JS */
 

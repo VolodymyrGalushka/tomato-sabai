@@ -160,7 +160,7 @@ function init(){
  f=E('gw_form');
  f.gw_def[verify_gw(nvram.gw_def)].checked = true;
  setupGrid();
-// new vpnStatus();
+ new vpnStatus();
 }
 // /* END GATEWAYS JS */
 

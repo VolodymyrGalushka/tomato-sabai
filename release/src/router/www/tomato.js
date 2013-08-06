@@ -1471,7 +1471,8 @@ TomatoGrid.prototype = {
 	createEditor: function(which, rowIndex, source) {
 		var values;
 
-		if (which == 'edit') values = this.dataToFieldValues(source.getRowData());
+
+		if (which == 'edit'){ values = this.dataToFieldValues(source.getRowData()); }
 
 		var row = this.tb.insertRow(rowIndex);
 		row.className = 'editor';
