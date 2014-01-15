@@ -691,7 +691,6 @@ const defaults_t defaults[] = {
 // admin-tomatoanon
 	{ "tomatoanon_enable",		"-1"				},
 	{ "tomatoanon_answer",		"0"				},
-	{ "tomatoanon_cru",		"6"				},
 	{ "tomatoanon_id",		""				},
 	{ "tomatoanon_notify",		"1"				},
 
