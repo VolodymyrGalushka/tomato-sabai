@@ -307,7 +307,6 @@ ifneq ($(NOVERSION),1)
 	@cp router/shared/tomato_version router/shared/tomato_version_last
 	@btools/uversion.pl --bump
 endif
-
 endif
 
 
@@ -1040,6 +1039,8 @@ endif
 m:
 ifeq ($(CONFIG_LINUX26),y)
 	@$(MAKE) bin OPENVPN=y BBEXTRAS=y EBTABLES=y IPV6SUPP=y B=E BUILD_DESC="Max" USB="" NOCAT=y NFS=y SNMP=y DNSCRYPT=y PPTPD=y TOR=y IPSEC=y
+else
+	@$(MAKE) bin OPENVPN=y BBEXTRAS=y B=E BUILD_DESC="Max" USB="" NOCAT=y NFS=y SNMP=y DNSCRYPT=y PPTPD=y TOR=y
 endif
 
 ## SD-VPN - Only k24
@@ -1372,6 +1373,6 @@ endif
 	@echo "cleankernel  -C Linux distclean (but preserves .config)"
 	@echo "distclean    distclean of Linux & busybox (but preserve .configs)"
 	@echo "prepk        -C Linux oldconfig dep"
-
+	
 .PHONY: all clean distclean cleanimage cleantools cleankernel prepk what setprofile help
 .PHONY: a b c d m nc Makefile allversions tomato_profile.mak
