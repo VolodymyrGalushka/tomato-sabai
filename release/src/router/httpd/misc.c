@@ -741,12 +741,6 @@ void asp_wanup(int argc, char **argv)
 	web_puts(check_wanup() ? "1" : "0");
 }
 
-
-void asp_wanup(int argc, char **argv)
-{
-	web_puts(check_wanup() ? "1" : "0");
-}
-
 void asp_wanstatus(int argc, char **argv)
 {
 	const char *p;

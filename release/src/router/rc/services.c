@@ -674,10 +674,6 @@ void start_6rd_tunnel(void)
 	char tmp_ipv6[INET6_ADDRSTRLEN + 4], tmp_ipv4[INET_ADDRSTRLEN + 4];
 	char tmp[256];
 	FILE *f;
-	char *prefix, *ip, *mtu;
-	int do_dns, do_6to4;
-	char *argv[] = { "radvd", NULL, NULL, NULL };
-	int pid, argc, service, cnt;
 
 	service = get_ipv6_service();
 	wanip = get_wanip();
@@ -937,10 +933,8 @@ void start_upnp(void)
 							// by default allow only redirection of ports above 1024
 							fprintf(f, "allow 1024-65535 %s/%s 1024-65535\n", lanip, lanmask);
 						}
-#ifdef TCONFIG_VLAN
 					}
 				}
-#endif
 
 				fappend(f, "/jffs/upnpconfig.custom");
 				fappend(f, "/etc/upnp/config.custom");
@@ -1792,8 +1786,8 @@ static void start_samba(void)
 		" short preserve case = yes\n",
 		nvram_safe_get("lan_ifname"),
 		nvram_get("smbd_wgroup") ? : "WORKGROUP",
-		lan_name,
-		lan_name,
+		nvram_safe_get("lan_hostname"),
+		nvram_get("router_name") ? : "Sabato",
 		mode == 2 ? "" : "map to guest = Bad User",
 		mode == 2 ? "no" : "yes"	// guest ok
 	);

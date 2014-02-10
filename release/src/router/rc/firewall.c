@@ -1213,7 +1213,6 @@ static void filter_forward(void)
 //		ip46t_write("-A FORWARD -i %s -j %s\n", nvram_safe_get(lanN_ifname), chain_out_accept);
 		}
 	}
-#endif
 
 //#ifdef TCONFIG_PPTPD
 //	//Add for pptp server

@@ -384,7 +384,6 @@ const aspapi_t aspapi[] = {
 	{ "lanip",			asp_lanip		},
 	{ "layer7",			asp_layer7		},
 	{ "link_uptime",		asp_link_uptime		},
-	{ "link_starttime",		asp_link_starttime	},
 	{ "lipp",			asp_lipp		},
 	{ "netdev",			asp_netdev		},
 	{ "iptraffic",			asp_iptraffic		},
@@ -402,14 +401,13 @@ const aspapi_t aspapi[] = {
 	{ "rrule",			asp_rrule		},
 	{ "statfs",			asp_statfs		},
 	{ "sysinfo",			asp_sysinfo		},
-	{ "jiffies",			asp_jiffies		},
 	{ "time",			asp_time		},
 	{ "upnpinfo",			asp_upnpinfo		},
 	{ "version",			asp_version		},
 	{ "wanstatus",			asp_wanstatus		},
 	{ "wanup",			asp_wanup		},
 #ifdef TCONFIG_PPTPD
-	{ "pptpd_userol",		asp_pptpd_userol	},
+	//	{ "pptpd_userol",		asp_pptpd_userol	},
 #endif
 	{ "wlstats",			asp_wlstats		},
 	{ "wlclient",			asp_wlclient		},
