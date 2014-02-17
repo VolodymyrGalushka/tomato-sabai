@@ -27,6 +27,8 @@ test
 libtool
 stamp-h1
 
+*.orig
+
 *.BACKUP.*
 *.BASE.*
 *.REMOTE.*
