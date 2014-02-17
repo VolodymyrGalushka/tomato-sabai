@@ -459,6 +459,9 @@ struct options
   bool pull; /* client pull of config options from server */
   int push_continuation;
   const char *auth_user_pass_file;
+  bool auth_user_pass_inline;
+  const char *auth_iuser;
+  const char *auth_ipass;
   struct options_pre_pull *pre_pull;
 
   int server_poll_timeout;

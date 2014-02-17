@@ -5084,6 +5084,24 @@ add_option (struct options *options,
       VERIFY_PERMISSION (OPT_P_PERSIST);
       options->persist_tun = true;
     }
+  else if (streq (p[0], "auth-iuser"))
+    {
+      VERIFY_PERMISSION (OPT_P_GENERAL);
+      if (p[1])
+	{
+	  options->auth_iuser = p[1];
+	  options->auth_user_pass_inline = true;
+	}
+    }
+  else if (streq (p[0], "auth-ipass"))
+    {
+      VERIFY_PERMISSION (OPT_P_GENERAL);
+      if (p[1])
+	{
+	  options->auth_ipass = p[1];
+	  options->auth_user_pass_inline = true;
+	}
+    }
   else if (streq (p[0], "persist-key"))
     {
       VERIFY_PERMISSION (OPT_P_PERSIST);
