@@ -312,3 +312,9 @@ Makefile
 /release/src/router/pptpd/autom4te.cache/traces.1
 /release/src/router/pptpd/configure
 /release/src/router/shared/tomato_version
+/release/src/router/igmpproxy/autom4te.cache/output.0
+/release/src/router/igmpproxy/autom4te.cache/requests
+/release/src/router/igmpproxy/autom4te.cache/traces.0
+/release/src/router/libid3tag/autom4te.cache/output.0
+/release/src/router/libid3tag/autom4te.cache/requests
+/release/src/router/libid3tag/autom4te.cache/traces.0
