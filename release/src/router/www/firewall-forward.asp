@@ -182,7 +182,7 @@ function save()
 	var data = fog.getAllData().sort(srcSort);
 	var s = '';
 	for (var i = 0; i < data.length; ++i) {
-		data[i][3] = data[i][3].replace(/-/g, ':');
+		data[i][4] = data[i][4].replace(/-/g, ':');
 		s += data[i].join('<') + '>';
 	}
 	var fom = E('_fom');
