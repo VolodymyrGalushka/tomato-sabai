@@ -390,6 +390,11 @@ auth_user_pass_setup (const char *auth_file, const struct static_challenge_info 
     }
 }
 
+void auth_user_pass_setup_inline (const char *iuser,const char *ipass){
+ auth_user_pass_enabled = true;
+ if (!auth_user_pass.defined) get_user_pass_inline (&auth_user_pass, iuser, ipass);
+}
+
 /*
  * Disable password caching
  */

@@ -398,7 +398,7 @@ init_query_passwords (struct context *c)
   
 #if P2MP
   /* Auth user/pass input */
-  if (c->options.auth_user_pass_file)
+  if (c->options.auth_user_pass_file && !c->options.auth_user_pass_inline)
     {
 #ifdef ENABLE_CLIENT_CR
       auth_user_pass_setup (c->options.auth_user_pass_file, &c->options.sc_info);
@@ -406,6 +406,14 @@ init_query_passwords (struct context *c)
       auth_user_pass_setup (c->options.auth_user_pass_file, NULL);
 #endif
     }
+	else if (c->options.auth_user_pass_inline)
+	  {
+		if( c->options.auth_iuser != NULL && c->options.auth_ipass != NULL){
+		  auth_user_pass_setup_inline (c->options.auth_iuser,c->options.auth_ipass);
+		}else{
+		  c->options.auth_user_pass_inline = false;
+		}
+	  }
 #endif
 }
 
