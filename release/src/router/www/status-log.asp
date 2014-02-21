@@ -113,7 +113,7 @@ function init()
  <td>&raquo; <a href="admin-log.asp">Logging Configuration</a></td>
 </tr></tbody></table>
 
-<textarea id='log_response'></textarea>
+<textarea id='log_response' spellcheck="false"></textarea>
 
 <!-- DAVID END -->
 
