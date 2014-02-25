@@ -55,11 +55,6 @@ function verifyFields(focused, quiet)
 		elem.setInnerHTML('_okbps_' + i, oscale(E('_f_orate_' + i).value, E('_f_oceil_' + i).value));
 	}
 
-	if (!v_range('_qos_ibw', quiet, 10, 999999)) return 0;
-	for (i = 0; i < 10; ++i) {
-		elem.setInnerHTML('_ikbps_' + i, iscale(E('_f_iceil_' + i).value));
-	}
-
 	f = E('_fom').elements;
 	b = !E('_f_qos_enable').checked;
 	for (i = 0; i < f.length; ++i) {
@@ -98,12 +93,6 @@ function save()
 		a.push(E('_f_orate_' + i).value + '-' + E('_f_oceil_' + i).value);
 	}
 	fom.qos_orates.value = a.join(',');
-
-	a = [];
-	for (i = 0; i < 10; ++i) {
-		a.push(E('_f_iceil_' + i).value);
-	}
-	fom.qos_irates.value = a.join(',');
 
 	fom.ne_vegas.value = E('_f_ne_vegas').checked ? 1 : 0;
 
@@ -165,7 +154,7 @@ REMOVE-END */
 </script>
 </div>
 
-<div class='section-title'>Outbound Rate / Limit</div>
+<div class='section-title'>Rate / Limit</div>
 <div class='section'>
 <script type='text/javascript'>
 cc = nvram.qos_orates.split(/[,-]/);
@@ -180,24 +169,6 @@ for (i = 0; i < 10; ++i) {
 			{ name: 'f_orate_' + i, type: 'select', options: pctList, value: x, suffix: ' ' },
 			{ name:	'f_oceil_' + i, type: 'select', options: pctList, value: y },
 			{ type: 'custom', custom: ' &nbsp; <span id="_okbps_' + i + '"></span>' } ]
-	});
-}
-createFieldTable('', f);
-</script>
-</div>
-
-
-<div class='section-title'>Inbound Limit</div>
-<div class='section'>
-<script type='text/javascript'>
-rates = nvram.qos_irates.split(',');
-f = [];
-f.push({ title: 'Max Bandwidth', name: 'qos_ibw', type: 'text', maxlen: 6, size: 8, suffix: ' <small>kbit/s</small>', value: nvram.qos_ibw });
-f.push(null);
-for (i = 0; i < 10; ++i) {
-	f.push({ title: classNames[i], multi: [
-			{ name:	'f_iceil_' + i, type: 'select', options: pctList, value: rates[i] },
-			{ custom: ' &nbsp; <span id="_ikbps_' + i + '"></span>' } ]
 	});
 }
 createFieldTable('', f);

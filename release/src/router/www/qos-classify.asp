@@ -440,7 +440,7 @@ function init()
 <input type='hidden' name='_service' value='qos-restart'>
 <input type='hidden' name='qos_orules'>
 
-<div class='section-title'>Outbound Direction</div>
+<div class='section-title'>QoS Classes</div>
 <div class='section'>
 	<table class='tomato-grid' cellspacing=1 id='qg'></table>
 </div>

@@ -136,17 +136,17 @@ function showData()
 	E('bocntx-total').innerHTML = (totalOutgoingBandwidth / 8192).toFixed(2)
 	E('rateout').innerHTML = totalrateout;
 
-	for (i = 1; i < 11; ++i) {
-		n = qrates_in[i];
-		E('bicnt' + i).innerHTML = (n / 1000).toFixed(2)
-		E('bicntx' + i).innerHTML = (n / 8192).toFixed(2)
-		if (totalIncomingBandwidth > 0) p = (n / totalirate) * 100;
-			else p = 0;
-		E('bipct' + i).innerHTML = p.toFixed(2) + '%';
-	}
-	E('bicnt-total').innerHTML = (totalIncomingBandwidth / 1000).toFixed(2)
-	E('bicntx-total').innerHTML = (totalIncomingBandwidth / 8192).toFixed(2)
-	E('ratein').innerHTML = totalratein;
+	// for (i = 1; i < 11; ++i) {
+	// 	n = qrates_in[i];
+	// 	// E('bicnt' + i).innerHTML = (n / 1000).toFixed(2)
+	// 	// E('bicntx' + i).innerHTML = (n / 8192).toFixed(2)
+	// 	if (totalIncomingBandwidth > 0) p = (n / totalirate) * 100;
+	// 		else p = 0;
+	// 	E('bipct' + i).innerHTML = p.toFixed(2) + '%';
+	// }
+	// E('bicnt-total').innerHTML = (totalIncomingBandwidth / 1000).toFixed(2)
+	// E('bicntx-total').innerHTML = (totalIncomingBandwidth / 8192).toFixed(2)
+	// E('ratein').innerHTML = totalratein;
 }
 
 var ref = new TomatoRefresh('update.cgi', 'exec=qrate', 2, 'qos_graphs');
@@ -183,7 +183,7 @@ function checkSVG()
 
 	try
 	{
-		for (i = 2; i >= 0; --i) 
+		for (i = 1; i >= 0; --i) 
 		{
 			e = E('svg' + i);
 			d = e.getSVGDocument();
@@ -213,11 +213,11 @@ function checkSVG()
 					break;
 				}
 				
-				case 2:
-				{
-					updateBandwidthIncoming = w.updateSVG;
-					break;
-				}
+				// case 2:
+				// {
+				// 	updateBandwidthIncoming = w.updateSVG;
+				// 	break;
+				// }
 			}
 		}
 	}
@@ -230,7 +230,7 @@ function checkSVG()
 		svgReady = 1;
 		updateConnectionDistribution(nfmarks, abc);
 		updateBandwidthOutgoing(qrates_out, abc);
-		updateBandwidthIncoming(qrates_in, abc);
+		// updateBandwidthIncoming(qrates_in, abc);
 	}
 	else if (--svgReady > -5) 
 	{
@@ -278,7 +278,7 @@ function init()
 
 <!-- / / / -->
 
-<div class="section-title">Connections Distribution</div>
+<div class="section-title">Connections</div>
 <div class="section">
 <table border=0 width="100%"><tr><td>
 	<table style="width:250px">
@@ -303,7 +303,7 @@ if (nvram.web_svg != '0') {
 </table>
 </div>
 
-<div class="section-title">Bandwidth Distribution (Outbound)</div>
+<div class="section-title">Bandwidth</div>
 <div class="section">
 <table border=0 width="100%"><tr><td>
 	<table style="width:250px">
@@ -330,32 +330,32 @@ if (nvram.web_svg != '0') {
 </table>
 </div>
 
-<div class="section-title">Bandwidth Distribution (Inbound)</div>
-<div class="section">
-<table border=0 width="100%"><tr><td>
-	<table style="width:250px">
-	<tr><td class='color' style="height:1em"></td><td class='title' style="width:45px">&nbsp;</td><td class='thead count'>kbit/s</td><td class='thead count'>KB/s</td><td class='thead pct'>Rate</td></tr>
-<script type='text/javascript'>
-for (i = 1; i < 11; ++i) {
-	W('<tr style="cursor:pointer" onclick="mClick(' + i + ')">' +
-		'<td class="color" style="background:#' + colors[i] + '" onclick="mClick(' + i + ')">&nbsp;</td>' +
-		'<td class="title" style="width:45px"><a href="qos-detailed.asp?class=' + i + '">' + abc[i] + '</a></td>' +
-		'<td id="bicnt' + i + '" class="count" style="width:60px"></td>' +
-		'<td id="bicntx' + i + '" class="count" style="width:50px"></td>' +
-		'<td id="bipct' + i + '" class="pct"></td></tr>');
-}
-</script>
-	<tr><td>&nbsp;</td><td class="total">Total</a></td><td id="bicnt-total" class="total count"></td><td id="bicntx-total" class="total count"></td><td id="ratein" class="total pct"></td></tr>
-	</table>
-</td><td style="margin-right:150px">
-<script type='text/javascript'>
-if (nvram.web_svg != '0') {
-	W('<embed src="qos-graph.svg?n=2&v=<% version(); %>" style="width:310px;height:310px;margin:0;padding:0" id="svg2" type="image/svg+xml" pluginspage="http://www.adobe.com/svg/viewer/install/"></embed>');
-}
-</script>
-</td></tr>
-</table>
-</div>
+<!-- <div class="section-title">Bandwidth Distribution (Inbound)</div> -->
+<!-- <div class="section"> -->
+<!-- <table border=0 width="100%"><tr><td> -->
+<!-- 	<table style="width:250px"> -->
+<!-- 	<tr><td class='color' style="height:1em"></td><td class='title' style="width:45px">&nbsp;</td><td class='thead count'>kbit/s</td><td class='thead count'>KB/s</td><td class='thead pct'>Rate</td></tr> -->
+<!-- <script type='text/javascript'> -->
+<!-- for (i = 1; i < 11; ++i) { -->
+<!-- 	W('<tr style="cursor:pointer" onclick="mClick(' + i + ')">' + -->
+<!-- 		'<td class="color" style="background:#' + colors[i] + '" onclick="mClick(' + i + ')">&nbsp;</td>' + -->
+<!-- 		'<td class="title" style="width:45px"><a href="qos-detailed.asp?class=' + i + '">' + abc[i] + '</a></td>' + -->
+<!-- 		'<td id="bicnt' + i + '" class="count" style="width:60px"></td>' + -->
+<!-- 		'<td id="bicntx' + i + '" class="count" style="width:50px"></td>' + -->
+<!-- 		'<td id="bipct' + i + '" class="pct"></td></tr>'); -->
+<!-- } -->
+<!-- </script> -->
+<!-- 	<tr><td>&nbsp;</td><td class="total">Total</a></td><td id="bicnt-total" class="total count"></td><td id="bicntx-total" class="total count"></td><td id="ratein" class="total pct"></td></tr> -->
+<!-- 	</table> -->
+<!-- </td><td style="margin-right:150px"> -->
+<!-- <script type='text/javascript'> -->
+<!-- if (nvram.web_svg != '0') { -->
+<!-- 	W('<embed src="qos-graph.svg?n=2&v=<% version(); %>" style="width:310px;height:310px;margin:0;padding:0" id="svg2" type="image/svg+xml" pluginspage="http://www.adobe.com/svg/viewer/install/"></embed>'); -->
+<!-- } -->
+<!-- </script> -->
+<!-- </td></tr> -->
+<!-- </table> -->
+<!-- </div> -->
 
 <script type='text/javascript'>
 if (nvram.qos_enable != '1') {
