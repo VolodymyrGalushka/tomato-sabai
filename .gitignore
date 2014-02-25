@@ -26,6 +26,7 @@ config.status
 test
 libtool
 stamp-h1
+.#*
 
 *.orig
 
@@ -48,16 +49,16 @@ Makefile
 
 /release/src/router/mipsel-uclibc/install/**
 **/target/**
-/release/src-rt-6.x/ctools/piggy
-/release/src-rt-6.x/ctools/target.squashfs
-/release/src-rt-6.x/ctools/trx_asus
-/release/src-rt-6.x/ctools/vmlinuz-lzma
-/release/src-rt-6.x/emf/emfconf/emf
-/release/src-rt-6.x/emf/igsconf/igs
-/release/src-rt-6.x/fpkg.log
-/release/src-rt-6.x/image/*
-/release/src-rt-6.x/linux/linux-2.6/**
-/release/src-rt-6.x/tomato_profile.mak
+/release/src*/ctools/piggy
+/release/src*/ctools/target.squashfs
+/release/src*/ctools/trx_asus
+/release/src*/ctools/vmlinuz-lzma
+/release/src*/emf/emfconf/emf
+/release/src*/emf/igsconf/igs
+/release/src*/fpkg.log
+/release/src*/image/*
+/release/src*/linux/linux-2.6/**
+/release/src*/tomato_profile.mak
 /release/src/btools/fpkg
 /release/src/lzma-loader/decompress
 /release/src/lzma-loader/decompress.image
@@ -318,3 +319,8 @@ Makefile
 /release/src/router/libid3tag/autom4te.cache/output.0
 /release/src/router/libid3tag/autom4te.cache/requests
 /release/src/router/libid3tag/autom4te.cache/traces.0
+/release/src/router/ntfs-3g/src/lowntfs-3g
+/release/src/router/ntfs-3g/src/ntfs-3g
+/release/src/router/ntfs-3g/src/ntfs-3g.probe
+/release/src/router/ntfs-3g/src/ntfs-3g.secaudit
+/release/src/router/ntfs-3g/src/ntfs-3g.usermap
