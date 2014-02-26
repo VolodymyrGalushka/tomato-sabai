@@ -305,6 +305,9 @@ void start_dnsmasq(){
 	snprintf(buf, sizeof(buf), "%s/dhcp-hosts", dmdhcp);
 	df = fopen(buf, "w");
 
+	// Add default IP for Sabai VPN Accelerator
+	fprintf(df, "vpna,192.168.199.2,infinite\n");
+
 	// PREVIOUS/OLD FORMAT:
 	// 00:aa:bb:cc:dd:ee<123<xxxxxxxxxxxxxxxxxxxxxxxxxx.xyz> = 53 w/ delim
 	// 00:aa:bb:cc:dd:ee<123.123.123.123<xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.xyz> = 85 w/ delim
