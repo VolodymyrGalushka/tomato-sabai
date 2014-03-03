@@ -155,7 +155,7 @@ createFieldTable('', [
 <div class='section hidey' id='confEdit'><script type='text/javascript'>
 createFieldTable('', [
 { title: 'Username/Password', multi: [
- { title: 'Username', name: 'ovpn_user', maxlen:64, size:33, type: 'text', value: nvram.ovpn_user, suffix: ' / ' },
+ { title: 'Username', name: 'ovpn_user', maxlen:150, size:33, type: 'text', value: nvram.ovpn_user, suffix: ' / ' },
  { title: 'Password', name: 'ovpn_pass', maxlen:64, size:33, type: 'password', peekaboo: 1, value: nvram.ovpn_pass }
 ] },
 { title: '', hidden: nofile, text: '', rid: '_editOvpn', hidden: true },
