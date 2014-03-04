@@ -430,6 +430,7 @@ const aspapi_t aspapi[] = {
 //	{ "sabaaiToken",		asp_sabaiToken		},
 // SABAI ASP END
 //	{ "css",				asp_css		},
+	{ "etherstates",		asp_etherstates	},	//Ethernet States
 	{ NULL,					NULL		}
 };
 
