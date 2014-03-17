@@ -1,3 +1,4 @@
+
 /*
 
 	Tomato Firmware
@@ -722,7 +723,7 @@ static const nvset_t nvset_list[] = {
 	{ "wl_nmode",			V_NONE				},
 	{ "wl_nband",			V_RANGE(0, 2)			},	// 2 - 2.4GHz, 1 - 5GHz, 0 - Auto
 	{ "wl_nreqd",			V_NONE				},
-	{ "wl_nbw_cap",			V_RANGE(0, 2)			},	// 0 - 20MHz, 1 - 40MHz, 2 - Auto
+	{ "wl_nbw_cap",			V_RANGE(0, 3)			},	// 0 - 20MHz, 1 - 40MHz, 2 - Auto -3 80MHz
 	{ "wl_nbw",			V_NONE				},
 	{ "wl_mimo_preamble",		V_WORD				},	// 802.11n Preamble: mm/gf/auto/gfbcm
 	{ "wl_nctrlsb",			V_NONE				},	// none, lower, upper

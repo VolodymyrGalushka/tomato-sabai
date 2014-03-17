@@ -1,9 +1,20 @@
-/* Tomato GUI Copyright (C) 2006-2010 Jonathan Zarate http://www.polarcloud.com/tomato/ For use with Tomato Firmware only. No part of this file may be used without permission. */
+/*
+	Tomato GUI
+	Copyright (C) 2006-2010 Jonathan Zarate
+	http://www.polarcloud.com/tomato/
+
+	For use with Tomato Firmware only.
+	No part of this file may be used without permission.
+*/
+
+// -----------------------------------------------------------------------------
+
 Array.prototype.find = function(v) {
 	for (var i = 0; i < this.length; ++i)
 		if (this[i] == v) return i;
 	return -1;
 }
+
 Array.prototype.remove = function(v) {
 	for (var i = 0; i < this.length; ++i) {
 		if (this[i] == v) {
@@ -13,19 +24,21 @@ Array.prototype.remove = function(v) {
 	}
 	return false;
 }
+
+// -----------------------------------------------------------------------------
+
 String.prototype.trim = function() {
 	return this.replace(/^\s+/, '').replace(/\s+$/, '');
 }
-String.prototype.rpad = function(len,pad) {
-	var str = this.toString();
-	while(str.length < len){ str+=pad; }
-	return str;
-}
+
+// -----------------------------------------------------------------------------
+
 Number.prototype.pad = function(min) {
 	var s = this.toString();
 	while (s.length < min) s = '0' + s;
 	return s;
 }
+
 Number.prototype.hex = function(min)
 {
 	var h = '0123456789ABCDEF';
@@ -37,6 +50,9 @@ Number.prototype.hex = function(min)
 	} while ((--min > 0) || (n > 0));
 	return s;
 }
+
+// -----------------------------------------------------------------------------
+
 // ---- Element.protoype. doesn't work with all browsers
 
 var elem = {
@@ -190,11 +206,11 @@ var form = {
 	submitHidden: function(url, fields) {
 		var fom, body;
 
-		fom = A('FORM');
+		fom = document.createElement('FORM');
 		fom.action = url;
 		fom.method = 'post';
 		for (var f in fields) {
-			var e = A('INPUT');
+			var e = document.createElement('INPUT');
 			e.type = 'hidden';
 			e.name = f;
 			e.value = fields[f];
@@ -274,7 +290,7 @@ var form = {
 		var e;
 
 		if (typeof(fom._http_id) == 'undefined') {
-			e = A('INPUT');
+			e = document.createElement('INPUT');
 			e.type = 'hidden';
 			e.name = '_http_id';
 			e.value = nvram.http_id;
@@ -391,9 +407,13 @@ function v_mins(e, quiet, min, max)
 	return 0;
 }
 
-function v_macip(e, quiet, bok, ipp)
+function v_macip(e, quiet, bok, lan_ipaddr, lan_netmask)
 {
 	var s, a, b, c, d, i;
+	var ipp, temp;
+
+	temp = lan_ipaddr.split('.');
+	ipp = temp[0]+'.'+temp[1]+'.'+temp[2]+'.';
 
 	if ((e = E(e)) == null) return 0;
 	s = e.value.replace(/\s+/g, '');
@@ -408,49 +428,63 @@ function v_macip(e, quiet, bok, ipp)
 				return false;
 			}
 		}
-        else e.value = a;
+		else e.value = a;
 		ferror.clear(e);
 		return true;
 	}
 
 	a = s.split('-');
+    
 	if (a.length > 2) {
 		ferror.set(e, 'Invalid IP address range', quiet);
 		return false;
 	}
-	c = 0;
+	
+	if (a[0].match(/^\d+$/)){
+		a[0]=ipp+a[0];
+		if ((a.length == 2) && (a[1].match(/^\d+$/)))
+			a[1]=ipp+a[1];
+	}
+	else{
+		if ((a.length == 2) && (a[1].match(/^\d+$/))){
+			temp=a[0].split('.');
+			a[1]=temp[0]+'.'+temp[1]+'.'+temp[2]+'.'+a[1];
+		}
+	}
 	for (i = 0; i < a.length; ++i) {
-		b = a[i];
-		if (b.match(/^\d+$/)) b = ipp + b;
-
+		b = a[i];    
 		b = fixIP(b);
 		if (!b) {
 			ferror.set(e, 'Invalid IP address', quiet);
 			return false;
 		}
 
-		if (b.indexOf(ipp) != 0) {
+		if ((aton(b) & aton(lan_netmask))!=(aton(lan_ipaddr) & aton(lan_netmask))) {
 			ferror.set(e, 'IP address outside of LAN', quiet);
 			return false;
 		}
 
 		d = (b.split('.'))[3];
-		if (d <= c) {
+		if (parseInt(d) <= parseInt(c)) {
 			ferror.set(e, 'Invalid IP address range', quiet);
 			return false;
 		}
 
 		a[i] = c = d;
 	}
-	e.value = ipp + a.join('-');
+	e.value = b.split('.')[0] + '.' + b.split('.')[1] + '.' + b.split('.')[2] + '.' + a.join('-');
 	return true;
 }
 
 function fixIP(ip, x)
 {
 	var a, n, i;
+        a = ip;
+        i = a.indexOf("<br>");
+        if (i > 0)
+                a = a.slice(0,i);
 
-	a = ip.split('.');
+        a = a.split('.');
 	if (a.length != 4) return null;
 	for (i = 0; i < 4; ++i) {
 		n = a[i] * 1;
@@ -873,9 +907,14 @@ function v_iptport(e, quiet)
 	return 1;
 }
 
-function _v_netmask(mask){ var v = aton(mask) ^ 0xFFFFFFFF; return (((v + 1) & v) == 0); }
+function _v_netmask(mask)
+{
+	var v = aton(mask) ^ 0xFFFFFFFF;
+	return (((v + 1) & v) == 0);
+}
 
-function v_netmask(e, quiet){
+function v_netmask(e, quiet)
+{
 	var n, b;
 
 	if ((e = E(e)) == null) return 0;
@@ -1170,7 +1209,7 @@ function TGO(e)
 function tgHideIcons()
 {
 	var e;
-	while ((e = E('tg-row-panel')) != null) e.parentNode.removeChild(e);
+	while ((e = document.getElementById('tg-row-panel')) != null) e.parentNode.removeChild(e);
 }
 
 // ---- options = sort, move, delete
@@ -1195,7 +1234,7 @@ TomatoGrid.prototype = {
 		this.editor = null;
 		this.canSort = options.indexOf('sort') != -1;
 		this.canMove = options.indexOf('move') != -1;
-		this.maxAdd = maxAdd || 140;
+		this.maxAdd = maxAdd || 500;
 		this.canEdit = (editorFields != null);
 		this.canDelete = this.canEdit || (options.indexOf('delete') != -1);
 		this.editorFields = editorFields;
@@ -1231,7 +1270,7 @@ TomatoGrid.prototype = {
 		}
 	},
 
-	headerSet: function(cells, escCells, noSort) {
+	headerSet: function(cells, escCells) {
 		var e, i;
 
 		elem.remove(this.header);
@@ -1240,7 +1279,6 @@ TomatoGrid.prototype = {
 
 		for (i = 0; i < e.cells.length; ++i) {
 			e.cells[i].cellN = i;	// cellIndex broken in Safari
-			if( noSort != null && noSort != undefined && noSort[i] == true) continue;
 			e.cells[i].onclick = function() { return TGO(this).headerClick(this); };
 		}
 		return e;
@@ -1326,7 +1364,7 @@ TomatoGrid.prototype = {
 		if (me.moving) return;
 
 		me.rpHide();
-		e = A('div');
+		e = document.createElement('div');
 		e.tgo = me;
 		e.ref = evt.target;
 		e.setAttribute('id', 'tg-row-panel');
@@ -1415,7 +1453,10 @@ TomatoGrid.prototype = {
 				var ef = this.editorFields[i].multi;
 				if (!ef) ef = [this.editorFields[i]];
 				var f = (ef && ef.length > 0 ? ef[0] : null);
-				if (f && f.type=='password' && !f.peekaboo){ s=s.replace(/./g, '&#x25CF;'); }
+				if (f && f.type == 'password') {
+					if (!f.peekaboo || get_config('web_pb', '1') != '0')
+						s = s.replace(/./g, '&#x25CF;');
+				}
 			}
 			v.push(s);
 		}
@@ -1471,8 +1512,7 @@ TomatoGrid.prototype = {
 	createEditor: function(which, rowIndex, source) {
 		var values;
 
-
-		if (which == 'edit'){ values = this.dataToFieldValues(source.getRowData()); }
+		if (which == 'edit') values = this.dataToFieldValues(source.getRowData());
 
 		var row = this.tb.insertRow(rowIndex);
 		row.className = 'editor';
@@ -1494,6 +1534,15 @@ TomatoGrid.prototype = {
 				if (id) attrib += ' id="' + id + '"';
 				switch (f.type) {
 				case 'password':
+					if (f.peekaboo) {
+						switch (get_config('web_pb', '1')) {
+						case '0':
+							f.type = 'text';
+						case '2':
+							f.peekaboo = 0;
+							break;
+						}
+					}
 					attrib += ' autocomplete="off"';
 					if (f.peekaboo && id) attrib += ' onfocus=\'peekaboo("' + id + '",1)\'';
 					// drop
@@ -1501,6 +1550,9 @@ TomatoGrid.prototype = {
 					s += '<input type="' + f.type + '" maxlength=' + f.maxlen + common + attrib;
 					if (which == 'edit') s += ' value="' + escapeHTML('' + values[vi]) + '">';
 						else s += '>';
+					break;
+				case 'clear':
+					s += '';
 					break;
 				case 'select':
 					s += '<select' + common + attrib + '>';
@@ -1576,7 +1628,6 @@ TomatoGrid.prototype = {
 	},
 
 	onChange: function(which, cell) {
-		window.newEdits = true;
 		return this.verifyFields((which == 'new') ? this.newEditor : this.editor, true);
 	},
 
@@ -1661,7 +1712,6 @@ TomatoGrid.prototype = {
 		if (this.getDataCount() >= this.maxAdd) disable = true;
 		if (this.newEditor) fields.disableAll(this.newEditor, disable);
 		if (this.newControls) fields.disableAll(this.newControls, disable);
-		window.newEdits=false;
 	},
 
 	resetNewEditor: function() {
@@ -2061,7 +2111,7 @@ TomatoRefresh.prototype = {
 function genStdTimeList(id, zero, min)
 {
 	var b = [];
-	var t = [3,4,5,10,15,30,60,120,180,240,300,10*60,15*60,20*60,30*60];
+	var t = [0.5,1,2,3,4,5,10,15,30,60,120,180,240,300,10*60,15*60,20*60,30*60];
 	var i, v;
 
 	if (min >= 0) {
@@ -2082,7 +2132,7 @@ function genStdTimeList(id, zero, min)
 function genStdRefresh(spin, min, exec)
 {
 	W('<div style="text-align:right">');
-	if (spin) W('<img src="imgspin.gif" id="refresh-spinner"> ');
+	if (spin) W('<img src="spin.gif" id="refresh-spinner"> ');
 	genStdTimeList('refresh-time', 'Auto Refresh', min);
 	W('<input type="button" value="Refresh" onclick="' + (exec ? exec : 'refreshClick()') + '" id="refresh-button"></div>');
 }
@@ -2118,57 +2168,99 @@ function tabHigh(id)
 // -----------------------------------------------------------------------------
 
 var cookie = {
+	// The value 2147483647000 is ((2^31)-1)*1000, which is the number of
+	// milliseconds (minus 1 second) which correlates with the year 2038 counter
+	// rollover. This effectively makes the cookie never expire.
+
 	set: function(key, value, days) {
-		document.cookie = 'tomato_' + key + '=' + value + '; expires=' +
-			(new Date(new Date().getTime() + ((days ? days : 14) * 86400000))).toUTCString() + '; path=/';
+		document.cookie = 'tomato_' + encodeURIComponent(key) + '=' + encodeURIComponent(value) + '; expires=' +
+		new Date(2147483647000).toUTCString() + '; path=/';
 	},
-
 	get: function(key) {
-		var r = ('; ' + document.cookie + ';').match('; tomato_' + key + '=(.*?);');
-		return r ? r[1] : null;
+		var r = ('; ' + document.cookie + ';').match('; tomato_' + encodeURIComponent(key) + '=(.*?);');
+		return r ? decodeURIComponent(r[1]) : null;
 	},
-
 	unset: function(key) {
-		document.cookie = 'tomato_' + key + '=; expires=' +
-			(new Date(1)).toUTCString() + '; path=/';
+		document.cookie = 'tomato_' + encodeURIComponent(key) + '=; expires=' +
+		(new Date(1)).toUTCString() + '; path=/';
 	}
 };
 
 // -----------------------------------------------------------------------------
 
-function checkEvent(evt){
-	if (typeof(evt) == 'undefined'){ evt = event; evt.target = evt.srcElement; evt.relatedTarget = evt.toElement; } // ---- IE
+function checkEvent(evt)
+{
+	if (typeof(evt) == 'undefined') {
+		// ---- IE
+		evt = event;
+		evt.target = evt.srcElement;
+		evt.relatedTarget = evt.toElement;
+	}
 	return evt;
 }
 
-function W(s){ document.write(s); }
-function A(e){ return document.createElement(e); }
-function T(t){ return document.createTextNode(t); }
-function E(e){ return (typeof(e) == 'string') ? document.getElementById(e) : e; }
-function PR(e){ return elem.parentElem(e, 'TR'); }
+function W(s)
+{
+	document.write(s);
+}
 
-function THIS(obj, func){ return function() { return func.apply(obj, arguments); } }
+function E(e)
+{
+	return (typeof(e) == 'string') ? document.getElementById(e) : e;
+}
 
-function UT(v){ return (typeof(v) == 'undefined') ? '' : '' + v; }
+function PR(e)
+{
+	return elem.parentElem(e, 'TR');
+}
 
-function escapeHTML(s){
-	function esc(c){ return '&#' + c.charCodeAt(0) + ';'; }
+function THIS(obj, func)
+{
+	return function() { return func.apply(obj, arguments); }
+}
+
+function UT(v)
+{
+	return (typeof(v) == 'undefined') ? '' : '' + v;
+}
+
+function escapeHTML(s)
+{
+	function esc(c) {
+		return '&#' + c.charCodeAt(0) + ';';
+	}
 	return s.replace(/[&"'<>\r\n]/g, esc);
 }
 
-function escapeCGI(s){ return escape(s).replace(/\+/g, '%2B'); }	// escape() doesn't handle +
+function escapeCGI(s)
+{
+	return escape(s).replace(/\+/g, '%2B');	// escape() doesn't handle +
+}
 
-function escapeD(s){
-	function esc(c){ return '%' + c.charCodeAt(0).hex(2); }
+function escapeD(s)
+{
+	function esc(c) {
+		return '%' + c.charCodeAt(0).hex(2);
+	}
 	return s.replace(/[<>|%]/g, esc);
 }
 
-function ellipsis(s, max) { return (s.length <= max) ? s : s.substr(0, max - 3) + '...'; }
+function ellipsis(s, max) {
+	return (s.length <= max) ? s : s.substr(0, max - 3) + '...';
+}
 
-function MIN(a, b){ return a < b ? a : b; }
-function MAX(a, b){ return a > b ? a : b; }
+function MIN(a, b)
+{
+	return (a < b) ? a : b;
+}
 
-function fixInt(n, min, max, def){
+function MAX(a, b)
+{
+	return (a > b) ? a : b;
+}
+
+function fixInt(n, min, max, def)
+{
 	if (n === null) return def;
 	n *= 1;
 	if (isNaN(n)) return def;
@@ -2177,36 +2269,291 @@ function fixInt(n, min, max, def){
 	return n;
 }
 
-function comma(n){
+function comma(n)
+{
 	n = '' + n;
 	var p = n;
 	while ((n = n.replace(/(\d+)(\d{3})/g, '$1,$2')) != p) p = n;
 	return n;
 }
 
-function doScaleSize(n, sm){
+function doScaleSize(n, sm)
+{
 	if (isNaN(n *= 1)) return '-';
 	if (n <= 9999) return '' + n;
 	var s = -1;
-	do { n /= 1024; ++s; } while ((n > 9999) && (s < 2));
+	do {
+		n /= 1024;
+		++s;
+	} while ((n > 9999) && (s < 2));
 	return comma(n.toFixed(2)) + (sm ? '<small> ' : ' ') + (['KB', 'MB', 'GB'])[s] + (sm ? '</small>' : '');
 }
 
-function scaleSize(n){ return doScaleSize(n, 1); }
+function scaleSize(n)
+{
+	return doScaleSize(n, 1);
+}
 
-function timeString(mins){
+function timeString(mins)
+{
 	var h = Math.floor(mins / 60);
 	if ((new Date(2000, 0, 1, 23, 0, 0, 0)).toLocaleString().indexOf('23') != -1)
 		return h + ':' + (mins % 60).pad(2);
 	return ((h == 0) ? 12 : ((h > 12) ? h - 12 : h)) + ':' + (mins % 60).pad(2) + ((h >= 12) ? ' PM' : ' AM');
 }
 
-function features(s){ var features = ['ses','brau','aoss','wham','hpamp','!nve','11n','1000et']; for(var i = features.length - 1; i >= 0; --i){ if (features[i] == s) return (parseInt(nvram.t_features) & (1 << i)) != 0; }; return 0; }
+function features(s)
+{
+	var features = ['ses','brau','aoss','wham','hpamp','!nve','11n','1000et','11ac'];
+	var i;
 
-//function get_config(name, def){ return ((typeof(nvram) != 'undefined') && (typeof(nvram[name]) != 'undefined')) ? nvram[name] : def; }
+	for (i = features.length - 1; i >= 0; --i) {
+		if (features[i] == s) return (parseInt(nvram.t_features) & (1 << i)) != 0;
+	}
+	return 0;
+}
 
-function showNotice(s){ if (s.length) document.write('<div class="note-warn">' + s.replace(/\n/g, '<br>') + '</div><br style="clear:both">'); }
+function get_config(name, def)
+{
+	return ((typeof(nvram) != 'undefined') && (typeof(nvram[name]) != 'undefined')) ? nvram[name] : def;
+}
 
+function nothing()
+{
+}
+
+// -----------------------------------------------------------------------------
+
+function show_notice1(s)
+{
+// ---- !!TB - USB Support: multi-line notices
+	if (s.length) document.write('<div id="notice1">' + s.replace(/\n/g, '<br>') + '</div><br style="clear:both">');
+}
+
+// -----------------------------------------------------------------------------
+
+function myName()
+{
+	var name, i;
+
+	name = document.location.pathname;
+	name = name.replace(/\\/g, '/');	// IE local testing
+	if ((i = name.lastIndexOf('/')) != -1) name = name.substring(i + 1, name.length);
+	if (name == '') name = 'status-overview.asp';
+	return name;
+}
+
+function navi()
+{
+	var menu = [
+		['Status', 			'status', 0, [
+			['Overview',			'overview.asp'],
+			['Device List',			'devices.asp'],
+			['Web Usage',			'webmon.asp'],
+			['Logs',			'log.asp'] ] ],
+		['Bandwidth', 			'bwm', 0, [
+			['Real-Time',			'realtime.asp'],
+			['Last 24 Hours',		'24.asp'],
+			['Daily',			'daily.asp'],
+			['Weekly',			'weekly.asp'],
+			['Monthly',			'monthly.asp']
+			] ],
+		['IP Traffic',			'ipt', 0, [
+			['Real-Time',			'realtime.asp'],
+			['Last 24 Hours',		'24.asp'],
+			['View Graphs',			'graphs.asp'],
+			['Transfer Rates',		'details.asp'],
+			['Daily',			'daily.asp'],
+			['Monthly',			'monthly.asp']
+			] ],
+		['Tools', 			'tools', 0, [
+			['Ping',			'ping.asp'],
+			['Trace',			'trace.asp'],
+			['System Commands',		'shell.asp'],
+			['Wireless Survey',		'survey.asp'],
+			['WOL',				'wol.asp'] ] ],
+		null,
+		['Basic', 			'basic', 0, [
+			['Network',			'network.asp'],
+/* IPV6-BEGIN */
+			['IPv6',			'ipv6.asp'],
+/* IPV6-END */
+			['Identification',		'ident.asp'],
+			['Time',			'time.asp'],
+			['DDNS',			'ddns.asp'],
+			['Static DHCP/ARP/IPT',		'static.asp'],
+			['Wireless Filter',		'wfilter.asp'] ] ],
+		['Advanced', 			'advanced', 0, [
+			['Conntrack/Netfilter',		'ctnf.asp'],
+			['DHCP/DNS',			'dhcpdns.asp'],
+			['Firewall',			'firewall.asp'],
+			['MAC Address',			'mac.asp'],
+			['Miscellaneous',		'misc.asp'],
+			['Routing',			'routing.asp'],
+/* TOR-BEGIN */
+			['TOR Project',			'tor.asp'],
+/* TOR-END */
+			['VLAN',			'vlan.asp'],
+			['LAN Access',			'access.asp'],
+			['Virtual Wireless',		'wlanvifs.asp'],
+			['Wireless',			'wireless.asp'] ] ],
+		['Port Forwarding', 		'forward', 0, [
+			['Basic',			'basic.asp'],
+/* IPV6-BEGIN */
+			['Basic IPv6',			'basic-ipv6.asp'],
+/* IPV6-END */
+			['DMZ',				'dmz.asp'],
+			['Triggered',			'triggered.asp'],
+			['UPnP/NAT-PMP',		'upnp.asp'] ] ],
+		['Access Restriction',		'restrict.asp'],
+		['QoS',				'qos', 0, [
+			['Basic Settings',		'settings.asp'],
+			['Classification',		'classify.asp'],
+			['View Graphs',			'graphs.asp'],
+			['View Details',		'detailed.asp'],
+			['Transfer Rates',		'ctrate.asp']
+			] ],
+		['Bandwidth Limiter',		'bwlimit.asp'],
+		null,
+/* NOCAT-BEGIN */
+		['Captive Portal',		'splashd.asp'],
+/* NOCAT-END */
+/* REMOVE-BEGIN
+		['Scripts',				'sc', 0, [
+			['Startup',		'startup.asp'],
+			['Shutdown',		'shutdown.asp'],
+			['Firewall',		'firewall.asp'],
+			['WAN Up',		'wanup.asp']
+			] ],
+REMOVE-END */
+/* USB-BEGIN */
+// ---- !!TB - USB, FTP, Samba, Media Server
+		['USB and NAS',			'nas', 0, [
+			['USB Support',			'usb.asp']
+/* FTP-BEGIN */
+			,['FTP Server',			'ftp.asp']
+/* FTP-END */
+/* SAMBA-BEGIN */
+			,['File Sharing',		'samba.asp']
+/* SAMBA-END */
+/* MEDIA-SRV-BEGIN */
+			,['Media Server',		'media.asp']
+/* MEDIA-SRV-END */
+/* UPS-BEGIN */
+			,['UPS Monitor',		'ups.asp']
+/* UPS-END */
+/* BT-BEGIN */
+			,['BitTorrent Client',		'bittorrent.asp']
+/* BT-END */
+			] ],
+/* USB-END */
+/* VPN-BEGIN */
+		['VPN Tunneling',			'vpn', 0, [
+/* OPENVPN-BEGIN */
+			['OpenVPN Server',		'server.asp'],
+			['OpenVPN Client',		'client.asp'],
+/* OPENVPN-END */
+/* PPTPD-BEGIN */
+			['PPTP Server',			'pptp-server.asp'],
+			['PPTP Online',			'pptp-online.asp'],
+			['PPTP Client',			'pptp.asp']
+/* PPTPD-END */
+		] ],
+/* VPN-END */
+		null,
+		['Administration',		'admin', 0, [
+			['Admin Access',		'access.asp'],
+			['TomatoAnon',			'tomatoanon.asp'],
+			['Bandwidth Monitoring',	'bwm.asp'],
+			['IP Traffic Monitoring',	'iptraffic.asp'],
+			['Buttons/LED',			'buttons.asp'],
+/* CIFS-BEGIN */
+			['CIFS Client',			'cifs.asp'],
+/* CIFS-END */
+/* SDHC-BEGIN */
+			['SDHC/MMC',			'sdhc.asp'],
+/* SDHC-END */
+			['Configuration',		'config.asp'],
+			['Debugging',			'debug.asp'],
+/* JFFS2-BEGIN */
+			['JFFS',			'jffs2.asp'],
+/* JFFS2-END */
+/* NFS-BEGIN */
+			['NFS Server',			'nfs.asp'],
+/* NFS-END */
+/* SNMP-BEGIN */
+			['SNMP',			'snmp.asp'],
+/* SNMP-END */
+			['Logging',			'log.asp'],
+			['Scheduler',			'sched.asp'],
+			['Scripts',			'scripts.asp'],
+			['Upgrade',			'upgrade.asp'] ] ],
+		null,
+		['About',			'about.asp'],
+		['Reboot...',			'javascript:reboot()'],
+		['Shutdown...',			'javascript:shutdown()'],
+		['Logout',			'javascript:logout()']
+	];
+	var name, base;
+	var i, j;
+	var buf = [];
+	var sm;
+	var a, b, c;
+	var on1;
+	var cexp = get_config('web_mx', '').toLowerCase();
+
+	name = myName();
+	if (name == 'restrict-edit.asp') name = 'restrict.asp';
+	if ((i = name.indexOf('-')) != -1) {
+		base = name.substring(0, i);
+		name = name.substring(i + 1, name.length);
+	}
+	else base = '';
+
+	for (i = 0; i < menu.length; ++i) {
+		var m = menu[i];
+		if (!m) {
+			buf.push("<br>");
+			continue;
+		}
+		if (m.length == 2) {
+			buf.push('<a href="' + m[1] + '" class="indent1' + (((base == '') && (name == m[1])) ? ' active' : '') + '">' + m[0] + '</a>');
+		}
+		else {
+			if (base == m[1]) {
+				b = name;
+			}
+			else {
+				a = cookie.get('menu_' + m[1]);
+				b = m[3][0][1];
+				for (j = 0; j < m[3].length; ++j) {
+					if (m[3][j][1] == a) {
+						b = a;
+						break;
+					}
+				}
+			}
+			a = m[1] + '-' + b;
+			if (a == 'status-overview.asp') a = '/';
+			on1 = (base == m[1]);
+			buf.push('<a href="' + a + '" class="indent1' + (on1 ? ' active' : '') + '">' + m[0] + '</a>');
+			if ((!on1) && (m[2] == 0) && (cexp.indexOf(m[1]) == -1)) continue;
+
+			for (j = 0; j < m[3].length; ++j) {
+				sm = m[3][j];
+				a = m[1] + '-' + sm[1];
+				if (a == 'status-overview.asp') a = '/';
+				buf.push('<a href="' + a + '" class="indent2' + (((on1) && (name == sm[1])) ? ' active' : '') + '">' + sm[0] + '</a>');
+			}
+		}
+	}
+	document.write(buf.join(''));
+
+	if (base.length) {
+		if ((base == 'qos') && (name == 'detailed.asp')) name = 'view.asp';
+		cookie.set('menu_' + base, name);
+	}
+}
 // /* DAVID BEGIN */
 function whereAmI(){
  var i, tag, name = document.location.pathname.replace(/\\/g, '/');
@@ -2236,7 +2583,9 @@ var que = new requeue();
 
 ///* DAVID END */
 
-function createFieldTable(flags, desc){
+
+function createFieldTable(flags, desc)
+{
 	var common;
 	var i, n;
 	var name;
@@ -2303,13 +2652,25 @@ function createFieldTable(flags, desc){
 				buf2.push('<input type="radio"' + name + (f.value ? ' checked' : '') + ' onclick="verifyFields(this, 1)"' + common + '>');
 				break;
 			case 'password':
-				if (f.type=='password') {
+				if (f.peekaboo) {
+					switch (get_config('web_pb', '1')) {
+					case '0':
+						f.type = 'text';
+					case '2':
+						f.peekaboo = 0;
+						break;
+					}
+				}
+				if (f.type == 'password') {
 					common += ' autocomplete="off"';
 					if (f.peekaboo) common += ' onfocus=\'peekaboo("' + id + '",1)\'';
 				}
 				// drop
 			case 'text':
 				buf2.push('<input type="' + f.type + '"' + name + ' value="' + escapeHTML(UT(f.value)) + '" maxlength=' + f.maxlen + (f.size ? (' size=' + f.size) : '') + common + '>');
+				break;
+			case 'clear':
+				s += '';
 				break;
 			case 'select':
 				buf2.push('<select' + name + common + '>');
@@ -2342,9 +2703,10 @@ function createFieldTable(flags, desc){
 	document.write(buf.join(''));
 }
 
-function peekaboo(id, show){
+function peekaboo(id, show)
+{
 	try {
-		var o = A('INPUT');
+		var o = document.createElement('INPUT');
 		var e = E(id);
 		var name = e.name;
 		o.type = show ? 'text' : 'password';
@@ -2381,13 +2743,25 @@ REMOVE-END */
 
 // -----------------------------------------------------------------------------
 
-function reloadPage(resp){ location.reload(); }
+function reloadPage()
+{
+	document.location.reload(1);
+}
 
-function reboot(){ if (confirm("Reboot?")) form.submitHidden('tomato.cgi', { _reboot: 1, _commit: 0, _nvset: 0 }); }
+function reboot()
+{
+	if (confirm("Reboot?")) form.submitHidden('tomato.cgi', { _reboot: 1, _commit: 0, _nvset: 0 });
+}
 
-function shutdown(){ if (confirm("Shutdown?")) form.submitHidden('shutdown.cgi', { }); }
+function shutdown()
+{
+	if (confirm("Shutdown?")) form.submitHidden('shutdown.cgi', { });
+}
 
-function logout(){ form.submitHidden('logout.asp', { }); }
+function logout()
+{
+	form.submitHidden('logout.asp', { });
+}
 
 // -----------------------------------------------------------------------------
 
@@ -2395,9 +2769,14 @@ function logout(){ form.submitHidden('logout.asp', { }); }
 
 // ---- debug
 
-function isLocal(){ return location.href.search('file://') == 0; }
+function isLocal()
+{
+	return location.href.search('file://') == 0;
+}
 
-function console(s){}
+function console(s)
+{
+}
 
 
 

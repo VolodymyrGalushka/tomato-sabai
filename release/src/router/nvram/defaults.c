@@ -202,7 +202,7 @@ const defaults_t defaults[] = {
 	{ "wl1_ssid",			"Sabai58"			},
 	{ "wl_country_code",		""				},	// Country (default obtained from driver)
 	{ "wl_radio",			"1"				},	// Enable (1) or disable (0) radio
-	{ "wl1_radio",			"0"				},	// Enable (1) or disable (0) radio
+	{ "wl1_radio",			"1"				},	// Enable (1) or disable (0) radio
 	{ "wl_closed",			"0"				},	// Closed (hidden) network
 	{ "wl_ap_isolate",		"0"				},	// AP isolate mode
 	{ "wl_mode",			"ap"				},	// AP mode (ap|sta|wds)

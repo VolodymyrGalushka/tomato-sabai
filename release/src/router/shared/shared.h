@@ -8,6 +8,7 @@
 #include <stdint.h>
 #include <errno.h>
 #include <net/if.h>
+#include <string.h>
 
 #ifdef TCONFIG_USB
 #include <mntent.h>	// !!TB
@@ -33,14 +34,12 @@ extern const char *tomato_buildtime;
 extern const char *tomato_shortver;
 
 
+#ifdef DEBUG_NOISY
 #define _dprintf		cprintf
-/*
-# #ifdef DEBUG_NOISY
-# #define _dprintf		cprintf
-# #else
-# #define _dprintf(args...)	do { } while(0)
-# #endif
-*/
+#else
+#define _dprintf(args...)	do { } while(0)
+#endif
+
 
 // misc.c
 #define	WP_DISABLED		0		// order must be synced with def in misc.c
@@ -50,14 +49,6 @@ extern const char *tomato_shortver;
 #define	WP_PPPOE		4
 #define	WP_PPTP			5
 #define	WP_PPP3G		6
-
-/*#define	WP_DISABLED		0
-#define	WP_STATIC		1
-#define WP_DHCP			2
-#define	WP_PPPOE		3
-#define	WP_PPP3G		4
-*/
-
 
 #ifdef TCONFIG_IPV6
 #define	IPV6_DISABLED		0
@@ -197,6 +188,8 @@ enum {
 	MODEL_HG320,
 	MODEL_RG200E_CA,
 	MODEL_H218N,
+	MODEL_TDN60,
+	MODEL_TDN6,
 	MODEL_WL1600GL,
 	MODEL_WBRG54,
 	MODEL_WBR2G54,
@@ -249,7 +242,9 @@ enum {
 	MODEL_WZRG300N,
 	MODEL_WRT300N,
 	MODEL_WL330GE,
-	MODEL_W1800R
+	MODEL_W1800R,
+	MODEL_D1800H,
+	MODEL_EA6500V1
 };
 
 /* NOTE: Do not insert new entries in the middle of this enum,
@@ -364,5 +359,8 @@ extern int base64_decoded_len(int len);										// maximum possible, not actual
 // strings.c
 extern const char *find_word(const char *buffer, const char *word);
 extern int remove_word(char *buffer, const char *word);
+
+//bwq518
+extern char* trimstr(char *str);
 
 #endif
