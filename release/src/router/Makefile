@@ -152,6 +152,7 @@ obj-$(TCONFIG_IPV6) += dhcpv6
 obj-$(TCONFIG_MEDIA_SERVER) += zlib
 obj-$(TCONFIG_MEDIA_SERVER) += sqlite
 obj-$(TCONFIG_MEDIA_SERVER) += ffmpeg
+obj-$(TCONFIG_MEDIA_SERVER) += libiconv
 obj-$(TCONFIG_MEDIA_SERVER) += libogg
 obj-$(TCONFIG_MEDIA_SERVER) += flac
 obj-$(TCONFIG_MEDIA_SERVER) += jpeg
@@ -159,7 +160,8 @@ obj-$(TCONFIG_MEDIA_SERVER) += libexif
 obj-$(TCONFIG_MEDIA_SERVER) += libid3tag
 obj-$(TCONFIG_MEDIA_SERVER) += libvorbis
 obj-$(TCONFIG_MEDIA_SERVER) += minidlna
-MEDIA_SERVER_STATIC=y
+#MEDIA_SERVER_STATIC=y
+MEDIA_SERVER_STATIC :=
 
 obj-y += libnfnetlink
 obj-y += miniupnpd
@@ -214,8 +216,6 @@ endif
 
 obj-y += wanuptime
 
-obj-$(TCONFIG_TCPDUMP) += lpcap tcpdump
-
 obj-clean := $(foreach obj, $(obj-y) $(obj-n) $(obj-), $(obj)-clean)
 obj-install := $(foreach obj,$(obj-y),$(obj)-install)
 
@@ -232,25 +232,25 @@ kernel: $(LINUXDIR)/.config
 	@$(SEP)
 
 	@if ! grep -q "CONFIG_EMBEDDED_RAMDISK=y" $(LINUXDIR)/.config ; then \
-	    $(MAKE) -C $(LINUXDIR) zImage CC=$(KERNELCC); \
+	    $(MAKE) -C $(LINUXDIR) zImage CC=$(KERNELCC) $(PARALLEL_BUILD); \
 	fi
 	if grep -q "CONFIG_MODULES=y" $(LINUXDIR)/.config ; then \
-	    $(MAKE) -C $(LINUXDIR) modules CC=$(KERNELCC); \
+	    $(MAKE) -C $(LINUXDIR) modules CC=$(KERNELCC) $(PARALLEL_BUILD); \
 	fi
 ifeq ($(CONFIG_LINUX26),y)
-	 srctree=$(LINUXDIR) $(MAKE) -C $(LINUXDIR)/arch/mips/brcm-boards/bcm947xx/compressed srctree=$(LINUXDIR)
+	$(MAKE) -C $(LINUXDIR)/arch/mips/brcm-boards/bcm947xx/compressed srctree=$(LINUXDIR) $(PARALLEL_BUILD)
 endif
 
 
 lzma-loader:
-	$(MAKE) -C $(SRCBASE)/lzma-loader CROSS_COMPILE=$(CROSS_COMPILE) LD=$(LD)
+	$(MAKE) -C $(SRCBASE)/lzma-loader CROSS_COMPILE=$(CROSS_COMPILE) LD=$(LD) $(PARALLEL_BUILD)
 
 lzma-loader-install: lzma-loader
 	@$(SEP)
 
 
 kmod: dummy
-	$(MAKE) -C $(LINUXDIR) modules CC=$(KERNELCC)
+	$(MAKE) -C $(LINUXDIR) modules CC=$(KERNELCC) $(PARALLEL_BUILD)
 
 testfind:
 	cd $(TARGETDIR)/lib/modules/* && find -name "*.o" -exec mv -i {} . \; || true
@@ -701,9 +701,7 @@ sabaioldconfig: sabaikoldconf sabairoldconf sabaidependconf sabaibboldconf
 #
 
 busybox: dummy
-	@$(MAKE) -C busybox EXTRA_CFLAGS="-fPIC $(EXTRACFLAGS)"
-
-# V=1
+	@$(MAKE) -C busybox EXTRA_CFLAGS="-fPIC $(EXTRACFLAGS)" $(PARALLEL_BUILD)
 
 busybox-install:
 	rm -rf $(INSTALLDIR)/busybox
@@ -823,7 +821,7 @@ bridge-install:
 
 dnsmasq:
 	@$(SEP)
-	@$(MAKE) -C dnsmasq \
+	@$(MAKE) -C dnsmasq $(PARALLEL_BUILD) \
 	COPTS="$(if $(TCONFIG_IPV6),-DUSE_IPV6,-DNO_IPV6) $(if $(CONFIG_LINUX26),-DUSE_IPSET,-DNO_IPSET) -DHAVE_BROKEN_RTC -DHAVE_TOMATO $(EXTRACFLAGS) -ffunction-sections -fdata-sections" \
 	LDFLAGS="-ffunction-sections -fdata-sections -Wl,--gc-sections -fPIC"
 
@@ -868,7 +866,7 @@ iptables-clean:
 
 ppp:
 	@$(SEP)
-	$(MAKE) -C ppp/pppoecd $* INSTALLDIR=$(INSTALLDIR)/ppp $(if $(TCONFIG_IPV6),HAVE_INET6=y,)
+	$(MAKE) -C ppp/pppoecd $* INSTALLDIR=$(INSTALLDIR)/ppp $(if $(TCONFIG_IPV6),HAVE_INET6=y,) $(PARALLEL_BUILD)
 #	$(MAKE) -C ppp/pppoecd $* INSTALLDIR=$(INSTALLDIR)/ppp DFLAGS="-DDEBUG -DDEBUGALL"
 
 ppp-%:
@@ -881,7 +879,7 @@ rp-pppoe/src/stamp-h1: rp-pppoe/src/Makefile.in
 	@touch rp-pppoe/src/stamp-h1
 
 rp-pppoe: pppd rp-pppoe/src/stamp-h1
-	$(MAKE) -C rp-pppoe/src pppoe-relay rp-pppoe.so
+	$(MAKE) -C rp-pppoe/src pppoe-relay rp-pppoe.so $(PARALLEL_BUILD)
 
 rp-pppoe-clean:
 	-@$(MAKE) -C rp-pppoe/src clean
@@ -941,7 +939,7 @@ shared: busybox
 
 vsftpd: $(if $(TCONFIG_FTP_SSL),openssl,)
 	@$(SEP)
-	$(MAKE) -C vsftpd
+	$(MAKE) -C vsftpd $(PARALLEL_BUILD)
 
 vsftpd-install: vsftpd
 	install -D vsftpd/vsftpd $(INSTALLDIR)/vsftpd/usr/sbin/vsftpd
@@ -963,7 +961,7 @@ ntfs-3g/Makefile:
 		--disable-posix-acls --disable-nfconv --disable-dependency-tracking
 
 ntfs-3g: ntfs-3g/Makefile
-	@$(MAKE) -C ntfs-3g 
+	@$(MAKE) -C ntfs-3g $(PARALLEL_BUILD)
 
 ntfs-3g-clean:
 	-@$(MAKE) -C ntfs-3g clean
@@ -1249,7 +1247,7 @@ ntpc: nvram shared
 
 dropbear: dropbear/config.h
 	@$(SEP)
-	@$(MAKE) -C dropbear PROGRAMS="dropbear dbclient dropbearkey scp" MULTI=1
+	@$(MAKE) -C dropbear PROGRAMS="dropbear dbclient dropbearkey scp" MULTI=1 $(PARALLEL_BUILD)
 
 dropbear-install:
 	install -D dropbear/dropbearmulti $(INSTALLDIR)/dropbear/usr/bin/dropbearmulti
@@ -1287,7 +1285,7 @@ sqlite/stamp-h1:
 	touch sqlite/stamp-h1
 
 sqlite: sqlite/stamp-h1
-	@$(MAKE) -C sqlite all
+	@$(MAKE) -C sqlite all $(PARALLEL_BUILD)
 
 sqlite-clean:
 	-@$(MAKE) -C sqlite clean
@@ -1298,6 +1296,8 @@ sqlite-install: sqlite
 ifneq ($(MEDIA_SERVER_STATIC),y)
 	install -D sqlite/.libs/libsqlite3.so.0 $(INSTALLDIR)/sqlite/usr/lib/libsqlite3.so.0
 	$(STRIP) $(INSTALLDIR)/sqlite/usr/lib/libsqlite3.so.0
+	cd $(INSTALLDIR)/sqlite/usr/lib/ && \
+		ln -sf libsqlite3.so.0 libsqlite3.so
 endif
 
 FFMPEG_FILTER_CONFIG= $(foreach c, $(2), --$(1)="$(c)")
@@ -1333,7 +1333,7 @@ ffmpeg/stamp-h1: zlib
 	touch ffmpeg/stamp-h1
 
 ffmpeg: ffmpeg/stamp-h1 zlib
-	@$(MAKE) -C ffmpeg all
+	@$(MAKE) -C ffmpeg all $(PARALLEL_BUILD)
 
 ffmpeg-clean:
 	-@$(MAKE) -C ffmpeg clean
@@ -1358,7 +1358,7 @@ libogg/stamp-h1:
 	touch libogg/stamp-h1
 
 libogg: libogg/stamp-h1
-	@$(MAKE) -C libogg all
+	@$(MAKE) -C libogg all $(PARALLEL_BUILD)
 
 libogg-clean:
 	-@$(MAKE) -C libogg clean
@@ -1382,7 +1382,7 @@ flac/stamp-h1: libogg
 	touch flac/stamp-h1
 
 flac: flac/stamp-h1 libogg
-	@$(MAKE) -C flac/src/libFLAC all
+	@$(MAKE) -C flac/src/libFLAC all $(PARALLEL_BUILD)
 
 flac-clean:
 	-@$(MAKE) -C flac clean
@@ -1401,7 +1401,7 @@ jpeg/stamp-h1:
 	touch jpeg/stamp-h1
 
 jpeg: jpeg/stamp-h1
-	@$(MAKE) -C jpeg LIBTOOL="" O=o A=a CC=$(CC) AR2="touch" libjpeg.a libjpeg.so
+	@$(MAKE) -C jpeg LIBTOOL="" O=o A=a CC=$(CC) AR2="touch" libjpeg.a libjpeg.so $(PARALLEL_BUILD)
 
 jpeg-clean:
 	-@$(MAKE) -C jpeg clean
@@ -1442,7 +1442,7 @@ zlib/stamp-h1:
 	touch zlib/stamp-h1
 
 zlib: zlib/stamp-h1
-	@$(MAKE) -C zlib CC=$(CC) AR="ar rc" RANLIB=$(RANLIB) LD=$(LD) all
+	@$(MAKE) -C zlib CC=$(CC) AR="ar rc" RANLIB=$(RANLIB) LD=$(LD) all $(PARALLEL_BUILD)
 
 zlib-clean:
 	-@$(MAKE) -C zlib clean
@@ -1475,7 +1475,7 @@ libid3tag/stamp-h1: zlib
 	touch libid3tag/stamp-h1
 
 libid3tag: libid3tag/stamp-h1 zlib
-	@$(MAKE) -C libid3tag all
+	@$(MAKE) -C libid3tag all $(PARALLEL_BUILD)
 
 libid3tag-clean:
 	-@$(MAKE) -C libid3tag clean
@@ -1499,7 +1499,7 @@ libvorbis/stamp-h1: libogg
 	touch libvorbis/stamp-h1
 
 libvorbis: libvorbis/stamp-h1
-	@$(MAKE) -C libvorbis/lib all
+	@$(MAKE) -C libvorbis/lib all $(PARALLEL_BUILD)
 
 libvorbis-clean:
 	-@$(MAKE) -C libvorbis clean
@@ -1512,10 +1512,47 @@ ifneq ($(MEDIA_SERVER_STATIC),y)
 	$(STRIP) $(INSTALLDIR)/libvorbis/usr/lib/libvorbis.so.0
 endif
 
-minidlna: zlib sqlite ffmpeg libogg flac jpeg libexif libid3tag libvorbis
-	@$(SEP)
-	@$(MAKE) -C minidlna CC=$(CC) $(if $(MEDIA_SERVER_STATIC),STATIC=1,) minidlna
+minidlna/stamp-h1: zlib sqlite ffmpeg libogg flac jpeg libexif libid3tag libvorbis libiconv
+	cd minidlna && CC=$(CC) CXX=$(CXX) AR=$(AR) RANLIB=$(RANLIB) STRIP='mipsel-uclibc-strip' HOST=mipsel-linux \
+	CFLAGS="-Wall -Os -D_GNU_SOURCE $(EXTRACFLAGS) -D_FILE_OFFSET_BITS=64 \
+		-ffunction-sections -fdata-sections \
+		-I$(TOP)/ffmpeg/libavutil -I$(TOP)/ffmpeg/libavcodec -I$(TOP)/ffmpeg/libavformat \
+		-I$(TOP)/ffmpeg/libswscale -I$(TOP)/ffmpeg \
+		-I$(TOP)/flac/include -I$(TOP)/sqlite -I$(TOP)/jpeg \
+		-I$(TOP)/libexif -I$(TOP)/libid3tag -I$(TOP)/libogg/include \
+		-I$(TOP)/libvorbis/include \
+		-I$(TOP)/libiconv/include \
+		-I$(TOP)/sqlite" \
+	LDFLAGS="-ffunction-sections -fdata-sections -Wl,--gc-sections -fPIC \
+		-L$(TOP)/zlib -L$(TOP)/sqlite/.libs -L$(TOP)/jpeg -L$(TOP)/libvorbis/lib/.libs \
+		-L$(TOP)/libogg/src/.libs -L$(TOP)/libexif/libexif/.libs -L$(TOP)/flac/src/libFLAC/.libs \
+		-L$(TOP)/ffmpeg/libavutil -L$(TOP)/ffmpeg/libavcodec -L$(TOP)/ffmpeg/libavformat \
+		-L$(TOP)/libid3tag/.libs -L$(TOP)/libiconv/lib/.libs" \
+	CPPFLAGS="-Wall -Os -D_GNU_SOURCE $(EXTRACFLAGS) -D_FILE_OFFSET_BITS=64 \
+		-ffunction-sections -fdata-sections \
+		-I$(TOP)/ffmpeg/libavutil -I$(TOP)/ffmpeg/libavcodec -I$(TOP)/ffmpeg/libavformat \
+		-I$(TOP)/ffmpeg/libswscale -I$(TOP)/ffmpeg \
+		-I$(TOP)/flac/include -I$(TOP)/sqlite -I$(TOP)/jpeg \
+		-I$(TOP)/libexif -I$(TOP)/libid3tag -I$(TOP)/libogg/include \
+		-I$(TOP)/libvorbis/include \
+		-I$(TOP)/libiconv/include \
+		-I$(TOP)/sqlite" \
+	LIBS="-lpthread -lexif -ljpeg -lsqlite3 -lavformat -lavutil -lavcodec -lid3tag -lFLAC -logg -lvorbis -lm -ldl -lz" \
+	$(CONFIGURE) --host=mipsel-linux --build=x86_64-linux-gnu
+	touch minidlna/stamp-h1
 
+minidlna: minidlna/stamp-h1
+	@$(SEP)
+	@$(MAKE) -C minidlna all $(PARALLEL_BUILD)
+
+minidlna-clean:
+	-@$(MAKE) -C minidlna clean
+	@rm -f minidlna/stamp-h1
+
+minidlna-install: minidlan
+	@$(SEP)
+	install -D minidlna/minidlnad $(INSTALLDIR)/minidlna/usr/sbin/minidlna
+	$(STRIP) $(INSTALLDIR)/minidlna/usr/sbin/minidlna
 
 igmpproxy/src/Makefile: igmpproxy/src/Makefile.in
 	cd igmpproxy && CFLAGS="-O2 -Wall $(EXTRACFLAGS) -ffunction-sections -fdata-sections" \
@@ -1524,7 +1561,7 @@ igmpproxy/src/Makefile: igmpproxy/src/Makefile.in
 
 igmpproxy: igmpproxy/src/Makefile
 	@$(SEP)
-	@$(MAKE) -C igmpproxy/src
+	@$(MAKE) -C igmpproxy/src $(PARALLEL_BUILD)
 
 igmpproxy-install: igmpproxy
 	install -D igmpproxy/src/igmpproxy $(INSTALLDIR)/igmpproxy/usr/sbin/igmpproxy
@@ -1610,7 +1647,7 @@ glib/stamp-h1:
 	touch glib/stamp-h1
 
 glib: glib/stamp-h1
-	@$(MAKE) -C glib
+	@$(MAKE) -C glib $(PARALLEL_BUILD)
 
 glib-clean:
 	-@$(MAKE) -C glib clean
@@ -1635,7 +1672,7 @@ nocat/stamp-h1: glib-install
 	touch nocat/stamp-h1
 
 nocat: nocat/stamp-h1
-	@$(MAKE) -C nocat 
+	@$(MAKE) -C nocat $(PARALLEL_BUILD)
 
 nocat-clean:
 	-@$(MAKE) -C nocat clean
@@ -1653,7 +1690,7 @@ lzo/stamp-h1:
 	touch lzo/stamp-h1
 
 lzo: lzo/stamp-h1
-	@$(MAKE) -C lzo 
+	@$(MAKE) -C lzo $(PARALLEL_BUILD)
 
 lzo-clean:
 	-@$(MAKE) -C lzo clean
@@ -1670,7 +1707,7 @@ openvpn/.conf: openssl lzo
 	CPPFLAGS="-I$(TOP)/lzo/include -I$(TOP)/openssl/include" \
 	$(CONFIGURE) --prefix= \
 	--with-crypto-library=openssl \
-	--disable-debug --disable-plugin-auth-pam --disable-plugin-down-root --with-plugindir=/lib --enable-management \
+	--disable-debug --disable-plugin-auth-pam --disable-plugin-down-root --with-plugindir=/lib --enable-management --enable-small \
 	--disable-selinux --disable-socks --enable-password-save \
 	OPENSSL_SSL_CFLAGS="-I$(TOP)/openssl/include" \
 	OPENSSL_SSL_LIBS="-L$(TOP)/openssl -lssl" \
@@ -1678,7 +1715,7 @@ openvpn/.conf: openssl lzo
 	touch openvpn/.conf
 
 openvpn: openvpn/.conf
-	@$(MAKE) -C openvpn
+	@$(MAKE) -C openvpn $(PARALLEL_BUILD)
 
 openvpn-clean:
 	-@$(MAKE) -C openvpn clean
@@ -1694,8 +1731,7 @@ openvpn_plugin_auth_nvram:nvram
 #shibby
 libcurl/stamp-h1: zlib openssl
 	cd libcurl && CC=$(CC) STRIP='mipsel-uclibc-strip' \
-		CFLAGS="-Os -Wall $(EXTRACFLAGS) -ffunction-sections -fdata-sections" \
-		CPPFLAGS="-I$(TOP)/zlib" \
+		CPPFLAGS="-Os -Wall $(EXTRACFLAGS) -ffunction-sections -fdata-sections -I$(TOP)/zlib" \
 		LDFLAGS="-L$(TOP)/zlib -ffunction-sections -fdata-sections -Wl,--gc-sections -fPIC" \
 		$(CONFIGURE) --prefix=/usr --disable-thread --enable-shared --enable-static \
 		--enable-ares --enable-cookies --enable-crypto-auth --enable-nonblocking \
@@ -1718,11 +1754,11 @@ libcurl-clean:
 
 libcurl-install: libcurl
 	install -d $(INSTALLDIR)/libcurl/usr/lib
-	install -D libcurl/lib/.libs/libcurl.so.4.2.0 $(INSTALLDIR)/libcurl/usr/lib/libcurl.so.4.2.0
-	$(STRIP) -s $(INSTALLDIR)/libcurl/usr/lib/libcurl.so.4.2.0
+	install -D libcurl/lib/.libs/libcurl.so.4.3.0 $(INSTALLDIR)/libcurl/usr/lib/libcurl.so.4.3.0
+	$(STRIP) -s $(INSTALLDIR)/libcurl/usr/lib/libcurl.so.4.3.0
 	cd $(INSTALLDIR)/libcurl/usr/lib/ && \
-		ln -sf libcurl.so.4.2.0 libcurl.so.4 && \
-		ln -sf libcurl.so.4.2.0 libcurl.so
+		ln -sf libcurl.so.4.3.0 libcurl.so.4 && \
+		ln -sf libcurl.so.4.3.0 libcurl.so
 
 libevent/stamp-h1:
 	cd libevent && CC=$(CC) \
@@ -1750,7 +1786,7 @@ libiconv/stamp-h1:
 	cd libiconv && CC=$(CC) \
 	CFLAGS="-Os -Wall $(EXTRACFLAGS) -ffunction-sections -fdata-sections" \
 	LDFLAGS="-ffunction-sections -fdata-sections -Wl,--gc-sections -fPIC" \
-	$(CONFIGURE) --prefix=/usr --disable-nls --enable-static
+	$(CONFIGURE) --prefix=/usr --disable-nls --enable-static --enable-shared
 	touch libiconv/stamp-h1
 
 libiconv: libiconv/stamp-h1
@@ -1763,25 +1799,34 @@ libiconv-clean:
 
 libiconv-install: libiconv
 	install -d $(INSTALLDIR)/libiconv/usr/lib
-	install libiconv/lib/.libs/libiconv.so.2.4.0 $(INSTALLDIR)/libiconv/usr/lib/libiconv.so.2
-	$(STRIP)-s $(INSTALLDIR)/libiconv/usr/lib/libiconv.so.2
+	install libiconv/lib/.libs/libiconv.so.2.4.0 $(INSTALLDIR)/libiconv/usr/lib/libiconv.so.2.4.0
+	$(STRIP)-s $(INSTALLDIR)/libiconv/usr/lib/libiconv.so.2.4.0
+	cd $(INSTALLDIR)/libiconv/usr/lib/ && \
+		ln -sf libiconv.so.2.4.0 libiconv.so.2 && \
+		ln -sf libiconv.so.2.4.0 libiconv.so
 
 transmission/stamp-h1: openssl libcurl libevent zlib
 	cd transmission && CC=$(CC) STRIP='mipsel-uclibc-strip' \
 		CFLAGS="-Os -Wall -fno-delete-null-pointer-checks -funit-at-a-time \
 			--param large-function-growth=800 --param max-inline-insns-single=3000 \
 			-ffunction-sections -fdata-sections" \
-		LDFLAGS="-L$(TOP)/zlib -ffunction-sections -fdata-sections -Wl,--gc-sections -fPIC" \
-		CPPFLAGS="-I$(TOP)/zlib" \
+		LDFLAGS="-ffunction-sections -fdata-sections -Wl,--gc-sections -fPIC \
+			-L$(TOP)/zlib -L$(TOP)/openssl -L$(TOP)/libcurl/lib/.libs -L$(TOP)/libevent/.libs" \
 		HAVE_CXX=yes \
-		$(CONFIGURE) --target=mipsel-linux --prefix=/usr --disable-nls \
-		--enable-lightweight --enable-largefile --enable-utp --without-gtk \
-		LIBCURL_CFLAGS="-I$(TOP)/libcurl/include" \
-		LIBCURL_LIBS="-L$(TOP)/libcurl/lib/.libs -lcurl" \
-		LIBEVENT_CFLAGS="-I$(TOP)/libevent/include" \
-		LIBEVENT_LIBS="-L$(TOP)/libevent/.libs -levent" \
-		OPENSSL_CFLAGS="-I$(TOP)/openssl/include" \
-		OPENSSL_LIBS="-L$(TOP)/openssl -lcrypto -lssl"
+		$(CONFIGURE) --target=mipsel-linux --host=mipsel-linux --build=x86_64-linux-gnu --prefix=/usr --disable-nls \
+			--enable-lightweight --enable-largefile --enable-utp --without-gtk \
+			LIBCURL_CFLAGS="-I$(TOP)/libcurl/include" \
+			LIBCURL_LDFLAGS="-L$(TOP)/libcurl/lib/.libs/" \
+			LIBCURL_LIBS="-lcurl" \
+			LIBEVENT_CFLAGS="-I$(TOP)/libevent/include" \
+			LIBEVENT_LDFLAGS="-L$(TOP)/libevent/.libs" \
+			LIBEVENT_LIBS="-levent" \
+			OPENSSL_CFLAGS="-I$(TOP)/openssl/include" \
+			OPENSSL_LDFLAGS="-L$(TOP)/openssl" \
+			OPENSSL_LIBS="-lcrypto -lssl" \
+			ZLIB_CFLAGS="-I$(TOP)/zlib" \
+			ZLIB_LDFLAGS="-L$(TOP)/zlib" \
+			ZLIB_LIBS="-lz"
 		touch transmission/stamp-h1
 
 transmission: transmission/stamp-h1
@@ -1958,7 +2003,7 @@ apcupsd/stamp-h1:
 	touch apcupsd/stamp-h1
 
 apcupsd: apcupsd/stamp-h1
-	$(MAKE) -C apcupsd
+	$(MAKE) -C apcupsd $(PARALLEL_BUILD)
 
 apcupsd-clean:
 	-@$(MAKE) -C apcupsd clean
@@ -1978,7 +2023,7 @@ libsodium/stamp-h1:
 	touch libsodium/stamp-h1
 
 libsodium: libsodium/stamp-h1
-	$(MAKE) -C libsodium
+	$(MAKE) -C libsodium $(PARALLEL_BUILD)
 
 libsodium-install: libsodium
 	install -d $(INSTALLDIR)/libsodium/usr/lib
@@ -2018,7 +2063,8 @@ tor/stamp-h1: openssl zlib libevent
 	CFLAGS="-Os -Wall $(EXTRACFLAGS) -ffunction-sections -fdata-sections" \
 	LDFLAGS="-ffunction-sections -fdata-sections -Wl,--gc-sections" \
 	$(CONFIGURE) --prefix=/usr --with-libevent-dir=$(TOP)/libevent/staged/usr/local \
-		--with-openssl-dir=$(TOP)/openssl --with-zlib-dir=$(TOP)/zlib --disable-asciidoc
+		--with-openssl-dir=$(TOP)/openssl --with-zlib-dir=$(TOP)/zlib \
+		--disable-asciidoc --disable-threads
 	touch tor/stamp-h1
 
 tor: tor/stamp-h1
@@ -2031,6 +2077,21 @@ tor-install: tor
 tor-clean:
 	-@$(MAKE) -C tor clean
 	@rm -rf tor/stamp-h1 tor/Makefile
+
+udpxy/stamp-h1:
+	cd udpxy \
+	$(MAKE) -C udpxy CFLAGS="-Os -Wall --host=mipsel-linux --target=mipsel-linux $(EXTRACFLAGS)" \
+		LDFLAGS="-ffunction-sections -fdata-sections -Wl,--gc-sections"
+	touch udpxy/stamp-h1
+
+udpxy-clean:
+	-@$(MAKE) -C udpxy clean
+	@rm -f udpxy/stamp-h1
+
+udpxy-install: udpxy/stamp-h1
+	install -d $(INSTALLDIR)/udpxy/usr/bin
+	install -D udpxy/udpxy $(INSTALLDIR)/udpxy/bin/udpxy
+	$(STRIP) -s $(INSTALLDIR)/udpxy/bin/udpxy
 
 mdadm:
 	$(MAKE) -C mdadm $(PARALLEL_BUILD)
@@ -2066,7 +2127,6 @@ comgt-install: comgt
 	@mkdir -p $(TARGETDIR)/rom/etc/gcom
 	@cp -f comgt/gcom/* $(TARGETDIR)/rom/etc/gcom/
 
-
 comgt-clean:
 	-@$(MAKE) -C comgt clean
 
@@ -2094,4 +2154,4 @@ $(obj-y) $(obj-n) $(obj-clean) $(obj-install): dummy
 
 .PHONY: all clean distclean mrproper install package
 .PHONY: conf mconf oldconf kconf kmconf config menuconfig oldconfig
-.PHONY: dummy libnet
+.PHONY: dummy libnet libpcap
