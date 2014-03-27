@@ -2132,7 +2132,7 @@ function genStdTimeList(id, zero, min)
 function genStdRefresh(spin, min, exec)
 {
 	W('<div style="text-align:right">');
-	if (spin) W('<img src="spin.gif" id="refresh-spinner"> ');
+	if (spin) W('<img src="imgspin.gif" id="refresh-spinner"> ');
 	genStdTimeList('refresh-time', 'Auto Refresh', min);
 	W('<input type="button" value="Refresh" onclick="' + (exec ? exec : 'refreshClick()') + '" id="refresh-button"></div>');
 }
@@ -2204,6 +2204,15 @@ function W(s)
 	document.write(s);
 }
 
+function A(e)
+{ 
+        return document.createElement(e); 
+}
+
+function T(t)
+{ 
+        return document.createTextNode(t); 
+}
 function E(e)
 {
 	return (typeof(e) == 'string') ? document.getElementById(e) : e;

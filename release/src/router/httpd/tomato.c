@@ -1631,14 +1631,16 @@ static int nv_wl_bwcap_chanspec(int idx, int unit, int subunit, void *param){
 		case 1:
 			if(write)
 				nvram_set(wl_nvname("bw_cap",unit,0), "3");
-			//			if(*ch != '0')
+			if(*ch != '0')
 				*(chan_spec + strlen(chan_spec)) = *nctrlsb;
 			break;
 		case 3:
 			if(write)
 				nvram_set(wl_nvname("bw_cap",unit,0), "7");
-			//			if(*ch != '0')
+			if(*ch != '0')
 				strcpy(chan_spec + strlen(chan_spec),"/80");
+			else 
+			  strcpy(chan_spec, "/80");
 			break;
 	}
 	if(write)
