@@ -88,7 +88,7 @@ const defaults_t defaults[] = {
 	{ "wan_netmask",		"0.0.0.0"			},	// WAN netmask
 	{ "wan_gateway",		"0.0.0.0"			},	// WAN gateway
 	{ "wan_gateway_get",		"0.0.0.0"			},	// default gateway for PPP
-	{ "wan_dns",			"4.2.2.2 8.8.8.8 208.67.222.222"				},	// x.x.x.x x.x.x.x ...
+	{ "wan_dns",			"8.8.8.8 208.67.222.222 8.8.4.4"},	// x.x.x.x x.x.x.x ...
 #ifdef TCONFIG_DNSCRYPT
 	{ "dnscrypt_proxy",		""				},
 	{ "dnscrypt_port",		"40"			}, // local port
