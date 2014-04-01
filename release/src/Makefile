@@ -138,16 +138,18 @@ ifneq ($(ASUS_TRX),0)
 	@echo ""
 endif
 
-ifeq ($(WNR3500LV2),1)
-	@echo "Creating Firmware for Netgear WNR3500L v2 .... "
+ifeq ($(WNR3500LV2),y)
+	# Creating Firmware for Netgear WNR3500L v2..."
 	mipsel-uclibc-objcopy -O binary -g $(LINUXDIR)/vmlinux image/vmlinux.bin
 	$(WNRTOOL)/lzma e image/vmlinux.bin image/vmlinux.lzma
-	$(WNRTOOL)/trx -o image/sabai-wnr3500lv2.trx image/vmlinux.lzma $(SRCBASE)/router/mipsel-uclibc/target.image
+	$(WNRTOOL)/trx -o image/tomato-wnr3500lv2.trx image/vmlinux.lzma $(SRCBASE)/router/mipsel-uclibc/target.image
 	rm -f image/vmlinux.bin image/vmlinux.lzma
 	cd image && touch rootfs
+#	cd image && $(WNRTOOL)/packet -k tomato-wnr3500lv2.trx -f rootfs -b $(BOARD_FILE) -ok kernel_image -oall kernel_rootfs_image -or rootfs_image -i $(fw_cfg_file) && rm -f rootfs && \
+#	cp kernel_rootfs_image.chk tomato-Netgear-3500Lv2-$(ND)$(current_BUILD_USB)-$(current_TOMATO_VER).$(current_TOMATO_V1)$(current_TOMATO_V2)-$(current_BUILD_DESC).chk
 	cd image && $(WNRTOOL)/packet -k tomato-wnr3500lv2.trx -f rootfs -b $(BOARD_FILE) -ok kernel_image -oall kernel_rootfs_image -or rootfs_image -i $(fw_cfg_file) && rm -f rootfs && \
-	cp kernel_rootfs_image.chk tomato-Netgear-3500Lv2-$(ND)$(current_BUILD_USB)-$(current_TOMATO_VER).$(V1)$(V2)-$(current_BUILD_DESC).chk
-	@echo "Cleanup ...."
+	cp kernel_rootfs_image.chk "sabai $(V2) Netgear-3500Lv2.chk"
+#	@echo "Cleanup ...."
 #	rm -f image/*image.chk image/*.trx
 endif
 
@@ -159,10 +161,29 @@ ifneq ($(MIPS32),r2)
 endif
 endif
 ifeq ($(LINKSYS_E),y)
-	@rm -f image/sabai-E??????$(current_BUILD_USB)$(if $(filter $(NVRAM_SIZE),0),,-NVRAM$(NVRAM_SIZE)K)-$(current_TOMATO_VER).$(V1)$(mips_rev)$(beta)$(V2)-$(current_BUILD_DESC).bin
+	# Linksys 60k NVRAM E-series (E2000, E2500, E3000, E3200, E4200)
+#		-l 1550,image/"sabai $(V2) E1550.bin" \ # Removed as doesn't work on 1500
+	@btools/fpkg -i lzma-loader/loader.gz -i $(LINUXDIR)/arch/mips/brcm-boards/bcm947xx/compressed/vmlinuz -a 1024 -i router/mipsel-uclibc/target.image \
+		-l E25X,image/"sabai $(V2) E2500.bin" \
+		-l 3200,image/"sabai $(V2) E3200.bin" \
+		-l 4200,image/"sabai $(V2) E4200.bin" \
+		-l 61XN,image/"sabai $(V2) E3000.bin" \
+		-l 32XN,image/"sabai $(V2) E2000.bin" \
+		>> fpkg.log
+	# Asus (RT-N66U_60K) images
+	@btools/fpkg -i lzma-loader/loader.gz -i $(LINUXDIR)/arch/mips/brcm-boards/bcm947xx/compressed/vmlinuz -a 1024 -i router/mipsel-uclibc/target.image \
+		-t image/"sabai $(V2) $(if $(filter $(NVRAM_SIZE),0),,$(NVRAM_SIZE)kNV )Asus RT-N66U.trx" \
+		>> fpkg.log
+
+endif
 endif
 ifeq ($(LINKSYS_E_64k),y)
-	@rm -f image/sabai-E??????$(current_BUILD_USB)$(if $(filter $(NVRAM_SIZE),0),,-NVRAM$(NVRAM_SIZE)K)-$(current_TOMATO_VER).$(V1)$(mips_rev)$(beta)$(V2)-$(current_BUILD_DESC).bin
+	# Linksys 64k NVRAM E-series (E900, E1200v2, E1500)
+	@btools/fpkg -i lzma-loader/loader.gz -i $(LINUXDIR)/arch/mips/brcm-boards/bcm947xx/compressed/vmlinuz -a 1024 -i router/mipsel-uclibc/target.image \
+		-l E900,image/"sabai $(V2) E900.bin" \
+		-l E122,image/"sabai $(V2) E1200v2.bin" \
+		-l E150,image/"sabai $(V2) E1500.bin" \
+		>> fpkg.log
 endif
 ifeq ($(LINKSYS_E1200v1),y)
 	@rm -f image/sabai-E1200v1$(current_BUILD_USB)$(if $(filter $(NVRAM_SIZE),0),,-NVRAM$(NVRAM_SIZE)K)-$(current_TOMATO_VER).$(V1)$(mips_rev)$(beta)$(V2)-$(current_BUILD_DESC).bin
@@ -231,6 +252,16 @@ ifeq ($(LINKSYS_E_64k),y)
 		-l E150,image/sabai-E1500$(current_BUILD_USB)$(if $(filter $(NVRAM_SIZE),0),,-NVRAM$(NVRAM_SIZE)K)-$(current_TOMATO_VER).$(V1)$(mips_rev)$(beta)$(V2)-$(current_BUILD_DESC).bin \
 		| tee -a fpkg.log
 endif
+ifeq ($(ASUS_BELKIN),y)
+	# Asus (RT-N16, RT-N66U_32K) images
+	@btools/fpkg -i lzma-loader/loader.gz -i $(LINUXDIR)/arch/mips/brcm-boards/bcm947xx/compressed/vmlinuz -a 1024 -i router/mipsel-uclibc/target.image \
+		-t image/"sabai $(V2) $(if $(filter $(NVRAM_SIZE),0),,$(NVRAM_SIZE)kNV )Asus RT-N16 and RT-N66U.trx" \
+		>> fpkg.log
+	# Belkin (F7D3301, F7D3302, F7D4302, F5D8235v3) images
+	@btools/fpkg -i lzma-loader/loader.gz -i $(LINUXDIR)/arch/mips/brcm-boards/bcm947xx/compressed/vmlinuz -a 1024 -i router/mipsel-uclibc/target.image \
+		-b 0x20090928,image/"sabai $(V2) Belkin F7D3302.bin" \
+		>> fpkg.log
+endif
 ifeq ($(LINKSYS_E1000v2),y)
 	# Linksys E1000v2/v2.1 images
 	@btools/fpkg -i lzma-loader/loader.gz -i $(LINUXDIR)/arch/mips/brcm-boards/bcm947xx/compressed/vmlinuz -a 1024 -i router/mipsel-uclibc/target.image \
@@ -269,7 +300,7 @@ ifneq ($(NOVERSION),1)
 	@cp router/shared/tomato_version router/shared/tomato_version_last
 	@btools/uversion.pl --bump
 endif
-endif
+
 
 
 
@@ -884,7 +915,7 @@ sabaiE:
 	@$(MAKE) sabai LINKSYS_E=y NVRAM_SIZE=60
 
 sabaiA:
-	@$(MAKE) sabai BELKIN=y
+	@$(MAKE) sabai ASUS_BELKIN=y
 
 sabaiN:
 	@$(MAKE) sabai WNR3500LV2=y
