@@ -27,6 +27,7 @@ test
 libtool
 stamp-h1
 .#*
+*#*#
 
 *.orig
 
