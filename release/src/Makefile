@@ -133,7 +133,7 @@ ifneq ($(ASUS_TRX),0)
 	ctools/lzma_4k e ctools/piggy  ctools/vmlinuz-lzma
 	ctools/mksquashfs router/mipsel-uclibc/target ctools/target.squashfs -noappend -all-root
 	ctools/trx -o image/linux-lzma.trx ctools/vmlinuz-lzma ctools/target.squashfs
-	ctools/trx_asus -i image/linux-lzma.trx -r $(BUILD_NAME),$(KERNEL_VER).$(FS_VER),image/sabai-$(ASUS_TRX)_$(V1)$(V2)-$(current_BUILD_DESC).trx
+	ctools/trx_asus -i image/linux-lzma.trx -r $(BUILD_NAME),$(KERNEL_VER).$(FS_VER),image/sabai $(V2) $(ASUS_TRX).trx
 	@rm -f image/linux-lzma.trx
 	@echo ""
 endif
@@ -172,7 +172,7 @@ ifeq ($(LINKSYS_E),y)
 		>> fpkg.log
 	# Asus (RT-N66U_60K) images
 	@btools/fpkg -i lzma-loader/loader.gz -i $(LINUXDIR)/arch/mips/brcm-boards/bcm947xx/compressed/vmlinuz -a 1024 -i router/mipsel-uclibc/target.image \
-		-t image/"sabai $(V2) $(if $(filter $(NVRAM_SIZE),0),,$(NVRAM_SIZE)kNV )Asus RT-N66U.trx" \
+		-t image/"sabai $(V2) Asus RT-N66U.trx" \
 		>> fpkg.log
 
 endif
@@ -255,7 +255,7 @@ endif
 ifeq ($(ASUS_BELKIN),y)
 	# Asus (RT-N16, RT-N66U_32K) images
 	@btools/fpkg -i lzma-loader/loader.gz -i $(LINUXDIR)/arch/mips/brcm-boards/bcm947xx/compressed/vmlinuz -a 1024 -i router/mipsel-uclibc/target.image \
-		-t image/"sabai $(V2) $(if $(filter $(NVRAM_SIZE),0),,$(NVRAM_SIZE)kNV )Asus RT-N16 and RT-N66U.trx" \
+		-t image/"sabai $(V2) $(if $(filter $(NVRAM_SIZE),0),,$(NVRAM_SIZE)kNV )Asus RT-N16.trx" \
 		>> fpkg.log
 	# Belkin (F7D3301, F7D3302, F7D4302, F5D8235v3) images
 	@btools/fpkg -i lzma-loader/loader.gz -i $(LINUXDIR)/arch/mips/brcm-boards/bcm947xx/compressed/vmlinuz -a 1024 -i router/mipsel-uclibc/target.image \
