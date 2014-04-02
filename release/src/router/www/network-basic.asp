@@ -441,7 +441,7 @@ function verifyFields(focused, quiet)
 		_f_wan_mtu: 1,
 		_f_wan_islan: 0,
 		_f_ppp_mlppp: 1,
-		_modem_ipaddr: 1,
+		_modem_ipaddr: 0,
 
 		_f_dns_1: 1,
 		_f_dns_2: 1,
@@ -550,7 +550,7 @@ function verifyFields(focused, quiet)
 		vis._wan_ipaddr = 0;
 		vis._wan_netmask = 0;
 		vis._f_ppp_mlppp = 0;
-		vis._modem_ipaddr = 1;
+		vis._modem_ipaddr = 0;
 
 		vis._lan_gateway = 0;
 		vis._modem_pin = 0;
