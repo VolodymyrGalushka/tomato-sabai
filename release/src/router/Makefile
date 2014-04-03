@@ -14,8 +14,8 @@ include common.mak
 
 #TOMATO_EXPERIMENTAL=0
 
-#export PARALLEL_BUILD :=
-export PARALLEL_BUILD := -j`grep -c '^processor' /proc/cpuinfo`
+export PARALLEL_BUILD :=
+#export PARALLEL_BUILD := -j`grep -c '^processor' /proc/cpuinfo`
 
 #
 #
