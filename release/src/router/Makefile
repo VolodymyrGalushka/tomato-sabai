@@ -14,7 +14,6 @@ include common.mak
 
 #TOMATO_EXPERIMENTAL=0
 
-export PARALLEL_BUILD :=
 #export PARALLEL_BUILD := -j`grep -c '^processor' /proc/cpuinfo`
 
 #
@@ -1707,7 +1706,7 @@ openvpn/.conf: openssl lzo
 	CPPFLAGS="-I$(TOP)/lzo/include -I$(TOP)/openssl/include" \
 	$(CONFIGURE) --prefix= \
 	--with-crypto-library=openssl \
-	--disable-debug --disable-plugin-auth-pam --disable-plugin-down-root --with-plugindir=/lib --enable-management --enable-small \
+	--disable-debug --disable-plugin-auth-pam --disable-plugin-down-root --with-plugindir=/lib --enable-management \
 	--disable-selinux --disable-socks --enable-password-save \
 	OPENSSL_SSL_CFLAGS="-I$(TOP)/openssl/include" \
 	OPENSSL_SSL_LIBS="-L$(TOP)/openssl -lssl" \
