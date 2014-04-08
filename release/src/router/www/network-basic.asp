@@ -63,6 +63,12 @@ var refresher = [];
 var nphy = features('11n');
 var acphy = features('11ac');
 
+if ((!fixIP(nvram.dhcpd_startip)) || (!fixIP(nvram.dhcpd_endip))) {
+	var x = nvram.lan_ipaddr.split('.').splice(0, 3).join('.') + '.';
+	nvram.dhcpd_startip = x + nvram.dhcp_start;
+	nvram.dhcpd_endip = x + ((nvram.dhcp_start * 1) + (nvram.dhcp_num * 1) - 1);
+}
+
 var ghz = [];
 var bands = [];
 var nm_loaded = [], ch_loaded = [], max_channel = [];
@@ -978,9 +984,27 @@ REMOVE-END */
 	return ok;
 }
 
+var dhcp_fix_mask;
+var dhcp_fix = ['_lan_netmask','_lan_ipaddr','_dhcpd_startip','_dhcpd_endip'];
+
+function check_range(event){ var st = (this==dhcp_fix_mask) ? dhcp_fix[0] : this;
+ st = st.value.split('.'); var ma = dhcp_fix_mask.value.split('.');
+ var en = []; for(var j=0; j<dhcp_fix.length; j++){ en[j] = dhcp_fix[j].value.split('.'); }
+ for(var i=0; i<ma.length; i++){ ma[i] = (ma[i]==255) * 255;
+  if(ma[i]){ for(var j=0; j<en.length; j++){ en[j][i] = st[i]&ma[i]; } }
+ }
+ for(var j=0; j<dhcp_fix.length; j++){ dhcp_fix[j].value = en[j].join('.'); }
+ verifyFields(this,1);
+}
+
 function earlyInit()
 {
 	verifyFields(null, 1);
+	for(var i=0; i<dhcp_fix.length; i++){
+		dhcp_fix[i] = E(dhcp_fix[i]);
+		dhcp_fix[i].addEventListener('change', check_range, false);
+	}; dhcp_fix_mask = dhcp_fix.shift();
+
 }
 
 function save()
