@@ -4,7 +4,7 @@
 ## Makefile for OpenSSL
 ##
 
-VERSION=1.0.1c
+VERSION=1.0.1g
 MAJOR=1
 MINOR=0.1
 SHLIB_VERSION_NUMBER=1.0.0
@@ -13,8 +13,8 @@ SHLIB_MAJOR=1
 SHLIB_MINOR=0.0
 SHLIB_EXT=.so.$(SHLIB_MAJOR).$(SHLIB_MINOR)
 PLATFORM=linux-mipsel
-OPTIONS=--openssldir=/etc --cross-compile-prefix=  -ffunction-sections -fdata-sections -Wl,--gc-sections enable-shared enable-rc5 no-camellia no-capieng no-cms no-dtls1 no-ec no-ec_nistp_64_gcc_128 no-ecdh no-ecdsa no-engines no-err no-gmp no-gms no-gost no-hw no-jpake no-krb5 no-md2 no-mdc2 no-psk no-rfc3779 no-ripemd no-rmd160 no-sctp no-seed no-sha0 no-smime no-sse2 no-store no-threads no-ts no-zlib no-zlib-dynamic no-static-engine
-CONFIGURE_ARGS=linux-mipsel --openssldir=/etc --cross-compile-prefix=  -ffunction-sections -fdata-sections -Wl,--gc-sections shared enable-rc5 no-sha0 no-smime no-camellia no-krb5 no-rmd160 no-ripemd no-seed no-capieng no-cms no-gms no-gmp no-rfc3779 no-ec no-ecdh no-ecdsa no-err no-hw no-jpake no-threads no-zlib no-engines no-sse2 no-dtls1 no-store no-psk no-md2 no-mdc2 no-ts
+OPTIONS=--openssldir=/etc --cross-compile-prefix=  -ffunction-sections -fdata-sections -Wl,--gc-sections enable-shared enable-rc5 no-camellia no-capieng no-cms no-dtls1 no-ec no-ec_nistp_64_gcc_128 no-ecdh no-ecdsa no-engines no-err no-gmp no-gms no-gost no-hw no-jpake no-krb5 no-md2 no-mdc2 no-psk no-rfc3779 no-ripemd no-rmd160 no-sctp no-seed no-smime no-sse2 no-store no-threads no-ts no-zlib no-zlib-dynamic no-static-engine
+CONFIGURE_ARGS=linux-mipsel --openssldir=/etc --cross-compile-prefix=  -ffunction-sections -fdata-sections -Wl,--gc-sections shared enable-rc5 no-smime no-camellia no-krb5 no-rmd160 no-ripemd no-seed no-capieng no-cms no-gms no-gmp no-rfc3779 no-ec no-ecdh no-ecdsa no-err no-hw no-jpake no-threads no-engines no-zlib no-sse2 no-dtls1 no-store no-psk no-md2 no-mdc2 no-ts
 SHLIB_TARGET=linux-shared
 
 # HERE indicates where this Makefile lives.  This can be used to indicate
@@ -61,8 +61,8 @@ OPENSSLDIR=/etc
 
 CROSS_COMPILE=  
 CC= $(CROSS_COMPILE)mipsel-uclibc-gcc
-CFLAG= -fPIC -DOPENSSL_PIC -DDSO_DLFCN -DHAVE_DLFCN_H -ffunction-sections -fdata-sections -DOPENSSL_NO_ERR -DL_ENDIAN -DTERMIO -O3 $(EXTRACFLAGS) -DOPENSSL_SMALL_FOOTPRINT -fomit-frame-pointer -Wall -DSHA1_ASM -DSHA256_ASM -DAES_ASM
-DEPFLAG= -DOPENSSL_NO_CAMELLIA -DOPENSSL_NO_CAPIENG -DOPENSSL_NO_CMS -DOPENSSL_NO_DTLS1 -DOPENSSL_NO_EC -DOPENSSL_NO_EC_NISTP_64_GCC_128 -DOPENSSL_NO_ECDH -DOPENSSL_NO_ECDSA -DOPENSSL_NO_ENGINES -DOPENSSL_NO_GMP -DOPENSSL_NO_GMS -DOPENSSL_NO_GOST -DOPENSSL_NO_JPAKE -DOPENSSL_NO_MD2 -DOPENSSL_NO_MDC2 -DOPENSSL_NO_PSK -DOPENSSL_NO_RFC3779 -DOPENSSL_NO_RIPEMD -DOPENSSL_NO_RMD160 -DOPENSSL_NO_SCTP -DOPENSSL_NO_SEED -DOPENSSL_NO_SHA0 -DOPENSSL_NO_SMIME -DOPENSSL_NO_STORE -DOPENSSL_NO_TS
+CFLAG= -fPIC -DOPENSSL_PIC -DDSO_DLFCN -DHAVE_DLFCN_H -ffunction-sections -fdata-sections -DOPENSSL_NO_ERR -DL_ENDIAN -DTERMIO -Os $(EXTRACFLAGS) -DOPENSSL_SMALL_FOOTPRINT -fomit-frame-pointer -Wall -DSHA1_ASM -DSHA256_ASM -DAES_ASM
+DEPFLAG= -DOPENSSL_NO_CAMELLIA -DOPENSSL_NO_CAPIENG -DOPENSSL_NO_CMS -DOPENSSL_NO_DTLS1 -DOPENSSL_NO_EC -DOPENSSL_NO_EC_NISTP_64_GCC_128 -DOPENSSL_NO_ECDH -DOPENSSL_NO_ECDSA -DOPENSSL_NO_ENGINES -DOPENSSL_NO_GMP -DOPENSSL_NO_GMS -DOPENSSL_NO_GOST -DOPENSSL_NO_JPAKE -DOPENSSL_NO_MD2 -DOPENSSL_NO_MDC2 -DOPENSSL_NO_PSK -DOPENSSL_NO_RFC3779 -DOPENSSL_NO_RIPEMD -DOPENSSL_NO_RMD160 -DOPENSSL_NO_SCTP -DOPENSSL_NO_SEED -DOPENSSL_NO_SMIME -DOPENSSL_NO_STORE -DOPENSSL_NO_TS
 PEX_LIBS= 
 EX_LIBS= -Wl,--gc-sections -ldl
 EXE_EXT= 
@@ -72,7 +72,7 @@ RANLIB= $(CROSS_COMPILE)ranlib
 NM= $(CROSS_COMPILE)nm
 PERL= /usr/bin/perl
 TAR= tar
-TARFLAGS= --no-recursion
+TARFLAGS= --no-recursion --record-size=10240
 MAKEDEPPROG=makedepend
 LIBDIR=lib
 
@@ -305,7 +305,8 @@ libcrypto$(SHLIB_EXT): libcrypto.a fips_premain_dso$(EXE_EXT)
 			FIPSLD_CC="$(CC)"; CC=$(FIPSDIR)/bin/fipsld; \
 			export CC FIPSLD_CC FIPSLD_LIBCRYPTO; \
 		fi; \
-		$(MAKE) -e SHLIBDIRS=crypto build-shared; \
+		$(MAKE) -e SHLIBDIRS=crypto  CC="$${CC:-$(CC)}" build-shared && \
+		(touch -c fips_premain_dso$(EXE_EXT) || :); \
 	else \
 		echo "There's no support for shared libraries on this platform" >&2; \
 		exit 1; \
@@ -442,7 +443,7 @@ rehash.time: certs apps
 		[ -x "apps/openssl.exe" ] && OPENSSL="apps/openssl.exe" || :; \
 		OPENSSL_DEBUG_MEMORY=on; \
 		export OPENSSL OPENSSL_DEBUG_MEMORY; \
-		$(PERL) tools/c_rehash certs) && \
+		$(PERL) tools/c_rehash certs/demo) && \
 		touch rehash.time; \
 	else :; fi
 
