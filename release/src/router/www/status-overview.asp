@@ -133,7 +133,6 @@ function show()
 	c('vpnconnectiontype', stats.vpnconnectiontype);
 	c('vpnstatus', stats.vpnstatus);
 	c('vpnipaddress', stats.vpnipaddress);
-	c('vpnnetmask', stats.vpnnetmask);
 	c('vpngateway', stats.vpngateway);
 
 	for (var uidx = 0; uidx < wl_ifaces.length; ++uidx) {
@@ -267,8 +266,7 @@ createFieldTable('', [
 	{ title: 'Connection Type', rid: 'vpnconnectiontype', text: stats.vpnconnectiontype },
 	{ title: 'Status', rid: 'vpnstatus', text: stats.vpnstatus },
 	{ title: 'IP Address', rid: 'vpnipaddress', text: stats.vpnipaddress },
-	{ title: 'Subnet Mask', rid: 'vpnnetmask', text: stats.vpnnetmask },
-	{ title: 'Gateway', rid: 'vpngateway', text: stats.vpngateway },
+	{ title: 'Gateway', rid: 'vpngateway', text: stats.vpngateway }
 ]);
 </script>
 </div>
