@@ -46,14 +46,14 @@ The following return values can occur:
 
 =item Z<>0
 
-The TLS/SSL handshake was not successful but was shut down controlled and
-by the specifications of the TLS/SSL protocol. Call SSL_get_error() with the
-return value B<ret> to find out the reason.
+The TLS/SSL handshake was successfully completed, a TLS/SSL connection has been
+established.
 
 =item Z<>1
 
-The TLS/SSL handshake was successfully completed, a TLS/SSL connection has been
-established.
+The TLS/SSL handshake was not successful but was shut down controlled and
+by the specifications of the TLS/SSL protocol. Call SSL_get_error() with the
+return value B<ret> to find out the reason.
 
 =item E<lt>0
 

@@ -342,11 +342,19 @@ static unsigned char tls12_sigalgs[] = {
 #ifndef OPENSSL_NO_SHA
 	tlsext_sigalg(TLSEXT_hash_sha1)
 #endif
+#ifndef OPENSSL_NO_MD5
+	tlsext_sigalg_rsa(TLSEXT_hash_md5)
+#endif
 };
 
 int tls12_get_req_sig_algs(SSL *s, unsigned char *p)
 	{
 	size_t slen = sizeof(tls12_sigalgs);
+#ifdef OPENSSL_FIPS
+	/* If FIPS mode don't include MD5 which is last */
+	if (FIPS_mode())
+		slen -= 2;
+#endif
 	if (p)
 		memcpy(p, tls12_sigalgs, slen);
 	return (int)slen;
@@ -663,6 +671,8 @@ unsigned char *ssl_add_clienthello_tlsext(SSL *s, unsigned char *p, unsigned cha
                 ret += el;
                 }
 #endif
+
+#ifdef TLSEXT_TYPE_padding
 	/* Add padding to workaround bugs in F5 terminators.
 	 * See https://tools.ietf.org/html/draft-agl-tls-padding-03
 	 *
@@ -692,6 +702,8 @@ unsigned char *ssl_add_clienthello_tlsext(SSL *s, unsigned char *p, unsigned cha
 			ret += hlen;
 			}
 		}
+	}
+#endif
 
 	if ((extdatalen = ret-p-2)== 0) 
 		return p;
@@ -1448,7 +1460,7 @@ int ssl_parse_clienthello_tlsext(SSL *s, unsigned char **p, unsigned char *d, in
 		/* session ticket processed earlier */
 #ifndef OPENSSL_NO_SRTP
 		else if (type == TLSEXT_TYPE_use_srtp)
-			{
+                        {
 			if(ssl_parse_clienthello_use_srtp_ext(s, data, size,
 							      al))
 				return 0;
@@ -1700,7 +1712,7 @@ int ssl_parse_serverhello_tlsext(SSL *s, unsigned char **p, unsigned char *d, in
 #endif
 #ifndef OPENSSL_NO_SRTP
 		else if (type == TLSEXT_TYPE_use_srtp)
-			{
+                        {
                         if(ssl_parse_serverhello_use_srtp_ext(s, data, size,
 							      al))
                                 return 0;
@@ -1962,8 +1974,8 @@ int ssl_check_clienthello_tlsext_early(SSL *s)
 			}
 	}
 
- err:
 #endif
+ err:
 	switch (ret)
 		{
 		case SSL_TLSEXT_ERR_ALERT_FATAL:
@@ -2477,6 +2489,14 @@ const EVP_MD *tls12_get_hash(unsigned char hash_alg)
 	{
 	switch(hash_alg)
 		{
+#ifndef OPENSSL_NO_MD5
+		case TLSEXT_hash_md5:
+#ifdef OPENSSL_FIPS
+		if (FIPS_mode())
+			return NULL;
+#endif
+		return EVP_md5();
+#endif
 #ifndef OPENSSL_NO_SHA
 		case TLSEXT_hash_sha1:
 		return EVP_sha1();
