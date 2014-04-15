@@ -176,7 +176,14 @@ ifeq ($(LINKSYS_E),y)
 		>> fpkg.log
 
 endif
+
+ifeq ($(LINKSYS_P),y)
+	# Asus (RT-N10P) images
+	@btools/fpkg -i lzma-loader/loader.gz -i $(LINUXDIR)/arch/mips/brcm-boards/bcm947xx/compressed/vmlinuz -a 1024 -i router/mipsel-uclibc/target.image \
+		-t image/"sabai $(V2) Asus RT-N10P.trx" \
+		>> fpkg.log
 endif
+
 ifeq ($(LINKSYS_E_64k),y)
 	# Linksys 64k NVRAM E-series (E900, E1200v2, E1500)
 	@btools/fpkg -i lzma-loader/loader.gz -i $(LINUXDIR)/arch/mips/brcm-boards/bcm947xx/compressed/vmlinuz -a 1024 -i router/mipsel-uclibc/target.image \
@@ -301,6 +308,7 @@ ifneq ($(NOVERSION),1)
 	@btools/uversion.pl --bump
 endif
 
+endif
 
 
 
@@ -913,6 +921,9 @@ endif
 
 sabaiE:
 	@$(MAKE) sabai LINKSYS_E=y NVRAM_SIZE=60
+
+sabaiP:
+	@$(MAKE) sabai LINKSYS_P=y NVRAM_SIZE=32
 
 sabaiA:
 	@$(MAKE) sabai ASUS_BELKIN=y
