@@ -138,7 +138,7 @@ ifneq ($(ASUS_TRX),0)
 	@echo ""
 endif
 
-ifeq ($(WNR3500LV2),y)
+ifeq ($(WNR3500LV2),1)
 	# Creating Firmware for Netgear WNR3500L v2..."
 	mipsel-uclibc-objcopy -O binary -g $(LINUXDIR)/vmlinux image/vmlinux.bin
 	$(WNRTOOL)/lzma e image/vmlinux.bin image/vmlinux.lzma
@@ -929,7 +929,7 @@ sabaiA:
 	@$(MAKE) sabai ASUS_BELKIN=y
 
 sabaiN:
-	@$(MAKE) sabai WNR3500LV2=y
+	@$(MAKE) sabai WNR3500LV2=1
 
 sabaiT: 
 	@$(MAKE) sabai NVRAM_64K=y ASUS_TRX="W1800R"
