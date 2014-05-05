@@ -105,10 +105,10 @@ function populateGrid(){
  if(vpna=list[tmp]){ // the VPNA is a special case; we don't want people assigning it because this would break it.
   delete list[tmp]; // remove its entry from the list; we'll add it to the table manually
   vpna.gw=1; // it is always assigned to the local table
-  gw_grid.insert( -1, vpna, [vpna.mac.replace(/,/,'\n'), vpna.ip, vpna.host, gw_vpna.join(vpna.ip) ], false );
+  gw_grid.insert( -1, vpna, [vpna.mac.replace(/,/,'\n'), vpna.ip, (vpna.host ? vpna.host : "vpna"), gw_vpna.join(vpna.ip) ], false );
  }
 
- for(var i in list){ gw_grid.insert( -1, list[i], [list[i].mac.replace(/,/,'\n'), list[i].ip, list[i].host, gw_radio.join(i) ], false ); f['gw_'+i][verify_gw(list[i].gw)].checked=true; }
+ for(var i in list){ gw_grid.insert( -1, list[i], [list[i].mac.replace(/,/,'\n'), list[i].ip, (list[i].host ? list[i].host : ""), gw_radio.join(i) ], false ); f['gw_'+i][verify_gw(list[i].gw)].checked=true; }
 
 }
 
