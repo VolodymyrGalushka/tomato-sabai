@@ -21,7 +21,7 @@ function program(){ get('activate.sh', 'program '+pro.msg, finished ); }
 
 function useToken(){ if(f.act_token.value.length==0) report('Please enter a valid token.'); else get('activate.sh', 'gotToken '+ f.act_token.value, finished ); }
 function manualReply(res){ if(!res || !res.sabai){ report(res?res.msg:'Error 43.'); return; }; f.act_code.value=res.msg; peek('manualSection',true); peek('autoSection',false); }
-function activate(manual){ if(f.act_email.value.length==0){ report('Please enter a valid e-mail address.  Note: your activation code will be sent to this e-mail address.'); return; }
+function activate(manual){ if(f.act_email.value.length==0){ report('Please enter a valid e-mail address.'); return; }
  get('activate.sh', (manual?'manual ':'activate ')+pro.msg+','+f.act_email.value, (manual?manualReply:finished) );
 }
 
@@ -37,7 +37,7 @@ function init(){ peek('actLink',true); f=E('fom'); E('remacs').innerHTML=(pro.ma
 <!-- / / / -->
 
 <!-- BEGIN REGISTRATION HTML -->
-<div class='section-title'>Sabai Router Registration<span id='remacs' style='font-size: 12px;'></span></div>
+<div class='section-title'>Activation<span id='remacs' style='font-size: 12px;'></span></div>
 
 <div class='section' id='autoSection'>
 <script type='text/javascript'>
@@ -48,7 +48,7 @@ createFieldTable('', [
  "<input id='manualButton' value='Activate Manually' onclick='activate(true);' type='button'> "+
  "<input id='programButton' value='Program' onclick='program();' type='button'>"
  },
-	{ text: 'Please enter a valid e-mail address to register your router. Note: your activation code will be sent to this e-mail address.',  hidden: pro.sabai },
+	{ text: 'Please enter a valid e-mail address to activate your router. Your activation code will be sent to this e-mail address for future reference.',  hidden: pro.sabai },
 	{ title: 'Processing...', hidden: true, rid: 'reg_spin', suffix: '<img src="imgspin.gif">' },
 	{ text: 'Your Sabai router is now activated!',  hidden: (!pro.sabai) },
 	{ title: 'Go to', hidden: (!pro.sabai),
@@ -66,8 +66,9 @@ createFieldTable('', [
 <script type='text/javascript'>
 createFieldTable('', [
 	{ title: 'Code', rid: 'row_code', suffix:
+ "Please copy this code and email it to activation@sabaitechnology.com <br><br>" +
  "<textarea id='act_code' readonly='readonly' onclick='this.select();' style='width: 100%; height: 6em'></textarea>"+
- "<br>Please enter the activation token you received or give the contents of the code box to your support representative; they will retrieve your token."
+ "<br>Please enter the activation token you received and click Activate."
  },
 	{ title: 'Activation Token', rid: 'row_token', name: 'act_token', type: 'text', size: '60' },
 	{ title: '', hidden: pro.sabai, suffix:
