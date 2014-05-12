@@ -5,7 +5,7 @@ _msg(){ echo "{ \"sabai\": $1, \"msg\": \"$2\" }"; exit; }
 _bad(){ _msg 'false' "$1"; }
 _crypt(){ key='tihuoveheSabaai'; miv='6c537f417d42af419241ad49'; salt="$(head -c32 /dev/urandom | md5sum | tr -d ' -'|head -c8)"; K="$(echo -n $salt$key | md5sum | tr -d ' -')"; I="$(echo -n $salt$miv | md5sum | tr -d ' -')"; salt64="$(echo -n $salt | openssl enc -e -a -A)"; con="$salt64$(echo "$1" | openssl aes128 -e -a -A -K $K -iv $I | tr '+' '.')"; }
 _manual(){ _crypt "$(nvram get srcnvrl),$(md5sum /dev/mtd0ro | cut -d' ' -f1),$data"; _msg 'true' "$con"; }
-_request(){ unset $data; _crypt "$2"; res="$(wget $1$con -qO-)" || _bad "Error contacting server"; res="$(echo $res | openssl aes128 -d -a -A -nosalt -K $K -iv $I)" || _bad 'Request lost in translation'; data="$(echo "$res" | tail -n+2)"; res="$(echo "$res" | head -n1)"; ret="${res:0:1}"; res="${res:1}"; [ $ret -eq 0 ] && _bad $res; }
+_request(){ unset $data; _crypt "$2"; res="$(wget $1$con -qO-)" || _bad "Unable to contact server"; res="$(echo $res | openssl aes128 -d -a -A -nosalt -K $K -iv $I)" || _bad 'Request lost in translation'; data="$(echo "$res" | tail -n+2)"; res="$(echo "$res" | head -n1)"; ret="${res:0:1}"; res="${res:1}"; [ $ret -eq 0 ] && _bad $res; }
 _isThere(){ ping -c1 -W2 -w3 $1 >/dev/null 2>&1 && p=$1; }
 _program(){
 	[ -n "$(nvram get srcnvrl)" ] && _bad "Router already licensed."
