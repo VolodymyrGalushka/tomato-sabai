@@ -19,9 +19,15 @@ function finished(res){ if(res.sabai){ location.reload(); }else{ if(res.msg && r
 
 function program(){ get('activate.sh', 'program '+pro.msg, finished ); }
 
-function useToken(){ if(f.act_token.value.length==0) report('Please enter a valid token.'); else get('activate.sh', 'gotToken '+ f.act_token.value, finished ); }
-function manualReply(res){ if(!res || !res.sabai){ report(res?res.msg:'Error 43.'); return; }; f.act_code.value=res.msg; peek('manualSection',true); peek('autoSection',false); }
-function activate(manual){ if(f.act_email.value.length==0){ report('Please enter a valid e-mail address.'); return; }
+function useToken(){ 
+   report(''); //clear errors
+   if(f.act_token.value.length==0) report('Please enter a valid token.'); else get('activate.sh', 'gotToken '+ f.act_token.value, finished ); }
+function manualReply(res){ 
+   report(''); 
+   if(!res || !res.sabai){ report(res?res.msg:'Error 43.'); return; }; f.act_code.value=res.msg; peek('manualSection',true); peek('autoSection',false); }
+function activate(manual){ 
+   report(''); 
+   if(f.act_email.value.length==0){ report('Please enter a valid e-mail address.'); return; }
  get('activate.sh', (manual?'manual ':'activate ')+pro.msg+','+f.act_email.value, (manual?manualReply:finished) );
 }
 
