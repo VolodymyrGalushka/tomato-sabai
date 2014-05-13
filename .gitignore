@@ -36,7 +36,6 @@ stamp-h1
 *.REMOTE.*
 *.LOCAL.*
 
-/release/src/router/shared/tomato_version
 /release/src-rt-6.x/tomato_ver
 
 #man pages
@@ -47,6 +46,7 @@ stamp-h1
 
 Makefile
 !/release/src-rt-6.x/Makefile
+!/release/src-rt/Makefile
 
 /release/src/router/mipsel-uclibc/install/**
 **/target/**
@@ -226,8 +226,6 @@ Makefile
 /release/src/router/rstats/rstats
 /release/src/router/samba3/.conf
 /release/src/router/sd-idle/sd-idle
-/release/src/router/shared/tomato_profile.h
-/release/src/router/shared/tomato_version.h
 /release/src/router/shared/tomato_version_last
 /release/src/router/snmp/EXAMPLE.conf
 /release/src/router/snmp/agent/mibgroup/mib_module_dot_conf.h
