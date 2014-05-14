@@ -35,12 +35,12 @@ $build = 0;
 $space = "";
 $suffix = "";
 
-# open(F, "$path/tomato_version") || error("opening tomato_version: $!");
-# $_ = <F>;
-# if (!(($major, $minor, $build, $space, $suffix) = /^(\d+)\.(\d+)\.(\d+)(\s+)?(.+)?$/)) {
-# 	error("Invalid version: '$_'");
-# }
-# close(F);
+open(F, "$path/tomato_version") || error("opening tomato_version: $!");
+$_ = <F>;
+if (!(($major, $minor, $build, $space, $suffix) = /^(\d+)\.(\d+)\.(\d+)(\s+)?(.+)?$/)) {
+	error("Invalid version: '$_'");
+}
+close(F);
 
 if ($ARGV[0] eq "--bump") {
 	++$build;
