@@ -502,6 +502,10 @@ define RouterOptions
 		sed -i "/TCONFIG_NOCAT/d" $(1); \
 		echo "TCONFIG_NOCAT=y" >>$(1); \
 	fi; \
+	if [ "$(NGINX)" = "y" ]; then \
+		sed -i "/TCONFIG_NGINX/d" $(1); \
+		echo "TCONFIG_NGINX=y" >>$(1); \
+	fi; \
 	if [ "$(OPENVPN)" = "y" ]; then \
 		sed -i "/TCONFIG_LZO/d" $(1); \
 		echo "TCONFIG_LZO=y" >>$(1); \
