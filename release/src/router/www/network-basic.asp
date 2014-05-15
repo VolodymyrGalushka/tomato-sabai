@@ -452,6 +452,9 @@ function verifyFields(focused, quiet)
 		_f_dns_1: 1,
 		_f_dns_2: 1,
 		_f_dns_3: 1,
+/* DNSSEC-BEGIN */
+		_f_dnssec_enable: 1,
+/* DNSSEC-END */
 		_lan_gateway: 1,
 		_wan_wins: 1,
 		_modem_pin: 1,
@@ -1137,7 +1140,13 @@ function save()
 	fom.pptp_dhcp.value = fom.f_pptp_dhcp.checked ? 1 : 0;
 
 	fom.wan_dns.value = joinAddr([fom.f_dns_1.value, fom.f_dns_2.value, fom.f_dns_3.value]);
+/* DNSSEC-BEGIN */
+	fom.dnssec_enable.value = fom.f_dnssec_enable.checked ? 1 : 0;
+/* DNSSEC-END */
 
+/* DNSCRYPT-BEGIN */
+	fom.dnscrypt_proxy.value = fom.f_dnscrypt_proxy.checked ? 1 : 0;
+/* DNSCRYPT-END */
 	var e = E('footer-msg');
 	var t = fixIP(fom['lan_ipaddr'].value);
 
@@ -1192,7 +1201,6 @@ function init()
 <tr id='body'><td id='navi'><% sabaaiMenu(); %></td>
 <td id='content'>
 
-
 <!-- / / / -->
 
 <input type='hidden' name='_nextpage' value='network-basic.asp'>
@@ -1205,7 +1213,12 @@ function init()
 <input type='hidden' name='pptp_dhcp'>
 <input type='hidden' name='wan_dns'>
 <input type='hidden' name='ppp_mlppp'>
-
+<!-- DNSSEC-BEGIN -->
+<input type='hidden' name='dnssec_enable'>
+<!-- DNSSEC-END -->
+/* DNSCRYPT-BEGIN */
+<input type='hidden' name='dnscrypt_proxy'>
+/* DNSCRYPT-END */
 
 <div class='section-title'>WAN / Internet</div>
 <div class='section'>
@@ -1261,6 +1274,8 @@ createFieldTable('', [
 <script type='text/javascript'>
 dns = nvram.wan_dns.split(/\s+/);
 
+//ipp = nvram.lan_ipaddr.split('.').splice(0, 3).join('.');
+
 createFieldTable('', [
 	{ title: 'Router IP Address', name: 'lan_ipaddr', type: 'text', maxlen: 15, size: 17, value: nvram.lan_ipaddr },
 	{ title: 'Subnet Mask', name: 'lan_netmask', type: 'text', maxlen: 15, size: 17, value: nvram.lan_netmask },
@@ -1268,6 +1283,15 @@ createFieldTable('', [
 	{ title: 'Static DNS', suffix: '&nbsp; <i>(IP:port)</i>', name: 'f_dns_1', type: 'text', maxlen: 21, size: 25, value: dns[0] || '0.0.0.0' },
 	{ title: '', name: 'f_dns_2', type: 'text', maxlen: 21, size: 25, value: dns[1] || '0.0.0.0' },
 	{ title: '', name: 'f_dns_3', type: 'text', maxlen: 21, size: 25, value: dns[2] || '0.0.0.0' },
+/* DNSSEC-BEGIN */
+	{ title: 'Enable DNSSEC', name: 'f_dnssec_enable', type: 'checkbox', suffix: ' <i>(must be supported by the upstream nameservers)</i>', value: (nvram.dnssec_enable == 1) },
+/* DNSSEC-END */
+/* DNSCRYPT-BEGIN */
+	{ title: 'Use dnscrypt-proxy', name: 'f_dnscrypt_proxy', type: 'checkbox', value: (nvram.dnscrypt_proxy == 1) },
+	{ title: 'Local Port', indent: 2, name: 'dnscrypt_port', type: 'text', maxlen: 5, size: 7, value: nvram.dnscrypt_port },
+	{ title: 'Startup Parameters', indent: 2, name: 'dnscrypt_cmd', type: 'text', maxlen: 256, size: 64, value: nvram.dnscrypt_cmd, suffix: ' <i>(optional)</i>' },
+/* DNSCRYPT-END */
+	{ title: 'WINS <i>(for DHCP)</i>', name: 'wan_wins', type: 'text', maxlen: 15, size: 17, value: nvram.wan_wins }
 	{ title: 'DHCP Server', name: 'f_dhcpd_enable', type: 'checkbox', value: (nvram.lan_proto == 'dhcp') },
 	{ title: 'IP Address Range', indent: 2, multi: [
 		{ name: 'dhcpd_startip', type: 'text', maxlen: 15, size: 17, value: nvram.dhcpd_startip, suffix: ' - ' },
@@ -1281,6 +1305,7 @@ createFieldTable('', [
 
 </script>
 </div>
+
 
 <script type='text/javascript'>
 
