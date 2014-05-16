@@ -1471,8 +1471,8 @@ static int init_nvram(void)
 			nvram_set("wl1_hwaddr", nvram_safe_get("1:macaddr"));
 
 			// fix ssid according to 5G(eth2) and 2.4G(eth1) 
-			nvram_set("wl_ssid","Sabai50");
-			nvram_set("wl0_ssid","Sabai50");
+			nvram_set("wl_ssid","Sabai58");
+			nvram_set("wl0_ssid","Sabai58");
 			nvram_set("wl1_ssid","Sabai24");
 		}
 		break;
@@ -1516,8 +1516,8 @@ static int init_nvram(void)
 			nvram_set("wl1_hwaddr", s);
 
 			// fix ssid according to 5G(eth2) and 2.4G(eth1) 
-			nvram_set("wl_ssid","Sabai50");
-			nvram_set("wl0_ssid","Sabai50");
+			nvram_set("wl_ssid","Sabai58");
+			nvram_set("wl0_ssid","Sabai58");
 			nvram_set("wl1_ssid","Sabai24");
 
 			nvram_set("pci/2/1/maxp2ga0", "0x70");
@@ -1590,8 +1590,8 @@ static int init_nvram(void)
 			nvram_set("blink_5g_interface","eth1");
 
 			// fix ssid according to 5G(eth1) and 2.4G(eth2) 
-			nvram_set("wl_ssid","Sabai50");
-			nvram_set("wl0_ssid","Sabai50");
+			nvram_set("wl_ssid","Sabai58");
+			nvram_set("wl0_ssid","Sabai58");
 			nvram_set("wl1_ssid","Sabai24");
 
 			//force US country for 5G eth1, modified by bwq518
