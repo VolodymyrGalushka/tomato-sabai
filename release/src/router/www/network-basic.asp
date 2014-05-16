@@ -409,6 +409,13 @@ function verifyFields(focused, quiet)
 	var u, uidx;
 	var wmode, sm2;
 
+/* DNSCRYPT-BEGIN */
+	var p = E('_f_dnscrypt_proxy').checked;
+	E('_dnscrypt_priority').disabled = !p;
+	E('_dnscrypt_port').disabled = !p;
+	E('_dnscrypt_cmd').disabled = !p;
+/* DNSCRYPT-END */
+
 	for (uidx = 0; uidx < wl_ifaces.length; ++uidx) {
 //		if(wl_ifaces[uidx][0].indexOf('.') < 0) {
 		if (wl_sunit(uidx)<0) {
@@ -1140,6 +1147,7 @@ function save()
 	fom.pptp_dhcp.value = fom.f_pptp_dhcp.checked ? 1 : 0;
 
 	fom.wan_dns.value = joinAddr([fom.f_dns_1.value, fom.f_dns_2.value, fom.f_dns_3.value]);
+
 /* DNSSEC-BEGIN */
 	fom.dnssec_enable.value = fom.f_dnssec_enable.checked ? 1 : 0;
 /* DNSSEC-END */
@@ -1273,9 +1281,7 @@ createFieldTable('', [
 
 <script type='text/javascript'>
 dns = nvram.wan_dns.split(/\s+/);
-
 //ipp = nvram.lan_ipaddr.split('.').splice(0, 3).join('.');
-
 createFieldTable('', [
 	{ title: 'Router IP Address', name: 'lan_ipaddr', type: 'text', maxlen: 15, size: 17, value: nvram.lan_ipaddr },
 	{ title: 'Subnet Mask', name: 'lan_netmask', type: 'text', maxlen: 15, size: 17, value: nvram.lan_netmask },
@@ -1302,7 +1308,6 @@ createFieldTable('', [
 		value: (nvram.dhcp_lease > 0) ? nvram.dhcp_lease : 1440 },
 	{ title: 'WINS', indent: 2, name: 'wan_wins', type: 'text', maxlen: 15, size: 17, value: nvram.wan_wins }
 ]);
-
 </script>
 </div>
 
