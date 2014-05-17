@@ -1294,10 +1294,11 @@ createFieldTable('', [
 /* DNSSEC-END */
 /* DNSCRYPT-BEGIN */
 	{ title: 'Use dnscrypt-proxy', name: 'f_dnscrypt_proxy', type: 'checkbox', value: (nvram.dnscrypt_proxy == 1) },
+	{ title: 'Priority', indent: 2, name: 'dnscrypt_priority', type: 'select', options: [['1','Preferred'],['2','Exclusive'],['0','None']], value: nvram.dnscrypt_priority },
 	{ title: 'Local Port', indent: 2, name: 'dnscrypt_port', type: 'text', maxlen: 5, size: 7, value: nvram.dnscrypt_port },
 	{ title: 'Startup Parameters', indent: 2, name: 'dnscrypt_cmd', type: 'text', maxlen: 256, size: 64, value: nvram.dnscrypt_cmd, suffix: ' <i>(optional)</i>' },
 /* DNSCRYPT-END */
-	{ title: 'WINS <i>(for DHCP)</i>', name: 'wan_wins', type: 'text', maxlen: 15, size: 17, value: nvram.wan_wins }
+	
 	{ title: 'DHCP Server', name: 'f_dhcpd_enable', type: 'checkbox', value: (nvram.lan_proto == 'dhcp') },
 	{ title: 'IP Address Range', indent: 2, multi: [
 		{ name: 'dhcpd_startip', type: 'text', maxlen: 15, size: 17, value: nvram.dhcpd_startip, suffix: ' - ' },
@@ -1310,7 +1311,6 @@ createFieldTable('', [
 ]);
 </script>
 </div>
-
 
 <script type='text/javascript'>
 
