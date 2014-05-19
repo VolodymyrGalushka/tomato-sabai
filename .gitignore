@@ -36,7 +36,6 @@ stamp-h1
 *.REMOTE.*
 *.LOCAL.*
 
-/release/src-rt-6.x/tomato_ver
 
 #man pages
 *.8
@@ -226,7 +225,6 @@ Makefile
 /release/src/router/rstats/rstats
 /release/src/router/samba3/.conf
 /release/src/router/sd-idle/sd-idle
-/release/src/router/shared/tomato_version_last
 /release/src/router/snmp/EXAMPLE.conf
 /release/src/router/snmp/agent/mibgroup/mib_module_dot_conf.h
 /release/src/router/snmp/agent/mibgroup/mib_module_includes.h
@@ -311,7 +309,6 @@ Makefile
 /release/src/router/pptpd/autom4te.cache/traces.0
 /release/src/router/pptpd/autom4te.cache/traces.1
 /release/src/router/pptpd/configure
-/release/src/router/shared/tomato_version
 /release/src/router/igmpproxy/autom4te.cache/output.0
 /release/src/router/igmpproxy/autom4te.cache/requests
 /release/src/router/igmpproxy/autom4te.cache/traces.0
