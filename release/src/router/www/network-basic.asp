@@ -1261,12 +1261,6 @@ createFieldTable('', [
 <script type='text/javascript'>
 dns = nvram.wan_dns.split(/\s+/);
 
-//ipp = nvram.lan_ipaddr.split('.').splice(0, 3).join('.');
-
-var n = getNetworkAddress(nvram['lan_ipaddr'], nvram['lan_netmask']);
-nvram['dhcpd_startip'] = getAddress(('0.0.0.' + nvram['dhcp_start'] * 1), n);
-nvram['dhcpd_endip'] = getAddress(('0.0.0.' + ((nvram['dhcp_start'] * 1) + (nvram['dhcp_num'] *1) - 1)), n);
-
 createFieldTable('', [
 	{ title: 'Router IP Address', name: 'lan_ipaddr', type: 'text', maxlen: 15, size: 17, value: nvram.lan_ipaddr },
 	{ title: 'Subnet Mask', name: 'lan_netmask', type: 'text', maxlen: 15, size: 17, value: nvram.lan_netmask },
