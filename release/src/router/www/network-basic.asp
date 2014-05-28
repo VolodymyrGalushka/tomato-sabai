@@ -676,6 +676,20 @@ function verifyFields(focused, quiet)
 		}
 	}
 
+/* DNSCRYPT-BEGIN */
+	var p = E('_f_dnscrypt_proxy').checked;
+	vis._dnscrypt_priority = p;
+	vis._dnscrypt_port = p;
+	vis._dnscrypt_log = p;
+	vis._f_dnscrypt_manual = p;
+	var q = E('_f_dnscrypt_proxy').checked && E('_f_dnscrypt_manual').checked;
+	vis._dnscrypt_provider_name = q;
+	vis._dnscrypt_provider_key = q;
+	vis._dnscrypt_resolver_address = q;
+	var r = E('_f_dnscrypt_proxy').checked && !E('_f_dnscrypt_manual').checked;
+	vis._dnscrypt_resolver = r;
+/* DNSCRYPT-END */
+
 	for (uidx = 0; uidx < wl_ifaces.length; ++uidx) {
 //		if(wl_ifaces[uidx][0].indexOf('.') < 0) {
 		if (wl_sunit(uidx)<0) {
@@ -1154,6 +1168,7 @@ function save()
 
 /* DNSCRYPT-BEGIN */
 	fom.dnscrypt_proxy.value = fom.f_dnscrypt_proxy.checked ? 1 : 0;
+	fom.dnscrypt_manual.value = fom.f_dnscrypt_manual.checked ? 1 : 0;
 /* DNSCRYPT-END */
 	var e = E('footer-msg');
 	var t = fixIP(fom['lan_ipaddr'].value);
@@ -1226,6 +1241,7 @@ function init()
 <!-- DNSSEC-END -->
 /* DNSCRYPT-BEGIN */
 <input type='hidden' name='dnscrypt_proxy'>
+<input type='hidden' name='dnscrypt_manual'>
 /* DNSCRYPT-END */
 
 <div class='section-title'>WAN / Internet</div>
@@ -1294,9 +1310,14 @@ createFieldTable('', [
 /* DNSSEC-END */
 /* DNSCRYPT-BEGIN */
 	{ title: 'Use dnscrypt-proxy', name: 'f_dnscrypt_proxy', type: 'checkbox', value: (nvram.dnscrypt_proxy == 1) },
-	{ title: 'Priority', indent: 2, name: 'dnscrypt_priority', type: 'select', options: [['1','Preferred'],['2','Exclusive'],['0','None']], value: nvram.dnscrypt_priority },
+	{ title: 'Manual Entry', indent: 2, name: 'f_dnscrypt_manual', type: 'checkbox', value: (nvram.dnscrypt_manual == 1) },
+	{ title: 'Resolver', indent: 2, name: 'dnscrypt_resolver', type: 'select', options: _dnscrypt_resolvers_, value: nvram.dnscrypt_resolver, suffix: ' <a href=\'https://github.com/jedisct1/dnscrypt-proxy/blob/master/dnscrypt-resolvers.csv\' target=\'_new\'>Resolver Details</a>' },
+	{ title: 'Resolver Address', indent: 2, name: 'dnscrypt_resolver_address', type: 'text', maxlen: 50, size: 25, value: nvram.dnscrypt_resolver_address, suffix: ' <a href=\'https://github.com/jedisct1/dnscrypt-proxy/blob/master/dnscrypt-resolvers.csv\' target=\'_new\'>Resolver Details</a>' },
+	{ title: 'Provider Name', indent: 2, name: 'dnscrypt_provider_name', type: 'text', maxlen: 60, size: 25, value: nvram.dnscrypt_provider_name },
+	{ title: 'Provider Public Key', indent: 2, name: 'dnscrypt_provider_key', type: 'text', maxlen: 80, size: 25, value: nvram.dnscrypt_provider_key },
+	{ title: 'Priority', indent: 2, name: 'dnscrypt_priority', type: 'select', options: [['1','Strict-Order'],['2','No-Resolv'],['0','None']], value: nvram.dnscrypt_priority },
 	{ title: 'Local Port', indent: 2, name: 'dnscrypt_port', type: 'text', maxlen: 5, size: 7, value: nvram.dnscrypt_port },
-	{ title: 'Startup Parameters', indent: 2, name: 'dnscrypt_cmd', type: 'text', maxlen: 256, size: 64, value: nvram.dnscrypt_cmd, suffix: ' <i>(optional)</i>' },
+	{ title: 'Log Level', indent: 2, name: 'dnscrypt_log', type: 'text', maxlen: 2, size: 5, value: nvram.dnscrypt_log },
 /* DNSCRYPT-END */
 	
 	{ title: 'DHCP Server', name: 'f_dhcpd_enable', type: 'checkbox', value: (nvram.lan_proto == 'dhcp') },
