@@ -76,6 +76,7 @@ function save()
 		fom._service.value = 'dnsmasq-restart';
 	}
 
+
 	if (fom.dns_intcpt.value != nvram.dns_intcpt) {
 		nvram.dns_intcpt = fom.dns_intcpt.value;
 		if (fom._service.value != '*') fom._service.value += ',firewall-restart';
