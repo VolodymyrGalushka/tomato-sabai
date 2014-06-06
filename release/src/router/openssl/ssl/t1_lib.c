@@ -671,8 +671,6 @@ unsigned char *ssl_add_clienthello_tlsext(SSL *s, unsigned char *p, unsigned cha
                 ret += el;
                 }
 #endif
-
-#ifdef TLSEXT_TYPE_padding
 	/* Add padding to workaround bugs in F5 terminators.
 	 * See https://tools.ietf.org/html/draft-agl-tls-padding-03
 	 *
@@ -702,8 +700,6 @@ unsigned char *ssl_add_clienthello_tlsext(SSL *s, unsigned char *p, unsigned cha
 			ret += hlen;
 			}
 		}
-	}
-#endif
 
 	if ((extdatalen = ret-p-2)== 0) 
 		return p;
