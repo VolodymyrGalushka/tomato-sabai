@@ -4,10 +4,10 @@ Developed by the Tomato Community and
 
 Sabai Technology
 
-Sabai Technology reserves the right to enforce our trademarks, and patented VPN interface. Free for individual public use.  
-Business or distribution should contact Sabai Technology for licensing.
-Development forks should use other graphics / logos / names to avoid trademark infringement.  Sabai Techology's work is released
-under the Apache v2 licence.
+Sabai Technology reserves the right to enforce our trademarks, and patented VPN interface. 
+Free for individual public use.  Business or distribution should contact Sabai Technology 
+for licensing.Development forks should use other graphics / logos / names to avoid 
+trademark infringement.  Sabai Techology's work is released under the Apache v2 licence.
 
                                  Apache License
                            Version 2.0, January 2004
