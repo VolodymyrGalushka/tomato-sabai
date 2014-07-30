@@ -1,8 +1,6 @@
 tomato-sabai
 
-Developed by the Tomato Community and 
-
-Sabai Technology
+Developed by the Tomato Community and Sabai Technology
 
 Sabai Technology reserves the right to enforce our trademarks, and patented VPN interface. 
 Free for individual public use.  Business or distribution should contact Sabai Technology 
