@@ -1088,7 +1088,18 @@ static void filter_input(void)
 // clamp TCP MSS to PMTU of WAN interface (IPv4 only?)
 static void clampmss(void)
 {
+#if 1
 	ipt_write("-A FORWARD -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu\n");
+#else
+	int rmtu = nvram_get_int("wan_run_mtu");
+	ipt_write("-A FORWARD -p tcp --tcp-flags SYN,RST SYN -m tcpmss --mss %d: -j TCPMSS ", rmtu - 39);
+	if (rmtu < 576) {
+		ipt_write("--clamp-mss-to-pmtu\n");
+	}
+	else {
+		ipt_write("--set-mss %d\n", rmtu - 40);
+	}
+#endif
 #ifdef TCONFIG_IPV6
 	switch (get_ipv6_service()) {
 	case IPV6_ANYCAST_6TO4:
@@ -1228,13 +1239,13 @@ static void filter_forward(void)
 		}
 	}
 
-//#ifdef TCONFIG_PPTPD
-//	//Add for pptp server
-//	if (nvram_match("pptpd_enable", "1")) {
-//		ipt_write("-A INPUT -p tcp --dport 1723 -j ACCEPT\n");
-//		ipt_write("-A INPUT -p 47 -j ACCEPT\n");
-//	}
-//#endif
+#ifdef TCONFIG_PPTPD
+	//Add for pptp server
+	if (nvram_match("pptpd_enable", "1")) {
+		ipt_write("-A INPUT -p tcp --dport 1723 -j ACCEPT\n");
+		ipt_write("-A INPUT -p 47 -j ACCEPT\n");
+	}
+#endif
 
 #ifdef TCONFIG_IPV6
 	// Filter out invalid WAN->WAN connections
@@ -1849,9 +1860,14 @@ int start_firewall(void)
 	unlink("/var/webmon/domain");
 	unlink("/var/webmon/search");
 
-//#ifdef TCONFIG_OPENVPN
-//	run_vpn_firewall_scripts();
-//#endif
+#ifdef TCONFIG_OPENVPN
+	run_vpn_firewall_scripts();
+#endif
+
+#ifdef TCONFIG_TINC
+	run_tinc_firewall_script();
+#endif
+
 	run_nvscript("script_fire", NULL, 1);
 //	start_arpbind();
 
@@ -1864,7 +1880,6 @@ int start_firewall(void)
 	allow_fastnat("firewall", can_enable_fastnat);
 	try_enabling_fastnat();
 #endif
-
 	simple_unlock("firewall");
 	return 0;
 }
