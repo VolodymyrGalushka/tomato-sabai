@@ -1,4 +1,3 @@
-
 /*
 
 	Tomato Firmware
@@ -408,7 +407,7 @@ const aspapi_t aspapi[] = {
 	{ "wanstatus",			asp_wanstatus		},
 	{ "wanup",			asp_wanup		},
 #ifdef TCONFIG_PPTPD
-	//	{ "pptpd_userol",		asp_pptpd_userol	},
+	{ "pptpd_userol",		asp_pptpd_userol	},
 #endif
 	{ "wlstats",			asp_wlstats		},
 	{ "wlclient",			asp_wlclient		},
@@ -1291,7 +1290,57 @@ static const nvset_t nvset_list[] = {
 	{ "limit_br3_dlc",               V_RANGE(0, 999999)     },
 	{ "limit_br3_prio",              V_RANGE(0, 5)          },
 
-//NoCatSplash. Victek.
+
+#ifdef TCONFIG_BT
+// nas-transmission
+	{ "bt_enable",                  V_01                            },
+	{ "bt_binary",                  V_LENGTH(0, 50)                 },
+	{ "bt_binary_custom",           V_LENGTH(0, 50)                 },
+	{ "bt_custom",                  V_TEXT(0, 2048)                 },
+	{ "bt_port",                    V_PORT                          },
+	{ "bt_dir",                     V_LENGTH(0, 50)                 },
+	{ "bt_settings",                V_LENGTH(0, 50)                 },
+	{ "bt_settings_custom",         V_LENGTH(0, 50)                 },
+	{ "bt_incomplete",              V_01                            },
+	{ "bt_rpc_enable",              V_01                            },
+	{ "bt_rpc_wan",                 V_01                            },
+	{ "bt_auth",                    V_01                            },
+	{ "bt_login",                   V_LENGTH(0, 50)                 },
+	{ "bt_password",                V_LENGTH(0, 50)                 },
+	{ "bt_port_gui",                V_PORT                          },
+	{ "bt_dl_enable",               V_01                            },
+	{ "bt_ul_enable",               V_01                            },
+	{ "bt_dl",                      V_RANGE(1, 999999)              },
+	{ "bt_ul",                      V_RANGE(1, 999999)              },
+	{ "bt_peer_limit_global",       V_RANGE(10, 1000)               },
+	{ "bt_peer_limit_per_torrent",  V_RANGE(1, 200)                 },
+	{ "bt_ul_slot_per_torrent",     V_RANGE(1, 50)                  },
+	{ "bt_ratio_enable",            V_01                            },
+	{ "bt_ratio",                   V_LENGTH(0, 999999)             },
+	{ "bt_ratio_idle_enable",       V_01                            },
+	{ "bt_ratio_idle",              V_RANGE(1, 55)                  },
+	{ "bt_dht",                     V_01                            },
+	{ "bt_pex",                     V_01                            },
+	{ "bt_lpd",                     V_01                            },
+	{ "bt_utp",                     V_01                            },
+	{ "bt_blocklist",               V_01                            },
+	{ "bt_blocklist_url",           V_LENGTH(0, 80)                 },
+	{ "bt_sleep",                   V_RANGE(1, 60)                  },
+	{ "bt_check",                   V_01                            },
+	{ "bt_check_time",              V_RANGE(1, 55)                  },
+	{ "bt_dl_queue_enable",         V_01                            },
+	{ "bt_dl_queue_size",           V_RANGE(1, 30)                  },
+	{ "bt_ul_queue_enable",         V_01                            },
+	{ "bt_ul_queue_size",           V_RANGE(1, 30)                  },
+	{ "bt_message",                 V_RANGE(0, 3)                   },
+#endif
+
+#ifdef TCONFIG_NFS
+	{ "nfs_enable",			V_01				},
+	{ "nfs_exports",		V_LENGTH(0, 4096)		},
+#endif
+
+//NotCatSplash. Victek.
 #ifdef TCONFIG_NOCAT
 	{ "NC_enable",			V_01				},
 	{ "NC_Verbosity",		V_RANGE(0, 10)			},
