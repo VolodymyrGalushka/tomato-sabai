@@ -39,7 +39,7 @@
 //! = see restore_main()
 
 const defaults_t defaults[] = {
-	{ "restore_defaults",	"0"					},	// Set to 0 to not restore defaults on boot
+	{ "restore_defaults",	"0"				},	// Set to 0 to not restore defaults on boot
 
 	// LAN H/W parameters
 //!	{ "lan_ifname",			""				},	// LAN interface name
@@ -54,11 +54,11 @@ const defaults_t defaults[] = {
 	{ "lan_netmask",		"255.255.255.0"			},	// LAN netmask
 	{ "lan_wins",			""				},	// x.x.x.x x.x.x.x ...
 	{ "lan_domain",			""				},	// LAN domain name
-	{ "lan_lease",			"86400"				},	// LAN lease time in seconds
+	{ "lan_lease",			"86400"			},	// LAN lease time in seconds
 	{ "lan_stp",			"0"				},	// LAN spanning tree protocol
 	{ "lan_route",			""				},	// Static routes (ipaddr:netmask:gateway:metric:ifname ...)
 
-	{ "lan_gateway",		"0.0.0.0"			},	// LAN Gateway
+	{ "lan_gateway",		"0.0.0.0"		},	// LAN Gateway
 	{ "wl_wds_enable",		"0"				},	// WDS Enable (0|1)
 
 	{ "lan_state",			"1"				},	// Show Ethernet LAN ports state (0|1)
@@ -80,34 +80,43 @@ const defaults_t defaults[] = {
 //!	{ "wan_ifnames",		""				},	// WAN interface names
 	{ "wan_hwname",			""				},	// WAN driver name (e.g. et1)
 	{ "wan_hwaddr",			""				},	// WAN interface MAC address
-	{ "wan_ifnameX",		NULL				},	// real wan if; see wan.c:start_wan
+	{ "wan_ifnameX",		NULL			},	// real wan if; see wan.c:start_wan
 
 	// WAN TCP/IP parameters
-	{ "wan_proto",			"dhcp"				},	// [static|dhcp|pppoe|disabled]
-	{ "wan_ipaddr",			"0.0.0.0"			},	// WAN IP address
-	{ "wan_netmask",		"0.0.0.0"			},	// WAN netmask
-	{ "wan_gateway",		"0.0.0.0"			},	// WAN gateway
-	{ "wan_gateway_get",		"0.0.0.0"			},	// default gateway for PPP
+	{ "wan_proto",			"dhcp"			},	// [static|dhcp|pppoe|disabled]
+	{ "wan_ipaddr",			"0.0.0.0"		},	// WAN IP address
+	{ "wan_netmask",		"0.0.0.0"		},	// WAN netmask
+	{ "wan_gateway",		"0.0.0.0"		},	// WAN gateway
+	{ "wan_gateway_get",		"0.0.0.0"		},	// default gateway for PPP
 	{ "wan_dns",			"8.8.8.8 208.67.222.222 8.8.4.4"},	// x.x.x.x x.x.x.x ...
+#ifdef TCONFIG_DNSSEC
+	{ "dnssec_enable",		"0"		},
+#endif
 #ifdef TCONFIG_DNSCRYPT
-	{ "dnscrypt_proxy",		""				},
+	{ "dnscrypt_proxy",		"0"			},
+	{ "dnscrypt_priority",		"1"			}, // 0=none, 1=strict-order, 2=no-resolv
 	{ "dnscrypt_port",		"40"			}, // local port
-	{ "dnscrypt_cmd",		"-m 99"			}, // optional arguments
+	{ "dnscrypt_resolver",		"opendns"		}, // default resolver
+	{ "dnscrypt_log",		"99"			}, // log level
+	{ "dnscrypt_manual",		"0"			}, // Set manual resolver
+	{ "dnscrypt_provider_name",	""			}, // Set manual provider name
+	{ "dnscrypt_provider_key",	""			}, // Set manual provider key
+	{ "dnscrypt_resolver_address",	""			}, // Set manual resolver address
 #endif
 	{ "wan_wins",			""				},	// x.x.x.x x.x.x.x ...
-	{ "wan_lease",			"86400"				},	// WAN lease time in seconds
+	{ "wan_lease",			"86400"			},	// WAN lease time in seconds
 	{ "wan_islan",			"0"				},
-	{ "modem_ipaddr",		"0.0.0.0"		},	// modem IP address (i.e. PPPoE bridged modem)
+	{ "modem_ipaddr",		"0.0.0.0"			}, // modem IP address (i.e. PPPoE bridged modem)
 
 	{ "wan_primary",		"1"				},	// Primary wan connection
 	{ "wan_unit",			"0"				},	// Last configured connection
 /* --- obsolete ---
 	// Filters
 	{ "filter_maclist",		""				},	// xx:xx:xx:xx:xx:xx ...
-	{ "filter_macmode",		"deny"				},	// "allow" only, "deny" only, or "disabled" (allow all)
+	{ "filter_macmode",		"deny"			},	// "allow" only, "deny" only, or "disabled" (allow all)
 	{ "filter_client0",		""				},	// [lan_ipaddr0-lan_ipaddr1|*]:lan_port0-lan_port1,proto,enable,day_start-day_end,sec_start-sec_end,desc
 
-	{ "filter",			"on"				},	// [on | off] Firewall Protection
+	{ "filter",				"on"			},	// [on | off] Firewall Protection
 
 	// Port forwards
 	{ "autofw_port0",		""				},	// out_proto:out_port,in_proto:in_port0-in_port1>to_port0-to_port1,enable,desc
@@ -123,22 +132,21 @@ const defaults_t defaults[] = {
 	{ "wan_routes",			""				},
 	{ "wan_msroutes",		""				},
 
-	{ "dhcp1_start",			""			},
-	{ "dhcp1_num",			""			},
+	{ "dhcp1_start",		""				},
+	{ "dhcp1_num",			""				},
 	{ "dhcpd1_startip",		"" 				},
 	{ "dhcpd1_endip",		"" 				},
-	{ "dhcp1_lease",			"0"				},
-	{ "dhcp2_start",			""			},
-	{ "dhcp2_num",			""			},
+	{ "dhcp1_lease",		"1440"				},
+	{ "dhcp2_start",		""				},
+	{ "dhcp2_num",			""				},
 	{ "dhcpd2_startip",		"" 				},
 	{ "dhcpd2_endip",		"" 				},
-	{ "dhcp2_lease",			"0"				},
-	{ "dhcp3_start",			""			},
-	{ "dhcp3_num",			""			},
+	{ "dhcp2_lease",		"1440"				},
+	{ "dhcp3_start",		""				},
+	{ "dhcp3_num",			""				},
 	{ "dhcpd3_startip",		"" 				},
 	{ "dhcpd3_endip",		"" 				},
-	{ "dhcp3_lease",			"0"				},
-
+	{ "dhcp3_lease",		"1440"				},
 
 	// 3G Modem
 	{ "modem_pin",			""				},
@@ -157,7 +165,7 @@ const defaults_t defaults[] = {
 	{ "ppp_mru",			"1500"			},	// Negotiate MRU to this value
 	{ "ppp_mtu",			"1500"			},	// Negotiate MTU to the smaller of this value or the peer MRU
 	{ "ppp_service",		""				},	// PPPoE service name
-	{ "ppp_ac",				""			},	// PPPoE access concentrator name
+	{ "ppp_ac",				""				},	// PPPoE access concentrator name
 	{ "ppp_static",			"0"				},	// Enable / Disable Static IP
 	{ "ppp_static_ip",		""				},	// PPPoE Static IP
 	{ "ppp_get_ac",			""				},	// PPPoE Server ac name
@@ -175,7 +183,7 @@ const defaults_t defaults[] = {
 	{ "ipv6_prefix_length",		"64"				},	// The bit length of the prefix. Used by dhcp6c. For radvd, /64 is always assumed.
 	{ "ipv6_rtr_addr",		""				},	// defaults to $ipv6_prefix::1
 	{ "ipv6_radvd",			"1"				},	// Enable Router Advertisement (radvd)
-	{ "ipv6_accept_ra",		"0"				},	// Accept RA on WAN and/or LAN interfaces
+	{ "ipv6_accept_ra",		"1"				},	// Accept RA on bit 0WAN and/or bit1LAN interfaces
 	{ "ipv6_ifname",		"six0"				},	// The interface facing the rest of the IPv6 world
 	{ "ipv6_tun_v4end",		"0.0.0.0"			},	// Foreign IPv4 endpoint of SIT tunnel
 	{ "ipv6_relay",			"1"				},	// Foreign IPv4 endpoint host of SIT tunnel 192.88.99.?
@@ -209,9 +217,9 @@ const defaults_t defaults[] = {
 	{ "wl_lazywds",			"0"				},	// Enable "lazy" WDS mode (0|1)
 	{ "wl_wds",			""				},	// xx:xx:xx:xx:xx:xx ...
 	{ "wl_wds_timeout",		"1"				},	// WDS link detection interval defualt 1 sec*/
-	{ "wl_wep",			"disabled"			},	// WEP data encryption (enabled|disabled)
+	{ "wl_wep",				"disabled"		},	// WEP data encryption (enabled|disabled)
 	{ "wl_auth",			"0"				},	// Shared key authentication optional (0) or required (1)
-	{ "wl_key",			"1"				},	// Current WEP key
+	{ "wl_key",				"1"				},	// Current WEP key
 	{ "wl_key1",			""				},	// 5/13 char ASCII or 10/26 char hex
 	{ "wl_key2",			""				},	// 5/13 char ASCII or 10/26 char hex
 	{ "wl_key3",			""				},	// 5/13 char ASCII or 10/26 char hex
@@ -220,26 +228,27 @@ const defaults_t defaults[] = {
 	{ "wl1_channel",		"0"				},
 	{ "wl_rate",			"0"				},	// Rate (bps, 0 for auto)
 	{ "wl_mrate",			"0"				},	// Mcast Rate (bps, 0 for auto)
-	{ "wl_rateset",			"default"			},	// "default" or "all" or "12"
-	{ "wl_frag",			"2346"				},	// Fragmentation threshold
+	{ "wl_rateset",			"default"		},	// "default" or "all" or "12"
+	{ "wl_frag",			"2346"			},	// Fragmentation threshold
 	{ "wl_rts",				"2347"			},	// RTS threshold
 	{ "wl_dtim",			"1"				},	// DTIM period (3.11.5)*/	// It is best value for WiFi test
 	{ "wl_bcn",				"100"			},	// Beacon interval
-	{ "wl_plcphdr",			"long"				},	// 802.11b PLCP preamble type
-	{ "wl_net_mode",		"mixed"				},	// Wireless mode (mixed|g-only|b-only|disable)
+	{ "wl_plcphdr",			"long"			},	// 802.11b PLCP preamble type
+	{ "wl_net_mode",		"mixed"			},	// Wireless mode (mixed|g-only|b-only|disable)
 	{ "wl_gmode",			"1"				},	// 54g mode
-	{ "wl_gmode_protection",	"off"				},	// 802.11g RTS/CTS protection (off|auto)
-	{ "wl_afterburner",		"off"				},	// AfterBurner
-	{ "wl_frameburst",		"off"				},	// BRCM Frambursting mode (off|on)
-	{ "wl_wme",			"auto"				},	// WME mode (auto|off|on)
-	{ "wl1_wme",			"auto"				},	// WME mode (auto|off|on)
-	{ "wl_antdiv",			"-1"				},	// Antenna Diversity (-1|0|1|3)
+	{ "wl_gmode_protection","off"			},	// 802.11g RTS/CTS protection (off|auto)
+	{ "wl_afterburner",		"off"			},	// AfterBurner
+	{ "wl_frameburst",		"off"			},	// BRCM Frambursting mode (off|on)
+	{ "wl_wme",			"auto"			},	// WME mode (auto|off|on)
+	{ "wl1_wme",			"auto"			},	// WME mode (auto|off|on)
+	{ "wl_antdiv",			"-1"			},	// Antenna Diversity (-1|0|1|3)
 	{ "wl_infra",			"1"				},	// Network Type (BSS/IBSS)
 	{ "wl_btc_mode",		"0"				},	// !!TB - BT Coexistence Mode
 	{ "wl_sta_retry_time",		"5"				},	// !!TB - Seconds between association attempts (0 to disable retries)
-	{ "wl_mitigation",		"0"				},	// Interference Mitigation Mode (0|1|2|3|4)    		   //Toastman  0=off
+	{ "wl_mitigation",		"0"				},	// Interference Mitigation Mode (0|1|2|3|4)
+
 	{ "wl_passphrase",		""				},	// Passphrase	// Add
-	{ "wl_wep_bit",			"128"				},	// WEP encryption [64 | 128] // Add
+	{ "wl_wep_bit",			"128"			},	// WEP encryption [64 | 128] // Add
 	{ "wl_wep_buf",			""				},	// save all settings for web // Add
 	{ "wl_wep_gen",			""				},	// save all settings for generate button	// Add
 	{ "wl_wep_last",		""				},	// Save last wl_wep mode	// Add
@@ -335,7 +344,7 @@ const defaults_t defaults[] = {
 	{ "wl_mcast_regen_bss_enable",	"1"			},	// MCAST REGEN Enable/Disable
 #endif
 
-//	{ "pptp_server_ip",		""				},	// as same as WAN gateway
+	{ "pptp_server_ip",		""				},	// as same as WAN gateway
 	{ "ppp_get_ip",			""				},	// IP Address assigned by PPTP/L2TP server
 	{ "pptp_dhcp",			"1"				},
 
@@ -343,7 +352,7 @@ const defaults_t defaults[] = {
 	{ "mtu_enable",			"0"				},	// WAN MTU [1|0]
 	{ "wan_mtu",			"1500"			},	// Negotiate MTU to the smaller of this value or the peer MRU
 
-//	{ "l2tp_server_ip",		""				},	// L2TP auth server (IP Address)
+	{ "l2tp_server_ip",		""				},	// L2TP auth server (IP Address)
 //	hbobs	{ "hb_server_ip",		""				},	// heartbeat auth server (IP Address)
 //	hbobs	{ "hb_server_domain",	""				},	// heartbeat auth server (domain name)
 
@@ -387,7 +396,7 @@ const defaults_t defaults[] = {
 	{ "arpbind_listed",		"0"				},	// AB - Enable static ARP for all devices on list
 
 // basic-wfilter
-	{ "wl_maclist",			""			},	// xx:xx:xx:xx:xx:xx ... = 17
+	{ "wl_maclist",			""			},	// xx:xx:xx:xx:xx:xx ...
 	{ "wl_macmode",			"disabled"		},
 	{ "macnames",			""			},
 
@@ -416,7 +425,7 @@ const defaults_t defaults[] = {
 	{ "wl_macaddr",			""				},
 
 // advanced-misc
-	{ "boot_wait",			"on"				},
+	{ "boot_wait",			"on"			},
 	{ "wait_time",			"5"				},
 	{ "wan_speed",			"4"				},	// 0=10 Mb Full, 1=10 Mb Half, 2=100 Mb Full, 3=100 Mb Half, 4=Auto
 	{ "jumbo_frame_enable",		"0"				},	// Jumbo Frames support (for RT-N16/WNR3500L)
@@ -437,10 +446,12 @@ const defaults_t defaults[] = {
 	{ "dns_norebind",		"1"				},
 	{ "dnsmasq_custom",		""				},
 	{ "dhcpd_static_only",	"0"				},
+	{ "dnsmasq_static_only",	"0"				},
+	{ "dnsmasq_q",			"0"				}, 	//Bit0=quiet-dhcp, 1=dhcp6, 2=ra
 //	{ "dnsmasq_norw",		"0"				},
 
 // advanced-firewall
-//	{ "block_loopback",		"0"				},	// nat loopback
+//		{ "block_loopback",		"0"				},	// nat loopback
 	{ "nf_loopback",		"0"				},
 	{ "block_wan",			"1"				},	// block inbound icmp
 	{ "block_wan_limit",		"1"				},
@@ -454,8 +465,9 @@ const defaults_t defaults[] = {
 	{ "udpxy_enable",		"0"				},
 	{ "udpxy_stats",		"0"				},
 	{ "udpxy_clients",		"3"				},
-	{ "udpxy_port",			"4022"			},
+	{ "udpxy_port",			"4022"				},
 	{ "ne_syncookies",		"0"				},	// tcp_syncookies
+	{ "DSCP_fix_enable",		"1"				},	// Comacst DSCP fix
 	{ "ne_snat",			"0"				},	// use SNAT instead of MASQUERADE
 	{ "dhcp_pass",			"1"				},	// allow DHCP responses
 	{ "ne_shlimit",			"0,3,60"			},
@@ -463,7 +475,7 @@ const defaults_t defaults[] = {
 // advanced-routing
 	{ "routes_static",		""				},
 	{ "dhcp_routes",		"1"				},
-	{ "wk_mode",			"gateway"			},	// Network mode [gateway|router]
+	{ "wk_mode",			"gateway"		},	// Network mode [gateway|router]
 #ifdef TCONFIG_ZEBRA
 	{ "dr_setting",			"0"				},	// [ Disable | WAN | LAN | Both ]
 	{ "dr_lan_tx",			"0"				},	// Dynamic-Routing LAN out
@@ -497,7 +509,8 @@ const defaults_t defaults[] = {
 	{ "dmz_enable",			"0"				},
 	{ "dmz_ipaddr",			"0"				},
 	{ "dmz_sip",			""				},
-	{ "dmz_ifname",			"br0"			},
+	{ "dmz_ifname",			"br0"				},
+	{ "dmz_ra",			"1"				},
 
 // forward-upnp
 	{ "upnp_enable",		"3"				},
@@ -516,7 +529,7 @@ const defaults_t defaults[] = {
 	{ "upnp_min_port_ext",		"1024"				},
 	{ "upnp_max_port_ext",		"65535"				},
 #if 0	// disabled for miniupnpd
-	{ "upnp_max_age",		"180"				},	// Max age
+	{ "upnp_max_age",		"180"			},	// Max age
 	{ "upnp_config",		"0"				},
 #endif
 
@@ -555,7 +568,7 @@ const defaults_t defaults[] = {
 	{ "rruleN",				"0"				},
 	{ "rrule0",				"0|1320|300|31|||word text\n^begins-with.domain.\n.ends-with.net$\n^www.exact-domain.net$|0|example" },
 //*	{ "rrule##",			""				},
-	{ "rrulewp",			"80,8080"			},
+	{ "rrulewp",			"80,8080"		},
 
 #if TOMATO_SL
 // samba
@@ -596,6 +609,7 @@ const defaults_t defaults[] = {
 	{ "sshd_dsskey",		""				},
 	{ "sshd_forwarding",		"1"				},
 	{ "rmgt_sip",			""				},	// remote management: source ip address
+
 	{ "http_id",			""				},
 	{ "web_mx",				""				},
 	{ "web_pb",				""				},
@@ -603,7 +617,7 @@ const defaults_t defaults[] = {
 // admin-bwm
 	{ "rstats_enable",		"1"				},
 	{ "rstats_path",		""				},
-	{ "rstats_stime",		"48"				},
+	{ "rstats_stime",		"48"			},
 	{ "rstats_offset",		"1"				},
 	{ "rstats_data",		""				},
 	{ "rstats_colors",		""				},
@@ -614,7 +628,7 @@ const defaults_t defaults[] = {
 // admin-ipt
 	{ "cstats_enable",		"0"				},
 	{ "cstats_path",		""				},
-	{ "cstats_stime",		"48"			},
+	{ "cstats_stime",		"48"				},
 	{ "cstats_offset",		"1"				},
 	{ "cstats_labels",		"0"				},
 	{ "cstats_exclude",		""				},
@@ -652,12 +666,12 @@ const defaults_t defaults[] = {
 	{ "log_remoteip",		""				},
 	{ "log_remoteport",		"514"				},
 	{ "log_file",			"1"				},
-	{ "log_file_custom",	"0"				},
-	{ "log_file_path",		"/var/log/messages"},
-	{ "log_file_size",		"50"			},
-	{ "log_file_keep",		"1"			},
-	{ "log_limit",			"60"			},
-	{ "log_in",				"0"				},
+	{ "log_file_custom",		"0"				},
+	{ "log_file_path",		"/var/log/messages"		},
+	{ "log_file_size",		"50"				},
+	{ "log_file_keep",		"1"				},
+	{ "log_limit",			"60"				},
+	{ "log_in",			"0"				},
 	{ "log_out",			"0"				},
 	{ "log_mark",			"60"				},
 	{ "log_events",			""				},
@@ -668,21 +682,24 @@ const defaults_t defaults[] = {
 	{ "log_wmip",			""				},
 	{ "log_wmdmax",			"300"				},
 	{ "log_wmsmax",			"300"				},
+	{ "webmon_bkp",			"0"				},
+	{ "webmon_dir",			"/tmp"				},
+	{ "webmon_shrink",		"0"				},
 
 // admin-debugging
 	{ "debug_nocommit",		"0"				},
 	{ "debug_cprintf",		"0"				},
-	{ "debug_cprintf_file",		"0"				},
-//	{ "debug_keepfiles",		"0"				},
-	{ "console_loglevel",		"1"				},
+	{ "debug_cprintf_file",	"0"				},
+//	{ "debug_keepfiles",	"0"				},
+	{ "console_loglevel",	"1"				},
 	{ "t_cafree",			"1"				},
 	{ "t_hidelr",			"0"				},
 	{ "debug_clkfix",		"1"				},
 	{ "debug_ddns",			"0"				},
 
 // admin-cifs
-	{ "cifs1",			""				},
-	{ "cifs2",			""				},
+	{ "cifs1",				""				},
+	{ "cifs2",				""				},
 
 // admin-jffs2
 	{ "jffs2_on",			"0"				},
@@ -691,7 +708,6 @@ const defaults_t defaults[] = {
 // admin-tomatoanon
 	{ "tomatoanon_enable",		"-1"				},
 	{ "tomatoanon_answer",		"0"				},
-	{ "tomatoanon_cru",		"6"				},
 	{ "tomatoanon_id",		""				},
 	{ "tomatoanon_notify",		"1"				},
 
@@ -815,6 +831,8 @@ const defaults_t defaults[] = {
 	{ "sch_c1_cmd",			""				},
 	{ "sch_c2_cmd",			""				},
 	{ "sch_c3_cmd",			""				},
+	{ "sch_c4_cmd",			""				},
+	{ "sch_c5_cmd",			""				},
 
 // admin-script
 	{ "script_init",		""				},
@@ -822,10 +840,17 @@ const defaults_t defaults[] = {
 	{ "script_fire",		""				},
 	{ "script_wanup",		""				},
 
-/*
+#ifdef TCONFIG_NFS
+	{ "nfs_enable",			"0"				},
+	{ "nfs_exports",		""				},
+#endif
+
+//#ifdef TCONFIG_UPS
+//	{ "ups_enable",			"0"				},
+//#endif
+
 #ifdef TCONFIG_OPENVPN
 // vpn
-
 	{ "vpn_debug",            "0"             },
 	{ "vpn_server_eas",       ""              },
 	{ "vpn_server_dns",       ""              },
@@ -844,7 +869,7 @@ const defaults_t defaults[] = {
 	{ "vpn_server1_nm",       "255.255.255.0" },
 	{ "vpn_server1_local",    "10.8.0.1"      },
 	{ "vpn_server1_remote",   "10.8.0.2"      },
-	{ "vpn_server1_reneg",    "-1"		  },
+	{ "vpn_server1_reneg",    "-1"            },
 	{ "vpn_server1_hmac",     "-1"            },
 	{ "vpn_server1_plan",     "1"             },
 	{ "vpn_server1_ccd",      "0"             },
@@ -859,6 +884,7 @@ const defaults_t defaults[] = {
 	{ "vpn_server1_crt",      ""              },
 	{ "vpn_server1_key",      ""              },
 	{ "vpn_server1_dh",       ""              },
+	{ "vpn_server1_br",       "br0"           },
 	{ "vpn_server2_poll",     "0"             },
 	{ "vpn_server2_if",       "tun"           },
 	{ "vpn_server2_proto",    "udp"           },
@@ -889,6 +915,7 @@ const defaults_t defaults[] = {
 	{ "vpn_server2_crt",      ""              },
 	{ "vpn_server2_key",      ""              },
 	{ "vpn_server2_dh",       ""              },
+	{ "vpn_server2_br",       "br0"           },
 	{ "vpn_client_eas",       ""              },
 	{ "vpn_client1_poll",     "0"             },
 	{ "vpn_client1_if",       "tun"           },
@@ -916,6 +943,7 @@ const defaults_t defaults[] = {
 	{ "vpn_client1_ca",       ""              },
 	{ "vpn_client1_crt",      ""              },
 	{ "vpn_client1_key",      ""              },
+	{ "vpn_client1_br",       "br0"           },
 	{ "vpn_client2_poll",     "0"             },
 	{ "vpn_client2_if",       "tun"           },
 	{ "vpn_client2_bridge",   "1"             },
@@ -942,6 +970,7 @@ const defaults_t defaults[] = {
 	{ "vpn_client2_ca",       ""              },
 	{ "vpn_client2_crt",      ""              },
 	{ "vpn_client2_key",      ""              },
+	{ "vpn_client2_br",       "br0"           },
 #endif	// vpn
 #ifdef TCONFIG_USERPPTP
 	{ "pptp_client_enable",   "0"             },
@@ -960,7 +989,27 @@ const defaults_t defaults[] = {
 	{ "pptp_client_custom",   ""              },
 	{ "pptp_client_dfltroute","0"             },
 #endif
-*/
+
+#ifdef TCONFIG_TINC
+	{"tinc_wanup",			"0"		},
+	{"tinc_name",			""		},
+	{"tinc_devicetype",		"tun"		}, // tun, tap
+	{"tinc_mode",			"switch"	}, // switch, hub
+	{"tinc_vpn_netmask",		"255.255.0.0"	},
+	{"tinc_private_rsa",		""		},
+	{"tinc_private_ecdsa",		""		},
+	{"tinc_custom",			""		},
+	{"tinc_hosts",			""		},
+	{"tinc_manual_firewall",	""		},
+	{"tinc_manual_tinc_up",		""		},
+	// scripts
+	{"tinc_tinc_up",		""		},
+	{"tinc_tinc_down",		""		},
+	{"tinc_host_up",		""		},
+	{"tinc_host_down",		""		},
+	{"tinc_subnet_up",		""		},
+	{"tinc_subnet_down",		""		},
+#endif
 // Sabai defaults
 	{ "srcnvrv",			""		},
 	{ "srcnvrl",			""		},
@@ -996,6 +1045,53 @@ const defaults_t defaults[] = {
 	{ "wan_route",	 		"0"		},
 
 	{ "reg_info",	 		""		},
+#ifdef TCONFIG_BT
+// nas-transmission
+	{ "bt_enable",				"0"			},
+#ifdef TCONFIG_BBT
+	{ "bt_binary",				"internal"		},
+#else
+	{ "bt_binary",				"optware"		},
+#endif
+	{ "bt_binary_custom",			"/path/to/binaries/directory"	},
+	{ "bt_custom",				""			},
+	{ "bt_port",				"51515"			},
+	{ "bt_dir",				"/mnt"			},
+	{ "bt_incomplete",			"1"			},
+	{ "bt_settings",			"down_dir"		},
+	{ "bt_settings_custom",			"/tmp/btclient"		},
+	{ "bt_rpc_enable",			"1"			},
+	{ "bt_rpc_wan",				"0"			},
+	{ "bt_auth",				"1"			},
+	{ "bt_login",				"admin"			},
+	{ "bt_password",			"admin11"		},
+	{ "bt_port_gui",			"9091"			},
+	{ "bt_dl_enable",			"0"			},
+	{ "bt_ul_enable",			"0"			},
+	{ "bt_dl",				"248"			},
+	{ "bt_ul",				"64"			},
+	{ "bt_peer_limit_global",		"150"			},
+	{ "bt_peer_limit_per_torrent",		"30"			},
+	{ "bt_ul_slot_per_torrent",		"10"			},
+	{ "bt_ratio_enable",			"0"			},
+	{ "bt_ratio",				"1.0000"		},
+	{ "bt_ratio_idle_enable",		"0"			},
+	{ "bt_ratio_idle",			"30"			},
+	{ "bt_dht",				"0"			},
+	{ "bt_pex",				"0"			},
+	{ "bt_lpd",				"0"			},
+	{ "bt_utp",				"1"			},
+	{ "bt_blocklist",			"0"			},
+	{ "bt_blocklist_url",			"http://list.iblocklist.com/?list=bt_level1"	},
+	{ "bt_sleep",				"10"			},
+	{ "bt_check",				"1"			},
+	{ "bt_check_time",			"15"			},
+	{ "bt_dl_queue_enable",			"0"			},
+	{ "bt_dl_queue_size",			"5"			},
+	{ "bt_ul_queue_enable",			"0"			},
+	{ "bt_ul_queue_size",			"5"			},
+	{ "bt_message",				"2"			},
+#endif
 
 #if 0
 // safe to remove?
@@ -1100,6 +1196,37 @@ const defaults_t defaults[] = {
 	{ "arpbind_enable",			"0"			},
 	{ "arpbind_only",			"0"			},
 	{ "arpbind_list",			"" 			},
+// new_qoslimit
+	{ "new_qoslimit_enable",		"0"			},
+	{ "new_qoslimit_obw",			""			},
+	{ "new_qoslimit_ibw",			""			},
+	{ "new_qoslimit_rules",			""			},
+	{ "qosl_enable",			"0"			},
+	{ "qosl_tcp",				"0"			},//unlimited
+	{ "qosl_udp",				"0"			},//unlimited
+	{ "qosl_dlc",				""			},
+	{ "qosl_ulc",				""			},
+	{ "qosl_dlr",				""			},
+	{ "qosl_ulr",				""			},
+	{ "limit_br1_enable",			"0"			},
+	{ "limit_br1_dlc",			""			},
+	{ "limit_br1_ulc",			""			},
+	{ "limit_br1_dlr",			""			},
+	{ "limit_br1_ulr",			""			},
+	{ "limit_br1_prio",			"2"			},
+	{ "limit_br2_enable",			"0"			},
+	{ "limit_br2_dlc",			""			},
+	{ "limit_br2_ulc",			""			},
+	{ "limit_br2_dlr",			""			},
+	{ "limit_br2_ulr",			""			},
+	{ "limit_br2_prio",			"2"			},
+	{ "limit_br3_enable",			"0"			},
+	{ "limit_br3_dlc",			""			},
+	{ "limit_br3_ulc",			""			},
+	{ "limit_br3_dlr",			""			},
+	{ "limit_br3_ulr",			""			},
+	{ "limit_br3_prio",			"2"			},
+
 
 // NoCatSplash. !!Victek
 #ifdef TCONFIG_NOCAT
@@ -1121,6 +1248,26 @@ const defaults_t defaults[] = {
 	{ "NC_BridgeLAN",			"br0"			},
 #endif
 
+//Tomato RAF - NGINX
+#ifdef TCONFIG_NGINX
+	{"nginx_enable",		"0"				}, // NGinX enabled
+	{"nginx_php",			"0"				}, // PHP enabled
+	{"nginx_keepconf",		"0"				}, // Enable/disable keep configuration files unmodified in /etc/nginx
+	{"nginx_docroot",		"/www"				}, // path for server files
+	{"nginx_port",			"85"				}, // port to listen
+	{"nginx_remote",		"0"				}, // open port from WAN site
+	{"nginx_fqdn",			"Tomato"			}, // server name
+	{"nginx_upload",		"100"				}, // upload file size limit
+	{"nginx_priority",		"10"				}, // server priority = worker_priority
+	{"nginx_custom",		""				}, // additional lines for nginx.conf
+	{"nginx_httpcustom",		""				}, // additional lines for nginx.conf
+	{"nginx_servercustom",		""				}, // additional lines for nginx.conf
+	{"nginx_phpconf",		""				}, // additional lines for php.ini
+	{"nginx_user",			"root"				}, // user/group
+	{"nginx_override",		"0"				}, // additional lines for php.ini
+	{"nginx_overridefile",		"/path/to/nginx.conf"		}, // user/group
+#endif
+
 #ifdef TCONFIG_TOR
 	{ "tor_enable",				"0"			},
 	{ "tor_socksport",			"9050"			},
@@ -1131,13 +1278,13 @@ const defaults_t defaults[] = {
 	{ "tor_users",				"192.168.1.0/24"	},
 	{ "tor_custom",				""			},
 #endif
-	{ NULL, NULL}
 
+	{ NULL, NULL	}
 };
 
 const defaults_t if_generic[] = {
 	{ "lan_ifname",		"br0"					},
-	{ "lan_ifnames",	"eth0 eth2 eth3 eth4"			},
+	{ "lan_ifnames",	"eth0 eth2 eth3 eth4"	},
 	{ "wan_ifname",		"eth1"					},
 	{ "wan_ifnames",	"eth1"					},
 	{ NULL, NULL }

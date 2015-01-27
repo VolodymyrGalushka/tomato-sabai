@@ -1,4 +1,4 @@
-/* dnsmasq is Copyright (c) 2000-2013 Simon Kelley
+/* dnsmasq is Copyright (c) 2000-2014 Simon Kelley
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -24,7 +24,7 @@ struct state {
   int clid_len, iaid, ia_type, interface, hostname_auth, lease_allocate;
   char *client_hostname, *hostname, *domain, *send_domain;
   struct dhcp_context *context;
-  struct in6_addr *link_address, *fallback;
+  struct in6_addr *link_address, *fallback, *ll_addr, *ula_addr;
   unsigned int xid, fqdn_flags;
   char *iface_name;
   void *packet_options, *end;
@@ -73,7 +73,8 @@ static void calculate_times(struct dhcp_context *context, unsigned int *min_time
  
 
 unsigned short dhcp6_reply(struct dhcp_context *context, int interface, char *iface_name,
-			   struct in6_addr *fallback, size_t sz, struct in6_addr *client_addr, time_t now)
+			   struct in6_addr *fallback,  struct in6_addr *ll_addr, struct in6_addr *ula_addr,
+			   size_t sz, struct in6_addr *client_addr, time_t now)
 {
   struct dhcp_vendor *vendor;
   int msg_type;
@@ -93,6 +94,8 @@ unsigned short dhcp6_reply(struct dhcp_context *context, int interface, char *if
   state.interface = interface;
   state.iface_name = iface_name;
   state.fallback = fallback;
+  state.ll_addr = ll_addr;
+  state.ula_addr = ula_addr;
   state.mac_len = 0;
   state.tags = NULL;
   state.link_address = NULL;
@@ -764,7 +767,8 @@ static int dhcp6_no_relay(struct state *state, int msg_type, void *inbuff, size_
 	      }
 		 	   
 	    /* Return addresses for all valid contexts which don't yet have one */
-	    while ((c = address6_allocate(state->context, state->clid, state->clid_len, state->iaid, ia_counter, solicit_tags, plain_range, &addr)))
+	    while ((c = address6_allocate(state->context, state->clid, state->clid_len, state->ia_type == OPTION6_IA_TA,
+					  state->iaid, ia_counter, solicit_tags, plain_range, &addr)))
 	      {
 #ifdef OPTION6_PREFIX_CLASS
 		if (dump_all_prefix_classes && state->ia_type == OPTION6_IA_NA)
@@ -1268,36 +1272,59 @@ static struct dhcp_netid *add_options(struct state *state, int do_refresh)
 	    continue;
 	}
       
-      if (opt_cfg->opt == OPTION6_DNS_SERVER)
-	{
-	  done_dns = 1;
-	  if (opt_cfg->len == 0)
-	    continue;
-	}
-
       if (opt_cfg->opt == OPTION6_REFRESH_TIME)
 	done_refresh = 1;
       
-      o = new_opt6(opt_cfg->opt);
       if (opt_cfg->flags & DHOPT_ADDR6)
 	{
-	  int j;
-	  struct in6_addr *a = (struct in6_addr *)opt_cfg->val;
-          for (j = 0; j < opt_cfg->len; j+=IN6ADDRSZ, a++)
-            {
-              /* zero means "self" (but not in vendorclass options.) */
-              if (IN6_IS_ADDR_UNSPECIFIED(a))
-                {
-		  if (!add_local_addrs(state->context))
-		    put_opt6(state->fallback, IN6ADDRSZ);
+	  int len, j;
+	  struct in6_addr *a;
+	  
+	  if (opt_cfg->opt == OPTION6_DNS_SERVER)
+	    done_dns = 1;
+	  
+	  for (a = (struct in6_addr *)opt_cfg->val, len = opt_cfg->len, j = 0; 
+	       j < opt_cfg->len; j += IN6ADDRSZ, a++)
+	    if ((IN6_IS_ADDR_ULA_ZERO(a) && IN6_IS_ADDR_UNSPECIFIED(state->ula_addr)) ||
+		(IN6_IS_ADDR_LINK_LOCAL_ZERO(a) && IN6_IS_ADDR_UNSPECIFIED(state->ll_addr)))
+	      len -= IN6ADDRSZ;
+	  
+	  if (len != 0)
+	    {
+	      
+	      o = new_opt6(opt_cfg->opt);
+	      	  
+	      for (a = (struct in6_addr *)opt_cfg->val, j = 0; j < opt_cfg->len; j+=IN6ADDRSZ, a++)
+		{
+		  if (IN6_IS_ADDR_UNSPECIFIED(a))
+		    {
+		      if (!add_local_addrs(state->context))
+			put_opt6(state->fallback, IN6ADDRSZ);
+		    }
+		  else if (IN6_IS_ADDR_ULA_ZERO(a))
+		    {
+		      if (!IN6_IS_ADDR_UNSPECIFIED(state->ula_addr))
+			put_opt6(state->ula_addr, IN6ADDRSZ);
+		    }
+		  else if (IN6_IS_ADDR_LINK_LOCAL_ZERO(a))
+		    {
+		      if (!IN6_IS_ADDR_UNSPECIFIED(state->ll_addr))
+			put_opt6(state->ll_addr, IN6ADDRSZ);
+		    }
+		  else
+		    put_opt6(a, IN6ADDRSZ);
 		}
-              else
-                put_opt6(a, IN6ADDRSZ);
-            }
+
+	      end_opt6(o);
+	    }
 	}
-      else if (opt_cfg->val)
-	put_opt6(opt_cfg->val, opt_cfg->len);
-      end_opt6(o);
+      else
+	{
+	  o = new_opt6(opt_cfg->opt);
+	  if (opt_cfg->val)
+	    put_opt6(opt_cfg->val, opt_cfg->len);
+	  end_opt6(o);
+	}
     }
   
   if (daemon->port == NAMESERVER_PORT && !done_dns)

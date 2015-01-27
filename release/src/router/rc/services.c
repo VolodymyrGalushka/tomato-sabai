@@ -384,9 +384,21 @@ void start_dnsmasq(){
 		fprintf(f, "dhcp-authoritative\n");
 	}
 
+#ifdef TCONFIG_DNSSEC
+	if (nvram_match("dnssec_enable", "1")) {
+		fprintf(f, "conf-file=/etc/trust-anchors.conf\n"
+			   "dnssec\n"
+			   "dnssec-no-timecheck\n");
+	}
+#endif
+
 #ifdef TCONFIG_DNSCRYPT
 	if (nvram_match("dnscrypt_proxy", "1")) {
-		fprintf(f, "strict-order\n");
+		if (nvram_match("dnscrypt_priority", "1"))
+			fprintf(f, "strict-order\n");
+
+		if (nvram_match("dnscrypt_priority", "2"))
+			fprintf(f, "no-resolv\n");
 	}
 #endif
 
@@ -461,15 +473,49 @@ void start_dnsmasq(){
 		sprintf(dnscrypt_local, "127.0.0.1:%s", nvram_safe_get("dnscrypt_port") );
 
 		eval("ntp2ip");
-		eval("dnscrypt-proxy", "-d", "-a", dnscrypt_local, nvram_safe_get("dnscrypt_cmd") );
+
+		if (nvram_match("dnscrypt_manual", "1")) {
+			eval("dnscrypt-proxy", "-d",
+			     "-a", dnscrypt_local,
+			     "-m", nvram_safe_get("dnscrypt_log"),
+			     "-N", nvram_safe_get("dnscrypt_provider_name"),
+			     "-k", nvram_safe_get("dnscrypt_provider_key"),
+			     "-r", nvram_safe_get("dnscrypt_resolver_address") );
+		} else {
+			eval("dnscrypt-proxy", "-d",
+			     "-a", dnscrypt_local,
+			     "-m", nvram_safe_get("dnscrypt_log"),
+			     "-R", nvram_safe_get("dnscrypt_resolver"),
+			     "-L", "/etc/dnscrypt-resolvers.csv" );
+		}
 
 #ifdef TCONFIG_IPV6
 		char dnscrypt_local_ipv6[30];
 		sprintf(dnscrypt_local_ipv6, "::1:%s", nvram_safe_get("dnscrypt_port") );
 
-		if (get_ipv6_service() != NULL) //if ipv6 enabled
-			eval("dnscrypt-proxy", "-d", "-a", dnscrypt_local_ipv6, nvram_safe_get("dnscrypt_cmd") );
+		if (get_ipv6_service() != *("NULL")) { // when ipv6 enabled
+			if (nvram_match("dnscrypt_manual", "1")) {
+				eval("dnscrypt-proxy", "-d",
+				     "-a", dnscrypt_local,
+				     "-m", nvram_safe_get("dnscrypt_log"),
+				     "-N", nvram_safe_get("dnscrypt_provider_name"),
+				     "-k", nvram_safe_get("dnscrypt_provider_key"),
+				     "-r", nvram_safe_get("dnscrypt_resolver_address") );
+			} else {
+				eval("dnscrypt-proxy", "-d",
+				     "-a", dnscrypt_local,
+				     "-m", nvram_safe_get("dnscrypt_log"),
+				     "-R", nvram_safe_get("dnscrypt_resolver"),
+				     "-L", "/etc/dnscrypt-resolvers.csv" );
+			}
+		}
 #endif
+	}
+#endif
+
+#ifdef TCONFIG_DNSSEC
+	if ((time(0) > Y2K) && nvram_match("dnssec_enable", "1")){
+		killall("dnsmasq", SIGHUP);
 	}
 #endif
 
@@ -576,7 +622,13 @@ void start_httpd(void)
 		xstart( "/usr/sbin/ttb" );
 
 	stop_httpd();
-	chdir("/www");
+
+// set www dir
+	if ( nvram_match( "web_dir", "jffs" ) ) { chdir("/jffs/www"); }
+	else if ( nvram_match( "web_dir", "opt" ) ) { chdir("/opt/www"); }
+	else if ( nvram_match( "web_dir", "tmp" ) ) { chdir("/tmp/www");}
+	else { chdir("/www"); }
+
 	eval("httpd");
 	chdir("/");
 }
@@ -858,6 +910,11 @@ void start_upnp(void)
 					"upnp_nat_chain=upnp\n"
 					"notify_interval=%d\n"
 					"system_uptime=yes\n"
+					"friendly_name=%s"" Router\n"
+					"model_name=%s\n"
+					"model_url=http://linksysinfo.org/index.php?forums/tomato-firmware.33/\n"
+					"manufacturer_name=Tomato Firmware\n"
+					"manufacturer_url=http://linksysinfo.org/index.php?forums/tomato-firmware.33/\n"
 					"\n"
 					,
 					get_wanface(),
@@ -865,7 +922,9 @@ void start_upnp(void)
 					(enable & 1) ? "yes" : "no",						// upnp enable
 					(enable & 2) ? "yes" : "no",						// natpmp enable
 					nvram_get_int("upnp_secure") ? "yes" : "no",			// secure_mode (only forward to self)
-					nvram_get_int("upnp_ssdp_interval")
+					nvram_get_int("upnp_ssdp_interval"),
+					nvram_safe_get("router_name"),
+					nvram_safe_get("t_model_name")
 				);
 
 				if (nvram_get_int("upnp_clean")) {
@@ -1385,6 +1444,40 @@ void stop_splashd(void)
 	pid_splashd = -1;
 	stop_nocat();
 	start_wan(BOOT);
+}
+#endif
+
+// -----------------------------------------------------------------------------
+#ifdef TCONFIG_NGINX
+
+static pid_t pid_nginx = -1;
+void start_enginex(void)
+{
+	pid_nginx =-1;
+	start_nginx();
+	if (!nvram_contains_word("debug_norestart","enginex")) {
+		pid_nginx = -2;
+	}
+}
+
+void stop_enginex(void)
+{
+	pid_nginx = -1;
+	stop_nginx();
+}
+
+void start_nginxfastpath(void)
+{
+	pid_nginx =-1;
+	start_nginxfp();
+	if (!nvram_contains_word("debug_norestart","nginxfp")) {
+		pid_nginx = -2;
+	}
+}
+void stop_nginxfastpath(void)
+{
+	pid_nginx = -1;
+	stop_nginxfp();
 }
 #endif
 
@@ -2007,6 +2100,8 @@ static void start_media_server(void)
 					"inotify=yes\n"
 					"notify_interval=600\n"
 					"album_art_names=Cover.jpg/cover.jpg/AlbumArtSmall.jpg/albumartsmall.jpg/AlbumArt.jpg/albumart.jpg/Album.jpg/album.jpg/Folder.jpg/folder.jpg/Thumb.jpg/thumb.jpg\n"
+					"log_dir=/var/log\n"
+					"log_level=general,artwork,database,inotify,scanner,metadata,http,ssdp,tivo=warn\n"
 					"\n",
 					nvram_safe_get("lan_ifname"),
 					(port < 0) || (port >= 0xffff) ? 0 : port,
@@ -2179,6 +2274,9 @@ void start_services(void)
 	start_dnsmasq();
 	start_cifs();
 	start_httpd();
+#ifdef TCONFIG_NGINX
+	start_enginex();
+#endif
 	start_cron();
 //	start_upnp();
 	start_rstats(0);
@@ -2247,6 +2345,9 @@ void stop_services(void)
 //	stop_upnp();
 	stop_cron();
 	stop_httpd();
+#ifdef TCONFIG_NGINX
+	stop_enginex();
+#endif
 #ifdef TCONFIG_SDHC
 	stop_mmc();
 #endif
@@ -2827,10 +2928,33 @@ TOP:
 	}
 #endif
 
+#ifdef TCONFIG_TINC
+	if (strcmp(service, "tinc") == 0) {
+		if (action & A_STOP) stop_tinc();
+		if (action & A_START) start_tinc();
+		goto CLEAR;
+	}
+#endif
+
 #ifdef TCONFIG_NOCAT
 	if (strcmp(service, "splashd") == 0) {
 		if (action & A_STOP) stop_splashd();
 		if (action & A_START) start_splashd();
+		goto CLEAR;
+	}
+#endif
+
+#ifdef TCONFIG_NGINX
+	if (strcmp(service, "enginex") == 0) {
+		if (action & A_STOP) stop_enginex();
+		stop_firewall(); start_firewall();		// always restarted
+		if (action & A_START) start_enginex();
+		goto CLEAR;
+	}
+	if (strcmp(service, "nginxfp") == 0) {
+		if (action & A_STOP) stop_nginxfastpath();
+		stop_firewall(); start_firewall();		// always restarted
+		if (action & A_START) start_nginxfastpath();
 		goto CLEAR;
 	}
 #endif

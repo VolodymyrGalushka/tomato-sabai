@@ -506,6 +506,14 @@ static inline void stop_vpn_eas() { }
 #define write_vpn_resolv(f) (0)
 #endif
 
+// tinc.c
+#ifdef TCONFIG_TINC
+extern void start_tinc();
+extern void start_tinc_wanup();
+extern void stop_tinc();
+extern void run_tinc_firewall_script();
+#endif
+
 // new_qoslimit.c
 extern void ipt_qoslimit(int chain);
 extern void new_qoslimit_start(void);
@@ -526,6 +534,15 @@ extern void stop_mmc(void);
 extern void start_nocat(); 
 extern void stop_nocat(); 
 extern void reset_nocat(); 
+#endif
+
+// nginx.c
+#ifdef TCONFIG_NGINX
+extern void nginx_write(const char *format, ...);
+extern void start_nginx();
+extern void stop_nginx();
+extern void start_nginxfp();
+extern void stop_nginxfp();
 #endif
 
 // tomatoanon.c

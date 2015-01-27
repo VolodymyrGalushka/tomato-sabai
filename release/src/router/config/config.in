@@ -86,6 +86,10 @@ config TCONFIG_NOCAT
 	bool "NoCat Splash"
 	default n
 
+config TCONFIG_NGINX
+	bool "NGinX Web Server"
+	default n
+
 config TCONFIG_MEDIA_SERVER
 	bool "Media Server (MiniDLNA)"
 	depends on TCONFIG_USB
@@ -175,11 +179,15 @@ config TCONFIG_RAID
 	bool "RAID Support: mdadm plus md modules"
 	default n
 
+config TCONFIG_CTF
+	bool "CTF (Cut-Through Forwarding)"
 config TCONFIG_MICROSD
 	bool "Support SD card (RT-N66u only)"
 	depends on TCONFIG_USB
 	default n
 
+config TCONFIG_DNSSEC
+	bool "DNSSEC"
 config TCONFIG_USBAP
 	bool "Include wl_high module"
 	depends on TCONFIG_USB
@@ -200,4 +208,8 @@ config TCONFIG_CTF
 
 config TCONFIG_UFSD
 	bool "Paragon NTFS driver for Asus routers"
+	default n
+
+config TCONFIG_TINC
+	bool "TINC"
 	default n

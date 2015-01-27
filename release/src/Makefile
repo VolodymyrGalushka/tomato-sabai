@@ -307,7 +307,6 @@ ifneq ($(NOVERSION),1)
 	@cp router/shared/tomato_version router/shared/tomato_version_last
 	@btools/uversion.pl --bump
 endif
-
 endif
 
 
@@ -503,6 +502,10 @@ define RouterOptions
 		sed -i "/TCONFIG_NOCAT/d" $(1); \
 		echo "TCONFIG_NOCAT=y" >>$(1); \
 	fi; \
+	if [ "$(NGINX)" = "y" ]; then \
+		sed -i "/TCONFIG_NGINX/d" $(1); \
+		echo "TCONFIG_NGINX=y" >>$(1); \
+	fi; \
 	if [ "$(OPENVPN)" = "y" ]; then \
 		sed -i "/TCONFIG_LZO/d" $(1); \
 		echo "TCONFIG_LZO=y" >>$(1); \
@@ -542,6 +545,10 @@ define RouterOptions
 	if [ "$(SDHC)" = "y" ]; then \
 		sed -i "/TCONFIG_SDHC/d" $(1); \
 		echo "TCONFIG_SDHC=y" >>$(1); \
+	fi; \
+	if [ "$(DNSSEC)" = "y" ]; then \
+		sed -i "/TCONFIG_DNSSEC/d" $(1); \
+		echo "TCONFIG_DNSSEC=y" >>$(1); \
 	fi; \
 	if [ "$(HFS)" = "y" ]; then \
 		sed -i "/TCONFIG_HFS/d" $(1); \
@@ -591,6 +598,10 @@ define RouterOptions
 	if [ "$(CTF)" = "y" ]; then \
 		sed -i "/TCONFIG_CTF/d" $(1); \
 		echo "TCONFIG_CTF=y" >>$(1); \
+	fi; \
+	if [ "$(TINC)" = "y" ]; then \
+		sed -i "/TCONFIG_TINC/d" $(1); \
+		echo "TCONFIG_TINC=y" >>$(1); \
 	fi; \
 	)
 endef
@@ -1040,6 +1051,8 @@ endif
 m:
 ifeq ($(CONFIG_LINUX26),y)
 	@$(MAKE) bin OPENVPN=y BBEXTRAS=y EBTABLES=y IPV6SUPP=y B=E BUILD_DESC="Max" USB="" NOCAT=y NFS=y SNMP=y DNSCRYPT=y PPTPD=y TOR=y IPSEC=y
+else
+	@$(MAKE) bin OPENVPN=y BBEXTRAS=y B=E BUILD_DESC="Max" USB="" NOCAT=y NFS=y SNMP=y DNSCRYPT=y PPTPD=y TOR=y
 endif
 
 ## SD-VPN - Only k24
@@ -1372,6 +1385,6 @@ endif
 	@echo "cleankernel  -C Linux distclean (but preserves .config)"
 	@echo "distclean    distclean of Linux & busybox (but preserve .configs)"
 	@echo "prepk        -C Linux oldconfig dep"
-
+	
 .PHONY: all clean distclean cleanimage cleantools cleankernel prepk what setprofile help
 .PHONY: a b c d m nc Makefile allversions tomato_profile.mak

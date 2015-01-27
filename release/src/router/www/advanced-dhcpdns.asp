@@ -60,6 +60,7 @@ function save()
 	a = E('_f_dhcpd_sltsel').value;
 	fom.dhcpd_slt.value = (a != 1) ? a : E('_f_dhcpd_slt').value;
 	fom.dns_addget.value = E('_f_dns_addget').checked ? 1 : 0;
+	fom.dnsmasq_strict_order.value = E('_f_dns_strict_order').checked ? '1' : '0';
 	fom.dns_norebind.value = E('_f_dns_norebind').checked ? 1 : 0;
 	fom.dhcpd_gwmode.value = E('_f_dhcpd_gwmode').checked ? 1 : 0;
 	fom.dns_intcpt.value = E('_f_dns_intcpt').checked ? 1 : 0;
@@ -74,6 +75,7 @@ function save()
 	else {
 		fom._service.value = 'dnsmasq-restart';
 	}
+
 
 	if (fom.dns_intcpt.value != nvram.dns_intcpt) {
 		nvram.dns_intcpt = fom.dns_intcpt.value;
@@ -102,7 +104,6 @@ function save()
 <tr id='body'><td id='navi'><% sabaaiMenu(); %></td>
 <td id='content'>
 
-
 <!-- / / / -->
 
 <input type='hidden' name='_nextpage' value='advanced-dhcpdns.asp'>
@@ -111,6 +112,7 @@ function save()
 <input type='hidden' name='dhcpd_dmdns'>
 <input type='hidden' name='dhcpd_slt'>
 <input type='hidden' name='dns_addget'>
+<input type='hidden' name='dnsmasq_strict_order'>
 <input type='hidden' name='dns_norebind'>
 <input type='hidden' name='dhcpd_gwmode'>
 <input type='hidden' name='dns_intcpt'>
@@ -122,6 +124,7 @@ function save()
 createFieldTable('', [
 	{ title: 'Use internal DNS', name: 'f_dhcpd_dmdns', type: 'checkbox', value: nvram.dhcpd_dmdns == '1' },
 	{ title: 'Use received DNS with user-entered DNS', name: 'f_dns_addget', type: 'checkbox', value: nvram.dns_addget == '1' },
+	{ title: 'Resolve in Strict Order OR Non Resolve', name: '_f_dns_strict_order', type: 'checkbox', value: nvram.dnsmasq_strict_order == '1' },
 	{ title: 'Prevent DNS-rebind attacks', name: 'f_dns_norebind', type: 'checkbox', value: nvram.dns_norebind == '1' },
 	{ title: 'Intercept DNS port<br>(UDP 53)', name: 'f_dns_intcpt', type: 'checkbox', value: nvram.dns_intcpt == '1' },
 	{ title: 'Use user-entered gateway if WAN is disabled', name: 'f_dhcpd_gwmode', type: 'checkbox', value: nvram.dhcpd_gwmode == '1' },

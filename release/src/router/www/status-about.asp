@@ -24,28 +24,48 @@ var t = 0;
 var r = 3;
 var rd = 1;
 
-function moo(){
+function moo()
+{
 	if ((r <= 2) || (r >= 25)) rd = -rd;
-	r += rd; t += (Math.PI / 10); if (t > (2 * Math.PI)) t = 0;
-	var x = tux.origX + (r * Math.sin(t)); var y = tux.origY + (r * Math.cos(t));
-	tux.style.left = x + 'px'; tux.style.top = y + 'px';
+	r += rd;
+	t += (Math.PI / 10);
+	if (t > (2 * Math.PI)) t = 0;
+
+	var x = tux.origX + (r * Math.sin(t));
+	var y = tux.origY + (r * Math.cos(t));
+
+	tux.style.left = x + 'px';
+	tux.style.top = y + 'px';
+
 	if (clicks > 0) setTimeout(moo, 33);
 }
 
-function onClick(){ if (++clicks < 10){ moo(); }else{ clicks = 0; } }
+function onClick()
+{
+	try {
+		++clicks;
+		if (clicks < 10) moo();
+			else clicks = 0;
+	}
+	catch (ex) {
+	}
+}
 
-
-function init(){
+function init()
+{
 		tux = E('tux');
 
 		var o = elem.getOffset(tux);
-		tux.origX = o.x; tux.origY = o.y;
+		tux.origX = o.x;
+		tux.origY = o.y;
+
 		tux.style.position = 'absolute';
-		tux.style.left = o.x + 'px'; tux.style.top = o.y + 'px';
+		tux.style.left = o.x + 'px';
+		tux.style.top = o.y + 'px';
+
 		tux.addEventListener('click', onClick, false);
 }
 </script>
-
 <!-- / / / -->
 
 </head>
@@ -58,7 +78,6 @@ function init(){
 <tr id='body'><td id='navi'><% sabaaiMenu(); %></td>
 <td id='content'>
 <div id='ident'><% ident(); %></div>
-
 
 <!-- / / / -->
 
@@ -91,12 +110,31 @@ Support for additional router models, dual-band and Wireless-N mode
 , IPv6 support
 <!-- IPV6-END -->
 <br>
+Linux kernel <% version(2); %> and Broadcom Wireless Driver <% version(3); %> updates,<br>
+support for additional router models, dual-band and Wireless-N mode.<br>
 Copyright (C) 2008-2011 Fedor Kozhevnikov, Ray Van Tassle, Wes Campaigne<br>
 <a href='http://www.tomatousb.org/' target='_new'>http://www.tomatousb.org</a><br>
 <!-- / / / -->
 <br>
+
+<!-- OPENVPN-BEGIN -->
+<b>OpenVPN integration and GUI,</b><br>
+Copyright (C) 2010 Keith Moyer,<br>
+<a href='mailto:tomatovpn@keithmoyer.com'>tomatovpn@keithmoyer.com</a><br>
+<br>
+<!-- OPENVPN-END -->
+
 Based on a compilation by Shibby which may also include:<br>
 <b>"Shibby" features:</b><br>
+<!-- BBT-BEGIN -->
+- Transmission 2.84 integration<br>
+<!-- BBT-END -->
+<!-- BT-BEGIN -->
+- GUI for Transmission<br>
+<!-- BT-END -->
+<!-- NFS-BEGIN -->
+- NFS utils integration and GUI<br>
+<!-- NFS-END -->
 - Custom log file path<br>
 <!-- LINUX26-BEGIN -->
 - SD-idle tool integration for kernel 2.6<br>
@@ -107,16 +145,41 @@ Based on a compilation by Shibby which may also include:<br>
 <!-- SNMP-BEGIN -->
 - SNMP integration and GUI<br>
 <!-- SNMP-END -->
+<!-- UPS-BEGIN -->
+- APCUPSD integration and GUI (implemented by @arrmo)<br>
+<!-- UPS-END -->
+<!-- DNSCRYPT-BEGIN -->
+- DNScrypt-proxy 1.4.0 integration and GUI<br>
+<!-- DNSCRYPT-END -->
+<!-- TOR-BEGIN -->
+- TOR Project integration and GUI<br>
+<!-- TOR-END -->
+- TomatoAnon project integration and GUI<br>
+- TomatoThemeBase project integration and GUI<br>
+- Ethernet Ports State<br>
 - Extended MOTD (written by @Monter, modified by @Shibby)<br>
+- Webmon Backup Script<br>
 Copyright (C) 2011-2013 Michał Rupental<br>
 <a href='http://openlinksys.info' target='_new'>http://openlinksys.info</a><br>
 <br>
 
-<b>"JYAvenard" features</b><br>
+<!-- VPN-BEGIN -->
+<b>"JYAvenard" features:</b><br>
+<!-- OPENVPN-BEGIN -->
+- OpenVPN enhancements &amp; username/password only authentication<br>
+<!-- OPENVPN-END -->
+<!-- PPTPD-BEGIN -->
+- PPTP VPN Client integration and GUI<br>
+<!-- PPTPD-END -->
 Copyright (C) 2010-2012 Jean-Yves Avenard<br>
 <a href='mailto:jean-yves@avenard.org'>jean-yves@avenard.org</a><br>
 <br>
 
+<!-- OPENVPN-BEGIN -->
+<b>"TomatoEgg" feature:</b><br>
+- Openvpn username/password verify feature and configure GUI.<br>
+<br>
+<!-- OPENVPN-END -->
 <!-- VPN-END -->
 
 <b>"Victek" features:</b><br>
@@ -124,6 +187,9 @@ Copyright (C) 2010-2012 Jean-Yves Avenard<br>
 <!-- NOCAT-BEGIN -->
 - Captive Portal. (Based in NocatSplash)<br>
 <!-- NOCAT-END -->
+<!-- NGINX-BEGIN -->
+- Web Server. (NGinX)<br>
+<!-- NGINX-END -->
 <!-- HFS-BEGIN -->
 - HFS / HFS+ filesystem integration<br>
 <!-- HFS-END -->
@@ -135,11 +201,30 @@ Copyright (C) 2007-2011 Ofer Chen & Vicente Soriano<br>
 - QOS-detailed & ctrate filters<br>
 - Realtime bandwidth monitoring of LAN clients<br>
 - Static ARP binding<br>
+- VLAN administration GUI<br>
 - Multiple LAN support integration and GUI<br>
 - Multiple/virtual SSID support (experimental)<br>
 - UDPxy integration and GUI<br>
+<!-- PPTPD-BEGIN -->
+- PPTP Server integration and GUI<br>
+<!-- PPTPD-END -->
 Copyright (C) 2011 Augusto Bott<br>
 <a href='http://code.google.com/p/tomato-sdhc-vlan/' target='_new'>Tomato-sdhc-vlan Homepage</a><br>
+<br>
+
+<b>"Lancethepants" Features:</b><br>
+<!-- DNSSEC-BEGIN -->
+- DNSSEC integration and GUI<br>
+<!-- DNSSEC-END -->
+<!-- DNSCRYPT-BEGIN -->
+- DNSCrypt-Proxy selectable/manual resolver<br>
+<!-- DNSCRYPT-END -->
+<!-- TINC-BEGIN -->
+- Tinc Daemon integration and GUI<br>
+<!-- TINC-END -->
+- Comcast DSCP Fix GUI<br>
+Copyright (C) 2014 Lance Fredrickson<br>
+<a href='mailto:lancethepants@gmail.com'>lancethepants@gmail.com</a><br>
 <br>
 
 <b>"Toastman" features:</b><br>
@@ -216,6 +301,8 @@ Portions of the code are licensed under the GNU General Public License version 2
 A copy of this license and the source code it covers is <a href="http://blog.sabaitechnology.com/source/">available on our website</a>.
 
 </div>
+<!-- / / / -->
+
 </td></tr>
 	<tr><td id='footer' colspan=2>&nbsp;</td></tr>
 </table>

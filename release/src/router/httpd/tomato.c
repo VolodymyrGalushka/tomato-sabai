@@ -1,4 +1,3 @@
-
 /*
 
 	Tomato Firmware
@@ -408,7 +407,7 @@ const aspapi_t aspapi[] = {
 	{ "wanstatus",			asp_wanstatus		},
 	{ "wanup",			asp_wanup		},
 #ifdef TCONFIG_PPTPD
-	//	{ "pptpd_userol",		asp_pptpd_userol	},
+	{ "pptpd_userol",		asp_pptpd_userol	},
 #endif
 	{ "wlstats",			asp_wlstats		},
 	{ "wlclient",			asp_wlclient		},
@@ -616,10 +615,21 @@ static const nvset_t nvset_list[] = {
 	{ "lan_netmask",		V_IP				},
 	{ "lan_gateway",		V_IP				},
 	{ "wan_dns",			V_LENGTH(0, 50)		},	// ip ip ip
+
+#ifdef TCONFIG_DNSSEC
+	{ "dnssec_enable",		V_01			},
+#endif
+
 #ifdef TCONFIG_DNSCRYPT
 	{ "dnscrypt_proxy",		V_01				},
+	{ "dnscrypt_priority",		V_RANGE(0, 2)			}, // 0=none, 1=preferred, 2=exclusive
 	{ "dnscrypt_port",		V_PORT				},
-	{ "dnscrypt_cmd",		V_LENGTH(0, 256)		},
+	{ "dnscrypt_resolver",		V_LENGTH(0, 40)			},
+	{ "dnscrypt_log",		V_RANGE(0, 99)			},
+	{ "dnscrypt_manual",		V_01				},
+	{ "dnscrypt_provider_name",	V_LENGTH(0, 60)			},
+	{ "dnscrypt_provider_key",	V_LENGTH(0, 80)			},
+	{ "dnscrypt_resolver_address",	V_LENGTH(0, 50)			},
 #endif
 	{ "lan_state",			V_01				},
 	{ "lan_desc",			V_01				},
@@ -745,7 +755,7 @@ static const nvset_t nvset_list[] = {
 	{ "ipv6_tun_ttl",		V_NUM				},	// Tunnel TTL
 	{ "ipv6_dns",			V_LENGTH(0, 40*3)		},	// ip6 ip6 ip6
 	{ "ipv6_6rd_prefix",		V_IPV6(0)			},
-	{ "ipv6_6rd_prefix_length",	V_RANGE(32, 62)			},
+	{ "ipv6_6rd_prefix_length",	V_RANGE(3, 127)			},
 	{ "ipv6_6rd_borderrelay",	V_IP				},
 	{ "ipv6_6rd_ipv4masklen",	V_RANGE(0, 30)			},
 #endif
@@ -805,6 +815,7 @@ static const nvset_t nvset_list[] = {
 	{ "block_loopback",		V_01				},
 	{ "nf_loopback",		V_NUM				},
 	{ "ne_syncookies",		V_01				},
+	{ "DSCP_fix_enable",		V_01				},
 	{ "ne_snat",			V_01				},
 	{ "dhcp_pass",			V_01				},
 #ifdef TCONFIG_EMF
@@ -1005,6 +1016,7 @@ static const nvset_t nvset_list[] = {
 	{ "https_lanport",		V_PORT				},
 	{ "web_wl_filter",		V_01				},
 	{ "web_css",			V_LENGTH(1, 32)		},
+	{ "web_dir",			V_LENGTH(1, 32)		},
 	{ "ttb_css",			V_LENGTH(0, 128)		},
 	{ "web_mx",			V_LENGTH(0, 128)	},
 	{ "http_wanport",		V_PORT				},
@@ -1133,7 +1145,6 @@ static const nvset_t nvset_list[] = {
 // admin-tomatoanon
 	{ "tomatoanon_answer",		V_RANGE(0, 1)			},
 	{ "tomatoanon_enable",		V_RANGE(-1, 1)			},
-	{ "tomatoanon_cru",		V_RANGE(1, 12)			},
 	{ "tomatoanon_id",		V_LENGTH(0, 32)			},
 	{ "tomatoanon_notify",		V_01				},
 
@@ -1279,7 +1290,57 @@ static const nvset_t nvset_list[] = {
 	{ "limit_br3_dlc",               V_RANGE(0, 999999)     },
 	{ "limit_br3_prio",              V_RANGE(0, 5)          },
 
-//NoCatSplash. Victek.
+
+#ifdef TCONFIG_BT
+// nas-transmission
+	{ "bt_enable",                  V_01                            },
+	{ "bt_binary",                  V_LENGTH(0, 50)                 },
+	{ "bt_binary_custom",           V_LENGTH(0, 50)                 },
+	{ "bt_custom",                  V_TEXT(0, 2048)                 },
+	{ "bt_port",                    V_PORT                          },
+	{ "bt_dir",                     V_LENGTH(0, 50)                 },
+	{ "bt_settings",                V_LENGTH(0, 50)                 },
+	{ "bt_settings_custom",         V_LENGTH(0, 50)                 },
+	{ "bt_incomplete",              V_01                            },
+	{ "bt_rpc_enable",              V_01                            },
+	{ "bt_rpc_wan",                 V_01                            },
+	{ "bt_auth",                    V_01                            },
+	{ "bt_login",                   V_LENGTH(0, 50)                 },
+	{ "bt_password",                V_LENGTH(0, 50)                 },
+	{ "bt_port_gui",                V_PORT                          },
+	{ "bt_dl_enable",               V_01                            },
+	{ "bt_ul_enable",               V_01                            },
+	{ "bt_dl",                      V_RANGE(1, 999999)              },
+	{ "bt_ul",                      V_RANGE(1, 999999)              },
+	{ "bt_peer_limit_global",       V_RANGE(10, 1000)               },
+	{ "bt_peer_limit_per_torrent",  V_RANGE(1, 200)                 },
+	{ "bt_ul_slot_per_torrent",     V_RANGE(1, 50)                  },
+	{ "bt_ratio_enable",            V_01                            },
+	{ "bt_ratio",                   V_LENGTH(0, 999999)             },
+	{ "bt_ratio_idle_enable",       V_01                            },
+	{ "bt_ratio_idle",              V_RANGE(1, 55)                  },
+	{ "bt_dht",                     V_01                            },
+	{ "bt_pex",                     V_01                            },
+	{ "bt_lpd",                     V_01                            },
+	{ "bt_utp",                     V_01                            },
+	{ "bt_blocklist",               V_01                            },
+	{ "bt_blocklist_url",           V_LENGTH(0, 80)                 },
+	{ "bt_sleep",                   V_RANGE(1, 60)                  },
+	{ "bt_check",                   V_01                            },
+	{ "bt_check_time",              V_RANGE(1, 55)                  },
+	{ "bt_dl_queue_enable",         V_01                            },
+	{ "bt_dl_queue_size",           V_RANGE(1, 30)                  },
+	{ "bt_ul_queue_enable",         V_01                            },
+	{ "bt_ul_queue_size",           V_RANGE(1, 30)                  },
+	{ "bt_message",                 V_RANGE(0, 3)                   },
+#endif
+
+#ifdef TCONFIG_NFS
+	{ "nfs_enable",			V_01				},
+	{ "nfs_exports",		V_LENGTH(0, 4096)		},
+#endif
+
+//NotCatSplash. Victek.
 #ifdef TCONFIG_NOCAT
 	{ "NC_enable",			V_01				},
 	{ "NC_Verbosity",		V_RANGE(0, 10)			},
@@ -1301,6 +1362,26 @@ static const nvset_t nvset_list[] = {
 #ifdef TCONFIG_VLAN
 	{ "NC_BridgeLAN",		V_LENGTH(0, 50)			},
 #endif
+#endif
+
+// NGinX Roadkill-Victek
+#ifdef TCONFIG_NGINX
+	{"nginx_enable",		V_01			}, // NGinX enabled
+	{"nginx_php",			V_01			}, // PHP enabled
+	{"nginx_keepconf",		V_01			}, // NGinX configuration files overwrite flag
+	{"nginx_docroot",		V_LENGTH(0, 255)	}, // root files path
+	{"nginx_port",			V_PORT			}, // listening port
+	{"nginx_fqdn",			V_LENGTH(0, 255)	}, // server name
+	{"nginx_upload",		V_LENGTH(1, 1000)	}, // upload file size limit
+	{"nginx_remote",		V_01			},
+	{"nginx_priority",		V_LENGTH(0, 255)	}, // server priority
+	{"nginx_custom",		V_TEXT(0, 4096)		}, // user window to add parameters to nginx.conf
+	{"nginx_httpcustom",		V_TEXT(0, 4096)		}, // user window to add parameters to nginx.conf
+	{"nginx_servercustom",		V_TEXT(0, 4096)		}, // user window to add parameters to nginx.conf
+	{"nginx_phpconf",		V_TEXT(0, 4096)		}, // user window to add parameters to php.ini
+	{"nginx_user",			V_LENGTH(0, 255)	}, // user used to start nginx and spawn-fcgi
+	{"nginx_override",		V_01			},
+	{"nginx_overridefile",		V_TEXT(0, 4096)		},
 #endif
 
 #ifdef TCONFIG_OPENVPN
@@ -1341,6 +1422,7 @@ static const nvset_t nvset_list[] = {
 	{ "vpn_server1_crt",      V_NONE              },
 	{ "vpn_server1_key",      V_NONE              },
 	{ "vpn_server1_dh",       V_NONE              },
+	{ "vpn_server1_br",       V_LENGTH(0, 50)     },
 	{ "vpn_server2_poll",     V_RANGE(0, 1440)    },
 	{ "vpn_server2_if",       V_TEXT(3, 3)        },  // tap, tun
 	{ "vpn_server2_proto",    V_TEXT(3, 10)       },  // udp, tcp-server
@@ -1374,6 +1456,7 @@ static const nvset_t nvset_list[] = {
 	{ "vpn_server2_crt",      V_NONE              },
 	{ "vpn_server2_key",      V_NONE              },
 	{ "vpn_server2_dh",       V_NONE              },
+	{ "vpn_server2_br",       V_LENGTH(0, 50)     },
 	{ "vpn_client_eas",       V_NONE              },
 	{ "vpn_client1_poll",     V_RANGE(0, 1440)    },
 	{ "vpn_client1_if",       V_TEXT(3, 3)        },  // tap, tun
@@ -1406,6 +1489,7 @@ static const nvset_t nvset_list[] = {
 	{ "vpn_client1_useronly", V_01                },
 	{ "vpn_client1_tlsremote",V_01                },
 	{ "vpn_client1_cn",       V_NONE              },
+	{ "vpn_client1_br",       V_LENGTH(0, 50)     },
 	{ "vpn_client2_poll",     V_RANGE(0, 1440)    },
 	{ "vpn_client2_if",       V_TEXT(3, 3)        },  // tap, tun
 	{ "vpn_client2_bridge",   V_01                },
@@ -1437,6 +1521,7 @@ static const nvset_t nvset_list[] = {
 	{ "vpn_client2_useronly", V_01                },
 	{ "vpn_client2_tlsremote",V_01                },
 	{ "vpn_client2_cn",       V_NONE              },
+	{ "vpn_client2_br",       V_LENGTH(0, 50)     },
 #endif // vpn
 
 #ifdef TCONFIG_PPTPD
@@ -1453,6 +1538,27 @@ static const nvset_t nvset_list[] = {
 	{ "pptpd_mtu",			V_RANGE(576, 1500)	},
 	{ "pptpd_mru",			V_RANGE(576, 1500)	},
 	{ "pptpd_custom",		V_TEXT(0, 2048)		},
+#endif
+
+#ifdef TCONFIG_TINC
+	{"tinc_wanup",			V_RANGE(0, 1)		},
+	{"tinc_name",			V_LENGTH(0, 30)		},
+	{"tinc_devicetype",		V_TEXT(3, 3)		}, // tun, tap
+	{"tinc_mode",			V_TEXT(3, 6)		}, // switch, hub
+	{"tinc_vpn_netmask",		V_IP			},
+	{"tinc_private_rsa",		V_LENGTH(0, 1700)	},
+	{"tinc_private_ecdsa",		V_LENGTH(0, 280)	},
+	{"tinc_custom",			V_NONE			},
+	{"tinc_hosts",			V_NONE			},
+	{"tinc_manual_firewall",	V_RANGE(0, 1)		},
+	{"tinc_manual_tinc_up",		V_RANGE(0, 1)		},
+	// scripts
+	{"tinc_tinc_up",		V_NONE			},
+	{"tinc_tinc_down",		V_NONE			},
+	{"tinc_host_up",		V_NONE			},
+	{"tinc_host_down",		V_NONE			},
+	{"tinc_subnet_up",		V_NONE			},
+	{"tinc_subnet_down",		V_NONE			},
 #endif
 
 #ifdef TCONFIG_TOR

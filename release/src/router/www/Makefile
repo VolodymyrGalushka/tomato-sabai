@@ -97,6 +97,14 @@ endif
 #	sed -i $(INSTALLDIR)/www/tomato.js -e "/MEDIA-SRV-BEGIN/,/MEDIA-SRV-END/d"
 #endif
 
+# Clean up NGinX files if not needed
+ifneq ($(TCONFIG_NGINX),y)
+	rm -f $(INSTALLDIR)/www/nginx.asp
+	rm -f $(INSTALLDIR)/www/index.html
+	rm -f $(INSTALLDIR)/www/index.php
+	sed -i $(INSTALLDIR)/www/tomato.js -e "/NGINX-BEGIN/,/NGINX-END/d"
+	sed -i $(INSTALLDIR)/www/about.asp -e "/NGINX-BEGIN/,/NGINX-END/d"
+endif
 # Only include IPv6 options if IPv6 is configured in.
 ifneq ($(TCONFIG_IPV6),y)
 	cd $(INSTALLDIR)/www && \
@@ -107,6 +115,35 @@ ifneq ($(TCONFIG_IPV6),y)
 	done
 	rm -f $(INSTALLDIR)/www/admin-ipv6.asp
 endif
+
+# Only include the Transmission binary path select if Transmission binaries is configured in.
+ifneq ($(TCONFIG_BBT),y)
+	sed -i $(INSTALLDIR)/www/nas-bittorrent.asp -e "/BBT-BEGIN/,/BBT-END/d"
+	sed -i $(INSTALLDIR)/www/about.asp -e "/BBT-BEGIN/,/BBT-END/d"
+endif
+
+# Only include the Transmission pages if Transmission is configured in.
+ifneq ($(TCONFIG_BT),y)
+	rm -f $(INSTALLDIR)/www/nas-bittorrent.asp
+	sed -i $(INSTALLDIR)/www/tomato.js -e "/BT-BEGIN/,/BT-END/d"
+	sed -i $(INSTALLDIR)/www/about.asp -e "/BT-BEGIN/,/BT-END/d"
+endif
+
+# Only include the UPS pages if apcupsd is configured in.
+ifneq ($(TCONFIG_UPS),y)
+	rm -f $(INSTALLDIR)/www/nas-ups.asp
+	sed -i $(INSTALLDIR)/www/tomato.js -e "/UPS-BEGIN/,/UPS-END/d"
+	sed -i $(INSTALLDIR)/www/about.asp -e "/UPS-BEGIN/,/UPS-END/d"
+endif
+
+# Only include the TOR pages if tor project is configured in.
+ifneq ($(TCONFIG_TOR),y)
+	rm -f $(INSTALLDIR)/www/advanced-tor.asp
+	sed -i $(INSTALLDIR)/www/tomato.js -e "/TOR-BEGIN/,/TOR-END/d"
+	sed -i $(INSTALLDIR)/www/about.asp -e "/TOR-BEGIN/,/TOR-END/d"
+endif
+
+
 
 # Only include the USB and NAS pages if USB Support is configured in.
 ifneq ($(TCONFIG_USB),y)
@@ -121,6 +158,10 @@ endif
 ##	test -d $(SRCBASE)/ctf/linux || 
 	sed -i $(INSTALLDIR)/www/admin-misc.asp -e "/CTF-BEGIN/,/CTF-END/d"
 
+# Only include the CTF configuration if CTF is configured in.
+ifneq ($(TCONFIG_CTF),y)
+	sed -i $(INSTALLDIR)/www/advanced-misc.asp -e "/CTF-BEGIN/,/CTF-END/d"
+endif
 
 #ifeq ($(TOMATO_EXPERIMENTAL),1)
 #	cd $(INSTALLDIR)/www && \
@@ -130,18 +171,82 @@ endif
 #	done
 #endif
 
+	cd $(INSTALLDIR)/www && \
+	for F in $(wildcard *.asp); do \
+		sed -e "s,<div class='version'>Version <% version(); %></div>,<div class='version'>Version <% version(); %> by shibby</div>," $$F > $$F.tmp; \
+		mv $$F.tmp $$F; \
+	done
 
 
 # Only include the vpn pages if OpenVPN is compiled in
 # Remove AES ciphers from the GUI if openssl doesn't have an AES directory
-#ifeq ($(TCONFIG_OPENVPN),y)
-#	test -d ../openssl/crypto/aes || sed -i $(INSTALLDIR)/www/vpn.js -e "/AES-BEGIN/,/AES-END/d"
-#else
-#	rm -f $(INSTALLDIR)/www/vpn*
-#	sed -i $(INSTALLDIR)/www/tomato.js -e "/VPN-BEGIN/,/VPN-END/d"
-#	sed -i $(INSTALLDIR)/www/about.asp -e "/VPN-BEGIN/,/VPN-END/d"
-#	sed -i $(INSTALLDIR)/www/admin-access.asp -e "/VPN-BEGIN/,/VPN-END/d"
-#endif
+ifeq ($(TCONFIG_OPENVPN),y)
+	test -d ../openssl/crypto/aes || sed -i $(INSTALLDIR)/www/vpn.js -e "/AES-BEGIN/,/AES-END/d"
+	sed -i $(INSTALLDIR)/www/tomato.js -e "/ VPN-BEGIN/d" -e "/ VPN-END/d"
+	sed -i $(INSTALLDIR)/www/admin-access.asp -e "/ VPN-BEGIN/d" -e "/ VPN-END/d"
+	sed -i $(INSTALLDIR)/www/about.asp -e "/ VPN-BEGIN/d" -e "/ VPN-END/d"
+else
+	rm -f $(INSTALLDIR)/www/vpn-server.asp
+	rm -f $(INSTALLDIR)/www/vpn-client.asp
+	rm -f $(INSTALLDIR)/www/vpn.js
+	sed -i $(INSTALLDIR)/www/tomato.js -e "/ OPENVPN-BEGIN/,/ OPENVPN-END/d"
+	sed -i $(INSTALLDIR)/www/about.asp -e "/ OPENVPN-BEGIN/,/ OPENVPN-END/d"
+endif
+
+# Only include the PPTPD pages if PPTPD is compiled in
+ifeq ($(TCONFIG_PPTPD),y)
+	sed -i $(INSTALLDIR)/www/tomato.js -e "/ VPN-BEGIN/d" -e "/ VPN-END/d"
+	sed -i $(INSTALLDIR)/www/admin-access.asp -e "/ VPN-BEGIN/d" -e "/ VPN-END/d"
+	sed -i $(INSTALLDIR)/www/about.asp -e "/ VPN-BEGIN/d" -e "/ VPN-END/d"
+else
+	rm -f $(INSTALLDIR)/www/vpn-pptp-server.asp
+	rm -f $(INSTALLDIR)/www/vpn-pptp-online.asp
+	rm -f $(INSTALLDIR)/www/vpn-pptp.asp
+	sed -i $(INSTALLDIR)/www/tomato.js -e "/ PPTPD-BEGIN/,/ PPTPD-END/d"
+	sed -i $(INSTALLDIR)/www/about.asp -e "/ PPTPD-BEGIN/,/ PPTPD-END/d"
+endif
+
+# Only include the nfs pages if NFS is compiled in
+ifneq ($(TCONFIG_NFS),y)
+	rm -f $(INSTALLDIR)/www/admin-nfs.asp
+	sed -i $(INSTALLDIR)/www/tomato.js -e "/NFS-BEGIN/,/NFS-END/d"
+	sed -i $(INSTALLDIR)/www/about.asp -e "/NFS-BEGIN/,/NFS-END/d"
+endif
+
+# Only include the snmp pages if SNMP is compiled in
+ifneq ($(TCONFIG_SNMP),y)
+	rm -f $(INSTALLDIR)/www/admin-snmp.asp
+	sed -i $(INSTALLDIR)/www/tomato.js -e "/SNMP-BEGIN/,/SNMP-END/d"
+	sed -i $(INSTALLDIR)/www/about.asp -e "/SNMP-BEGIN/,/SNMP-END/d"
+endif
+
+# Only include the mmc pages if SDHC is compiled in
+ifneq ($(TCONFIG_SDHC),y)
+	rm -f $(INSTALLDIR)/www/admin-sdhc.asp
+	sed -i $(INSTALLDIR)/www/tomato.js -e "/SDHC-BEGIN/,/SDHC-END/d"
+	sed -i $(INSTALLDIR)/www/about.asp -e "/SDHC-BEGIN/,/SDHC-END/d"
+endif
+
+# Only include the dnssec option if is compiled in
+ifneq ($(TCONFIG_DNSSEC),y)
+	sed -i $(INSTALLDIR)/www/basic-network.asp -e "/DNSSEC-BEGIN/,/DNSSEC-END/d"
+	sed -i $(INSTALLDIR)/www/about.asp -e "/DNSSEC-BEGIN/,/DNSSEC-END/d"
+endif
+
+# Only include the Tinc page if it is compiled in
+ifneq ($(TCONFIG_TINC),y)
+	rm -f $(INSTALLDIR)/www/vpn-tinc.asp
+	sed -i $(INSTALLDIR)/www/tomato.js -e "/TINC-BEGIN/,/TINC-END/d"
+	sed -i $(INSTALLDIR)/www/about.asp -e "/TINC-BEGIN/,/TINC-END/d"
+endif
+
+# Only include the dnscrypt option if is compiled in
+ifeq ($(TCONFIG_DNSCRYPT),y)
+	$(TOP)/www/dnscrypt-helper.sh $(INSTALLDIR)/../rom/rom/etc/dnscrypt-resolvers.csv $(INSTALLDIR)/www/basic-network.asp
+else
+	sed -i $(INSTALLDIR)/www/basic-network.asp -e "/DNSCRYPT-BEGIN/,/DNSCRYPT-END/d"
+	sed -i $(INSTALLDIR)/www/about.asp -e "/DNSCRYPT-BEGIN/,/DNSCRYPT-END/d"
+endif
 
 # clean up
 	@cd $(INSTALLDIR)/www && \
@@ -160,8 +265,21 @@ endif
 		-e "/EMF-BEGIN/d"	-e "/EMF-END/d" \
 		-e "/VPN-BEGIN/d"	-e "/VPN-END/d" \
 		-e "/AES-BEGIN/d"	-e "/AES-END/d" \
+		-e "/PPTPD-BEGIN/d"	-e "/PPTPD-END/d"\
+		-e "/VPN-BEGIN/,/VPN-END/d" \
 		-e "/IPV6-BEGIN/d"	-e "/IPV6-END/d" \
 		-e "/CTF-BEGIN/d"	-e "/CTF-END/d" \
+		-e "/BBT-BEGIN/d"	-e "/BBT-END/d" \
+		-e "/BT-BEGIN/d"	-e "/BT-END/d" \
+		-e "/NFS-BEGIN/d"	-e "/NFS-END/d" \
+		-e "/NOCAT-BEGIN/d"	-e "/NOCAT-END/d"\
+		-e "/SNMP-BEGIN/d"	-e "/SNMP-END/d"\
+		-e "/SDHC-BEGIN/d"	-e "/SDHC-END/d"\
+		-e "/HFS-BEGIN/d"	-e "/HFS-END/d"\
+		-e "/DNSCRYPT-BEGIN/d"	-e "/DNSCRYPT-END/d"\
+		-e "/DNSSEC-BEGIN/d"	-e "/DNSSEC-END/d"\
+		-e "/TOR-BEGIN/d"	-e "/TOR-END/d"\
+		-e "/TINC-BEGIN/d"	-e "/TINC-END/d"\
 		|| true; \
 	done
 
@@ -178,3 +296,7 @@ endif
 	@chmod 0644 $(INSTALLDIR)/www/*
 	@chmod +x $(INSTALLDIR)/www/*.sh
 
+# remove C-style comments from java files. All "control" comments have been processed by now.
+	for F in $(wildcard *.js *.jsx); do \
+		[ -f $(INSTALLDIR)/www/$$F ] && $(TOP)/www/remcoms2.sh $(INSTALLDIR)/www/$$F c; \
+	done

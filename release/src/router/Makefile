@@ -37,6 +37,7 @@ obj-y += others
 obj-y += busybox
 obj-y += httpd
 obj-y += www
+obj-y += wwwAT
 obj-y += bridge
 obj-y += dnsmasq
 obj-y += etc
@@ -151,7 +152,7 @@ obj-$(TCONFIG_IPV6) += dhcpv6
 obj-$(TCONFIG_MEDIA_SERVER) += zlib
 obj-$(TCONFIG_MEDIA_SERVER) += sqlite
 obj-$(TCONFIG_MEDIA_SERVER) += ffmpeg
-obj-$(TCONFIG_MEDIA_SERVER) += libiconv
+#obj-$(TCONFIG_MEDIA_SERVER) += libiconv
 obj-$(TCONFIG_MEDIA_SERVER) += libogg
 obj-$(TCONFIG_MEDIA_SERVER) += flac
 obj-$(TCONFIG_MEDIA_SERVER) += jpeg
@@ -159,10 +160,10 @@ obj-$(TCONFIG_MEDIA_SERVER) += libexif
 obj-$(TCONFIG_MEDIA_SERVER) += libid3tag
 obj-$(TCONFIG_MEDIA_SERVER) += libvorbis
 obj-$(TCONFIG_MEDIA_SERVER) += minidlna
-#MEDIA_SERVER_STATIC=y
-MEDIA_SERVER_STATIC :=
+MEDIA_SERVER_STATIC=y
+#MEDIA_SERVER_STATIC :=
 
-obj-y += libnfnetlink
+#obj-y += libnfnetlink
 obj-y += miniupnpd
 #	obj-y += upnp
 obj-$(CONFIG_LINUX26) += ipset
@@ -181,8 +182,31 @@ obj-$(TCONFIG_ZEBRA) += zebra
 obj-$(TCONFIG_LZO) += lzo
 obj-$(TCONFIG_OPENVPN) += openvpn
 obj-$(TCONFIG_OPENVPN) += openvpn_plugin_auth_nvram
+obj-$(TCONFIG_TINC) += tinc
 obj-$(TCONFIG_EMF) += emf
 obj-$(TCONFIG_EMF) += igs
+
+# Tomato RAF
+# additional modules for nginx
+ifeq (obj-$(TCONFIG_NGINX),y)
+ifndef ($(ADDITIONAL_MODULES))
+ADDITIONAL_MODULES:=
+else
+ifeq ($(TCONFIG_IPV6),y)
+ADDITIONAL_MODULES += --with-ipv6
+endif
+endif
+endif
+obj-$(TCONFIG_NGINX) += openssl
+obj-$(TCONFIG_NGINX) += spawn-fcgi
+obj-$(TCONFIG_NGINX) += pcre
+obj-$(TCONFIG_NGINX) += sqlite
+obj-$(TCONFIG_NGINX) += libiconv
+obj-$(TCONFIG_NGINX) += libxml2
+obj-$(TCONFIG_NGINX) += libpng
+obj-$(TCONFIG_NGINX) += jpeg
+obj-$(TCONFIG_NGINX) += php
+obj-$(TCONFIG_NGINX) += nginx
 
 obj-$(TCONFIG_BBT) += openssl
 obj-$(TCONFIG_BBT) += libevent
@@ -207,7 +231,15 @@ else
       ifeq ($(TCONFIG_TOR),y)
         export FULL_OPENSSL := y
       else
-        FULL_OPENSSL :=
+        ifeq ($(TCONFIG_TOR),y)
+          export FULL_OPENSSL := y
+        else
+          ifeq ($(TCONFIG_TINC),y)
+            export FULL_OPENSSL := y
+          else
+            FULL_OPENSSL :=
+          endif
+        endif
       endif
     endif
   endif
@@ -763,7 +795,7 @@ openssl/stamp-h1:
 	shared $(OPENSSL_CIPHERS) \
 	no-sha0 no-smime no-camellia no-krb5 no-rmd160 no-ripemd \
 	no-seed no-capieng no-cms no-gms no-gmp no-rfc3779 \
-	no-ec no-ecdh no-ecdsa no-err no-hw no-jpake no-threads \
+	$(if $(TCONFIG_TINC),,no-ec no-ecdh no-ecdsa) no-err no-hw no-jpake no-threads \
 	no-zlib no-engines no-sse2 \
 	no-dtls1 no-store no-psk no-md2 no-mdc2 no-ts
 
@@ -818,15 +850,52 @@ bridge-install:
 	install -D bridge/brctl/brctl $(INSTALLDIR)/bridge/usr/sbin/brctl
 	$(STRIP) $(INSTALLDIR)/bridge/usr/sbin/brctl
 
-dnsmasq:
+dnsmasq: $(if $(TCONFIG_DNSSEC),nettle,)
 	@$(SEP)
 	@$(MAKE) -C dnsmasq $(PARALLEL_BUILD) \
-	COPTS="$(if $(TCONFIG_IPV6),-DUSE_IPV6,-DNO_IPV6) $(if $(CONFIG_LINUX26),-DUSE_IPSET,-DNO_IPSET) -DHAVE_BROKEN_RTC -DHAVE_TOMATO $(EXTRACFLAGS) -ffunction-sections -fdata-sections" \
-	LDFLAGS="-ffunction-sections -fdata-sections -Wl,--gc-sections -fPIC"
+	COPTS="$(if $(TCONFIG_DNSSEC),-I$(TOP)/nettle/include -I$(TOP)/gmp -DHAVE_DNSSEC -DHAVE_DNSSEC_STATIC,) \
+		$(if $(TCONFIG_IPV6),-DUSE_IPV6,-DNO_IPV6) \
+		$(if $(CONFIG_LINUX26),-DUSE_IPSET,-DNO_IPSET) \
+		-DHAVE_BROKEN_RTC -DHAVE_TOMATO $(EXTRACFLAGS) -ffunction-sections -fdata-sections" \
+	LDFLAGS="$(if $(TCONFIG_DNSSEC),-L$(TOP)/nettle/lib -L$(TOP)/gmp/.libs,) -ffunction-sections -fdata-sections -Wl,--gc-sections -fPIC" \
+	$(if $(TCONFIG_DNSSEC),PKG_CONFIG_PATH="$(TOP)/nettle/lib/pkgconfig",)
 
 dnsmasq-install:
 	install -D dnsmasq/src/dnsmasq $(INSTALLDIR)/dnsmasq/usr/sbin/dnsmasq
 	$(STRIP) $(INSTALLDIR)/dnsmasq/usr/sbin/dnsmasq
+
+nettle/stamp-h1: gmp
+	@cd nettle && CC=$(CC) AR=$(AR) RANLIB=$(RANLIB) LD=$(LD) \
+	CPPFLAGS="-I$(TOP)/gmp" \
+	CFLAGS="-Os -Wall $(EXTRACFLAGS) -fPIC -ffunction-sections -fdata-sections" \
+	LDFLAGS="-L$(TOP)/gmp/.libs -ffunction-sections -fdata-sections -Wl,--gc-sections -fPIC" \
+	$(CONFIGURE) prefix=$(TOP)/nettle
+	@touch nettle/stamp-h1
+
+nettle: nettle/stamp-h1
+	@$(SEP)
+	@$(MAKE) -C nettle
+	@$(MAKE) -C nettle install
+
+nettle-clean:
+	-@$(MAKE) -C nettle clean
+	@rm -f nettle/stamp-h1
+	@rm -rf nettle/include nettle/lib nettle/bin nettle/share
+
+gmp/stamp-h1:
+	@cd gmp && CC=$(CC) AR=$(AR) RANLIB=$(RANLIB) LD=$(LD) \
+	CFLAGS="-Os -Wall $(EXTRACFLAGS) -fPIC -ffunction-sections -fdata-sections" \
+	LDFLAGS="-ffunction-sections -fdata-sections -Wl,--gc-sections -fPIC" \
+	$(CONFIGURE)
+	@touch gmp/stamp-h1
+
+gmp: gmp/stamp-h1
+	@$(SEP)
+	@$(MAKE) -C gmp
+
+gmp-clean:
+	@$(MAKE) -C gmp clean
+	@rm -f gmp/stamp-h1
 
 iptables:
 ifeq ($(CONFIG_LINUX26),y)
@@ -916,14 +985,14 @@ miniupnpd-config:
 #ifeq ($(TCONFIG_IPV6),y)
 #	@cd miniupnpd && ./genconfig.sh --leasefile --ipv6
 #else
-	@cd miniupnpd && ./genconfig.sh --leasefile
+	@cd miniupnpd && ./genconfig.sh --leasefile --vendorcfg
 #endif
 
-miniupnpd: iptables miniupnpd-config libnfnetlink
+miniupnpd: iptables miniupnpd-config
 	@$(SEP)
 	$(MAKE) -C miniupnpd miniupnpd -f Makefile.linux CC=$(CC) \
-		CFLAGS="-Wall -Os -D_GNU_SOURCE $(EXTRACFLAGS) -I$(TOP)/iptables/include -I$(TOP)/libnfnetlink/include" \
-		LDFLAGS="-L$(TOP)/iptables -liptc -L$(TOP)/libnfnetlink/src/.libs -lnfnetlink" LIBS="" $(PARALLEL_BUILD)
+		CFLAGS="-Wall -Os -D_GNU_SOURCE $(EXTRACFLAGS) -I$(TOP)/iptables/include" \
+		LDFLAGS="-L$(TOP)/iptables -liptc" LIBS="" $(PARALLEL_BUILD)
 
 miniupnpd-clean:
 	-@$(MAKE) -C miniupnpd -f Makefile.linux clean
@@ -1292,11 +1361,12 @@ sqlite-clean:
 
 sqlite-install: sqlite
 	@$(SEP)
-ifneq ($(MEDIA_SERVER_STATIC),y)
-	install -D sqlite/.libs/libsqlite3.so.0 $(INSTALLDIR)/sqlite/usr/lib/libsqlite3.so.0
-	$(STRIP) $(INSTALLDIR)/sqlite/usr/lib/libsqlite3.so.0
+ifeq ($(TCONFIG_NGINX),y)
+	install -D sqlite/.libs/libsqlite3.so.0.8.6 $(INSTALLDIR)/sqlite/usr/lib/libsqlite3.so.0.8.6
+	$(STRIP) $(INSTALLDIR)/sqlite/usr/lib/libsqlite3.so.0.8.6
 	cd $(INSTALLDIR)/sqlite/usr/lib/ && \
-		ln -sf libsqlite3.so.0 libsqlite3.so
+		ln -sf libsqlite3.so.0.8.6 libsqlite3.so.0 && \
+		ln -sf libsqlite3.so.0.8.6 libsqlite3.so
 endif
 
 FFMPEG_FILTER_CONFIG= $(foreach c, $(2), --$(1)="$(c)")
@@ -1401,14 +1471,26 @@ jpeg/stamp-h1:
 
 jpeg: jpeg/stamp-h1
 	@$(MAKE) -C jpeg LIBTOOL="" O=o A=a CC=$(CC) AR2="touch" libjpeg.a libjpeg.so $(PARALLEL_BUILD)
+	install -d $(TOP)/jpeg/staged/include
+	install -d $(TOP)/jpeg/staged/lib
+	install -d $(TOP)/jpeg/staged/bin
+	install -d $(TOP)/jpeg/staged/man/man1
+	@$(MAKE) -C jpeg LIBTOOL="" prefix=$(TOP)/jpeg/staged install
+	install -D jpeg/libjpeg.so $(TOP)/jpeg/staged/lib/libjpeg.so
+	rm -f $(TOP)/jpeg/staged/lib/libjpeg.la
 
 jpeg-clean:
 	-@$(MAKE) -C jpeg clean
 	@rm -f jpeg/stamp-h1 jpeg/Makefile
+	@rm -rf jpeg/staged
 
 jpeg-install: jpeg
 	@$(SEP)
 ifneq ($(MEDIA_SERVER_STATIC),y)
+	install -D jpeg/libjpeg.so $(INSTALLDIR)/jpeg/usr/lib/libjpeg.so
+	$(STRIP) $(INSTALLDIR)/jpeg/usr/lib/libjpeg.so
+endif
+ifeq ($(TCONFIG_NGINX),y)
 	install -D jpeg/libjpeg.so $(INSTALLDIR)/jpeg/usr/lib/libjpeg.so
 	$(STRIP) $(INSTALLDIR)/jpeg/usr/lib/libjpeg.so
 endif
@@ -1436,16 +1518,18 @@ endif
 
 zlib/stamp-h1:
 	cd zlib && \
-	CC=$(CC) AR="ar rc" RANLIB=$(RANLIB) LD=$(LD) CFLAGS="-Os -Wall $(EXTRACFLAGS)" \
-	./configure --shared --prefix=''
+	CC=$(CC) RANLIB=$(RANLIB) LD=$(LD) CFLAGS="-Os -Wall $(EXTRACFLAGS) -fPIC" LDSHAREDLIBC="$(EXTRALDFLAGS)" \
+	./configure --shared --prefix=/usr --libdir=/usr/lib
 	touch zlib/stamp-h1
 
 zlib: zlib/stamp-h1
-	@$(MAKE) -C zlib CC=$(CC) AR="ar rc" RANLIB=$(RANLIB) LD=$(LD) all $(PARALLEL_BUILD)
+	@$(MAKE) -C zlib all
+	@$(MAKE) -C zlib DESTDIR=$(TOP)/zlib/staged install
 
 zlib-clean:
 	-@$(MAKE) -C zlib clean
 	@rm -f zlib/stamp-h1 zlib/Makefile zlib/zconf.h zlib/zlib.pc
+	@rm -rf zlib/staged
 
 zlib-install: zlib
 	@$(SEP)
@@ -1460,6 +1544,11 @@ ifeq ($(TCONFIG_BT),y)
 	$(STRIP) $(INSTALLDIR)/zlib/usr/lib/libz.so.1
 endif
 ifeq ($(TCONFIG_TOR),y)
+	install -d $(INSTALLDIR)/zlib/usr/lib
+	install -D zlib/libz.so.1 $(INSTALLDIR)/zlib/usr/lib/
+	$(STRIP) $(INSTALLDIR)/zlib/usr/lib/libz.so.1
+endif
+ifeq ($(TCONFIG_NGINX),y)
 	install -d $(INSTALLDIR)/zlib/usr/lib
 	install -D zlib/libz.so.1 $(INSTALLDIR)/zlib/usr/lib/
 	$(STRIP) $(INSTALLDIR)/zlib/usr/lib/libz.so.1
@@ -1511,38 +1600,9 @@ ifneq ($(MEDIA_SERVER_STATIC),y)
 	$(STRIP) $(INSTALLDIR)/libvorbis/usr/lib/libvorbis.so.0
 endif
 
-minidlna/stamp-h1: zlib sqlite ffmpeg libogg flac jpeg libexif libid3tag libvorbis libiconv
-	cd minidlna && CC=$(CC) CXX=$(CXX) AR=$(AR) RANLIB=$(RANLIB) STRIP='mipsel-uclibc-strip' HOST=mipsel-linux \
-	CFLAGS="-Wall -Os -D_GNU_SOURCE $(EXTRACFLAGS) -D_FILE_OFFSET_BITS=64 \
-		-ffunction-sections -fdata-sections \
-		-I$(TOP)/ffmpeg/libavutil -I$(TOP)/ffmpeg/libavcodec -I$(TOP)/ffmpeg/libavformat \
-		-I$(TOP)/ffmpeg/libswscale -I$(TOP)/ffmpeg \
-		-I$(TOP)/flac/include -I$(TOP)/sqlite -I$(TOP)/jpeg \
-		-I$(TOP)/libexif -I$(TOP)/libid3tag -I$(TOP)/libogg/include \
-		-I$(TOP)/libvorbis/include \
-		-I$(TOP)/libiconv/include \
-		-I$(TOP)/sqlite" \
-	LDFLAGS="-ffunction-sections -fdata-sections -Wl,--gc-sections -fPIC \
-		-L$(TOP)/zlib -L$(TOP)/sqlite/.libs -L$(TOP)/jpeg -L$(TOP)/libvorbis/lib/.libs \
-		-L$(TOP)/libogg/src/.libs -L$(TOP)/libexif/libexif/.libs -L$(TOP)/flac/src/libFLAC/.libs \
-		-L$(TOP)/ffmpeg/libavutil -L$(TOP)/ffmpeg/libavcodec -L$(TOP)/ffmpeg/libavformat \
-		-L$(TOP)/libid3tag/.libs -L$(TOP)/libiconv/lib/.libs" \
-	CPPFLAGS="-Wall -Os -D_GNU_SOURCE $(EXTRACFLAGS) -D_FILE_OFFSET_BITS=64 \
-		-ffunction-sections -fdata-sections \
-		-I$(TOP)/ffmpeg/libavutil -I$(TOP)/ffmpeg/libavcodec -I$(TOP)/ffmpeg/libavformat \
-		-I$(TOP)/ffmpeg/libswscale -I$(TOP)/ffmpeg \
-		-I$(TOP)/flac/include -I$(TOP)/sqlite -I$(TOP)/jpeg \
-		-I$(TOP)/libexif -I$(TOP)/libid3tag -I$(TOP)/libogg/include \
-		-I$(TOP)/libvorbis/include \
-		-I$(TOP)/libiconv/include \
-		-I$(TOP)/sqlite" \
-	LIBS="-lpthread -lexif -ljpeg -lsqlite3 -lavformat -lavutil -lavcodec -lid3tag -lFLAC -logg -lvorbis -lm -ldl -lz" \
-	$(CONFIGURE) --host=mipsel-linux --build=x86_64-linux-gnu
-	touch minidlna/stamp-h1
-
-minidlna: minidlna/stamp-h1
+minidlna: zlib sqlite ffmpeg libogg flac jpeg libexif libid3tag libvorbis
 	@$(SEP)
-	@$(MAKE) -C minidlna all $(PARALLEL_BUILD)
+	@$(MAKE) -C minidlna CC=$(CC) $(if $(MEDIA_SERVER_STATIC),STATIC=1,) minidlna $(PARALLEL_BUILD)
 
 minidlna-clean:
 	-@$(MAKE) -C minidlna clean
@@ -1550,7 +1610,7 @@ minidlna-clean:
 
 minidlna-install: minidlan
 	@$(SEP)
-	install -D minidlna/minidlnad $(INSTALLDIR)/minidlna/usr/sbin/minidlna
+	install -D minidlna/minidlna $(INSTALLDIR)/minidlna/usr/sbin/minidlna
 	$(STRIP) $(INSTALLDIR)/minidlna/usr/sbin/minidlna
 
 igmpproxy/src/Makefile: igmpproxy/src/Makefile.in
@@ -1635,6 +1695,27 @@ ebtables-clean:
 	-@$(MAKE) -C ebtables clean
 
 #Roadkill
+spawn-fcgi/stamp-h1:
+	cd spawn-fcgi && CC=$(CC) \
+	CFLAGS="-Os -Wall $(EXTRACFLAGS) -ffunction-sections -fdata-sections" \
+	LDFLAGS="-ffunction-sections -fdata-sections -Wl,--gc-sections -fPIC" \
+	ac_cv_func_malloc_0_nonnull=yes \
+	$(CONFIGURE) --prefix=/usr
+	touch spawn-fcgi/stamp-h1
+
+spawn-fcgi: spawn-fcgi/stamp-h1
+	@$(MAKE) -C spawn-fcgi $(PARALLEL_BUILD)
+
+spawn-fcgi-clean:
+	-@$(MAKE) -C spawn-fcgi clean
+	rm -f spawn-fcgi/stamp-h1
+
+spawn-fcgi-install: spawn-fcgi
+	install -d $(INSTALLDIR)/spawn-fcgi/usr/bin
+	install spawn-fcgi/src/spawn-fcgi $(INSTALLDIR)/spawn-fcgi/usr/bin/spawn-fcgi
+	$(STRIP) -s $(INSTALLDIR)/spawn-fcgi/usr/bin/spawn-fcgi
+
+#Roadkill
 glib/stamp-h1:
 	@$(SEP)
 	@cd glib && $(CONFIGURE) --prefix=/usr glib_cv_prog_cc_ansi_proto=no glib_cv_has__inline=yes glib_cv_has__inline__=yes glib_cv_hasinline=yes \
@@ -1655,7 +1736,6 @@ glib-clean:
 glib-install: glib
 	@$(MAKE) -C glib DESTDIR=$(INSTALLDIR)/glib install
 
-#Roadkill
 nocat/stamp-h1: glib-install
 	@$(SEP)
 	@cd nocat && \
@@ -1683,6 +1763,206 @@ nocat-install:
 	mkdir -p $(INSTALLDIR)/nocat/usr/libexec/nocat
 	install -D nocat/libexec/iptables/* $(INSTALLDIR)/nocat/usr/libexec/nocat
 
+#Tomato RAF
+pcre/stamp-h1:
+	$(SEP)
+	cd pcre && \
+	CC=$(CC) CXX=$(HOST)-g++ AR=$(AR) RANLIB=$(RANLIB) LD=$(LD) CFLAGS="-Os -Wall $(EXTRACFLAGS)" \
+	$(CONFIGURE) --prefix=/usr --disable-dependency-tracking --enable-utf8 --enable-unicode-properties --disable-cpp
+	@touch pcre/stamp-h1
+	[ -d pcre/m4 ] || mkdir pcre/m4
+
+pcre: pcre/stamp-h1
+
+pcre-install: pcre
+	@$(SEP)
+	install -D pcre/.libs/libpcre.so.1 $(INSTALLDIR)/pcre/usr/lib/libpcre.so.1.2.3
+	$(STRIP) -s $(INSTALLDIR)/pcre/usr/lib/libpcre.so.1.2.3
+	install -D pcre/.libs/libpcreposix.so.0.0.2 $(INSTALLDIR)/pcre/usr/lib/libpcreposix.so.0.0.2
+	$(STRIP) -s $(INSTALLDIR)/pcre/usr/lib/libpcreposix.so.0.0.2
+	cd $(INSTALLDIR)/pcre/usr/lib/ && \
+		ln -sf libpcre.so.1.2.3 libpcre.so.1 && \
+		ln -sf libpcreposix.so.0.0.2 libpcreposix.so.0
+
+pcre-clean:
+	( if [ -f pcre/Makefile ]; then \
+		$(MAKE) -C pcre clean; \
+		rm -rf pcre/stamp-h1; \
+	fi )
+
+libxml2/stamp-h1:
+	cd libxml2 && \
+	CC=$(CC) AR=$(AR) RANLIB=$(RANLIB) LD=$(LD) CFLAGS="-Os -Wall $(EXTRACFLAGS)" \
+	$(CONFIGURE) --prefix=/usr --without-python --enable-static --enable-shared
+	touch $@
+
+libxml2: libxml2/stamp-h1
+	@$(MAKE) -C libxml2 all $(PARALLEL_BUILD)
+	@$(MAKE) -C libxml2 DESTDIR=$(TOP)/libxml2/staged install
+
+libxml2-install: libxml2
+	@$(SEP)
+	install -D libxml2/.libs/libxml2.so.2.9.1 $(INSTALLDIR)/libxml2/usr/lib/libxml2.so.2.9.1
+	$(STRIP) $(INSTALLDIR)/libxml2/usr/lib/libxml2.so.2.9.1
+	cd $(INSTALLDIR)/libxml2/usr/lib && \
+		ln -sf libxml2.so.2.9.1 libxml2.so.2 && \
+		ln -sf libxml2.so.2.9.1 libxml2.so
+
+libxml2-clean:
+	-@$(MAKE) -C libxml2 clean
+	@rm -f libxml2/stamp-h1
+	@rm -rf libxml2/staged
+
+libpng/stamp-h1: zlib
+	cd libpng && \
+	CC=$(CC) AR=$(AR) RANLIB=$(RANLIB) LD=$(LD) CFLAGS="-Os -Wall -I$(TOP)/zlib $(EXTRACFLAGS)" LDFLAGS="-L$(TOP)/zlib" \
+	$(CONFIGURE) --prefix=/usr --enable-static --enable-shared
+	touch $@
+
+libpng: libpng/stamp-h1
+	@$(MAKE) -C libpng all $(PARALLEL_BUILD)
+	@$(MAKE) -C libpng DESTDIR=$(TOP)/libpng/staged install
+
+libpng-install: libpng
+	@$(SEP)
+	install -D libpng/.libs/libpng.so.3.51.0 $(INSTALLDIR)/libpng/usr/lib/libpng.so.3.51.0
+	$(STRIP) $(INSTALLDIR)/libpng/usr/lib/libpng.so.3.51.0
+	cd $(INSTALLDIR)/libpng/usr/lib && \
+		ln -sf libpng.so.3.51.0 libpng.so && \
+		ln -sf libpng.so.3.51.0 libpng.so.3
+	install -D libpng/.libs/libpng12.so.0.51.0 $(INSTALLDIR)/libpng/usr/lib/libpng12.so.0.51.0
+	$(STRIP) $(INSTALLDIR)/libpng/usr/lib/libpng12.so.0.51.0
+	cd $(INSTALLDIR)/libpng/usr/lib && \
+		ln -sf libpng12.so.0.51.0 libpng12.so && \
+		ln -sf libpng12.so.0.51.0 libpng12.so.0
+
+libpng-clean:
+	-@$(MAKE) -C libpng clean
+	@rm -f libpng/stamp-h1
+	@rm -rf libpng/staged
+
+php/stamp-h1: pcre zlib libiconv sqlite libxml2 libpng jpeg
+	@$(SEP)
+	cd php && CC=$(CC) CXX=$(ARCH)-g++ AR=$(AR) RANLIB=$(RANLIB) LD=$(LD) \
+	CFLAGS="-Os -Wall -I$(TOP)/zlib -I$(TOP)/libxml2/include/libxml -I$(TOP)/libxml2/include -I$(TOP)/pcre -I$(TOP)/libiconv/include -I$(TOP)/libpng/staged/usr/include" \
+	LDFLAGS="-L$(TOP)/pcre/.libs -L$(TOP)/sqlite/.libs -L$(TOP)/zlib -L$(TOP)/libxml2/.libs -L$(TOP)/libiconv/lib/.libs -L$(TOP)/libpng/.libs" \
+	CPPFLAGS="-L$(TOP)/pcre/.libs -L$(TOP)/sqlite/.libs -L$(TOP)/zlib -L$(TOP)/libxml2/.libs -L$(TOP)/libiconv/lib/.libs -L$(TOP)/libpng/.libs" \
+	LIBS="-L$(TOP)/pcre/.libs -L$(TOP)/sqlite/.libs -L$(TOP)/zlib -L$(TOP)/libxml2/.libs -L$(TOP)/libiconv/lib/.libs -L$(TOP)/libpng/.libs -lsqlite3 -ldl -lpthread -liconv -lxml2" \
+	PHP_FCGI_LIBXML_DIR="$(TOP)/libxml2/staged/usr" \
+	ac_cv_func_memcmp_working=yes \
+	cv_php_mbstring_stdarg=yes \
+	$(CONFIGURE) --prefix=/usr \
+	--enable-shared \
+	--disable-static \
+	--disable-rpath \
+	--disable-debug \
+	--without-pear \
+	--with-config-file-path=/etc \
+	--with-config-file-scan-dir=/etc/php5 \
+	--disable-short-tags \
+	--with-zlib \
+	--with-zlib-dir="$(TOP)/zlib/staged/usr" \
+	--disable-phar \
+	--enable-cli \
+	--enable-cgi \
+	--disable-calendar \
+	--enable-ctype \
+	--without-curl \
+	--enable-fileinfo \
+	--without-gettext \
+	--enable-dom \
+	--enable-exif \
+	--disable-ftp \
+	--without-gmp \
+	--with-gd \
+	--with-png-dir="$(TOP)/libpng/staged/usr" \
+	--with-jpeg-dir="$(TOP)/jpeg/staged" \
+	--disable-hash \
+	--with-iconv="$(TOP)/libiconv/staged/usr" \
+	--with-iconv-dir="$(TOP)/libiconv/staged/usr" \
+	--enable-json \
+	--without-ldap \
+	--enable-mbstring \
+	--without-mcrypt \
+	--without-mysqli \
+	--without-openssl \
+	--disable-pcntl \
+	--without-pdo-mysql \
+	--without-pdo-pgsql \
+	--with-pdo-sqlite \
+	--enable-pdo \
+	--without-pgsql \
+	--enable-session \
+	--disable-shmop \
+	--enable-simplexml \
+	--disable-soap \
+	--disable-sockets \
+	--with-sqlite3 \
+	--disable-sysvmsg \
+	--disable-sysvsem \
+	--disable-sysvshm \
+	--disable-tokenizer \
+	--enable-xml \
+	--enable-xmlreader \
+	--enable-xmlwriter \
+	--enable-zip \
+	--disable-filter \
+	--with-libxml-dir="$(TOP)/libxml2/staged/usr"
+	@touch php/stamp-h1
+
+php: php/stamp-h1
+	@$(SEP)
+	@$(MAKE) -C php
+
+php-clean:
+	-@$(MAKE) -C php clean
+	-@rm php/stamp-h1
+
+php-install: php
+	@$(SEP)
+	install -d $(INSTALLDIR)/php/usr/sbin
+	install -D php/sapi/cli/.libs/php $(INSTALLDIR)/php/usr/sbin/php-cli && chmod 0755 $(INSTALLDIR)/php/usr/sbin/php-cli
+	$(STRIP) $(INSTALLDIR)/php/usr/sbin/php-cli
+	install -D php/sapi/cgi/.libs/php-cgi $(INSTALLDIR)/php/usr/sbin/php-cgi && chmod 0755 $(INSTALLDIR)/php/usr/sbin/php-cgi
+	cd $(INSTALLDIR)/php/usr/sbin && ln -sf php-cgi php-fcgi
+	$(STRIP) $(INSTALLDIR)/php/usr/sbin/php-cgi
+
+nginx/stamp-h1: openssl zlib pcre
+	@$(SEP)
+	cd $(TOP)/nginx && ./configure --crossbuild=Linux::$(ARCH) \
+		--prefix=/usr \
+		--sbin-path=/usr/sbin \
+		--conf-path=/etc/nginx/nginx.conf \
+		--error-log-path=/tmp/var/log/nginx/error.log \
+		--http-log-path=/tmp/var/log/nginx/access.log \
+		--pid-path=/tmp/var/run/nginx.pid \
+		--lock-path=/tmp/var/run/nginx.lock.accept \
+		--http-client-body-temp-path=/tmp/var/lib/nginx/client \
+		--http-fastcgi-temp-path=/tmp/var/lib/nginx/fastcgi \
+		--with-http_flv_module \
+		--with-http_ssl_module \
+		--with-http_gzip_static_module \
+		--http-uwsgi-temp-path=/tmp/var/lib/nginx/uwsgi \
+		--http-scgi-temp-path=/tmp/var/lib/nginx/scgi \
+		--http-proxy-temp-path=/tmp/var/lib/nginx/proxy \
+		--with-cc="$(CC)" \
+		--with-ld-opt="$(LDFLAGS) -L $(TOP)/pcre/.libs -L $(TOP)/zlib -L $(TOP)/openssl" \
+		--with-cc-opt="$(EXTRACFLAGS) $(CPPFLAGS) $(CFLAGS) -I $(TOP)/openssl/include -I $(TOP)/openssl/include/openssl -I $(TOP)/pcre -I $(TOP)/zlib" \
+		$(ADDITIONAL_MODULES)
+
+nginx: nginx/stamp-h1
+	@$(SEP)
+	@$(MAKE) -C nginx
+
+nginx-clean:
+	-@$(MAKE) -C nginx clean
+	-@rm -f nginx/stamp-h1
+
+nginx-install: nginx
+	install -d $(INSTALLDIR)/nginx/usr/sbin
+	install -D nginx/objs/nginx $(INSTALLDIR)/nginx/usr/sbin/nginx && chmod 755 $(INSTALLDIR)/nginx/usr/sbin/nginx
+	$(STRIP) $(INSTALLDIR)/nginx/usr/sbin/nginx
+
 lzo/stamp-h1:
 	cd lzo && \
 	CFLAGS="-O3 -Wall -fPIC $(EXTRACFLAGS)" $(CONFIGURE) --enable-shared --enable-static
@@ -1696,9 +1976,11 @@ lzo-clean:
 	@rm -f lzo/stamp-h1
 
 lzo-install: lzo
-	install -D lzo/src/.libs/liblzo2.so $(INSTALLDIR)/lzo/usr/lib/liblzo2.so.2
-	$(STRIP) $(INSTALLDIR)/lzo/usr/lib/liblzo2.so.2
-	cd $(INSTALLDIR)/lzo/usr/lib && ln -sf liblzo2.so.2 liblzo2.so
+	install -D lzo/src/.libs/liblzo2.so $(INSTALLDIR)/lzo/usr/lib/liblzo2.so.2.0.0
+	$(STRIP) $(INSTALLDIR)/lzo/usr/lib/liblzo2.so.2.0.0
+	cd $(INSTALLDIR)/lzo/usr/lib && \
+		ln -sf liblzo2.so.2.0.0 liblzo2.so.2 && \
+		ln -sf liblzo2.so.2.0.0 liblzo2.so
 
 openvpn/.conf: openssl lzo
 	cd openvpn && CFLAGS="-O3 -Wall $(EXTRACFLAGS) -ffunction-sections -fdata-sections" \
@@ -1791,21 +2073,24 @@ libiconv/stamp-h1:
 libiconv: libiconv/stamp-h1
 	@$(SEP)
 	$(MAKE) -C libiconv $(PARALLEL_BUILD)
+	$(MAKE) -C libiconv DESTDIR=$(TOP)/libiconv/staged install
 
 libiconv-clean:
 	-@$(MAKE) -C libiconv clean
-	@rm -f libiconv/stamp-h1 libiconv/Makefile
+	@rm -rf libiconv/stamp-h1 libiconv/Makefile
+	@rm -rf libiconv/staged
 
 libiconv-install: libiconv
 	install -d $(INSTALLDIR)/libiconv/usr/lib
-	install libiconv/lib/.libs/libiconv.so.2.4.0 $(INSTALLDIR)/libiconv/usr/lib/libiconv.so.2.4.0
-	$(STRIP)-s $(INSTALLDIR)/libiconv/usr/lib/libiconv.so.2.4.0
+	install libiconv/lib/.libs/libiconv.so.2.5.1 $(INSTALLDIR)/libiconv/usr/lib/libiconv.so.2.5.1
+	$(STRIP)-s $(INSTALLDIR)/libiconv/usr/lib/libiconv.so.2.5.1
 	cd $(INSTALLDIR)/libiconv/usr/lib/ && \
-		ln -sf libiconv.so.2.4.0 libiconv.so.2 && \
-		ln -sf libiconv.so.2.4.0 libiconv.so
+		ln -sf libiconv.so.2.5.1 libiconv.so.2 && \
+		ln -sf libiconv.so.2.5.1 libiconv.so
 
 transmission/stamp-h1: openssl libcurl libevent zlib
 	cd transmission && CC=$(CC) STRIP='mipsel-uclibc-strip' \
+		autoreconf && \
 		CFLAGS="-Os -Wall -fno-delete-null-pointer-checks -funit-at-a-time \
 			--param large-function-growth=800 --param max-inline-insns-single=3000 \
 			-ffunction-sections -fdata-sections" \
@@ -1950,6 +2235,39 @@ nfs-utils-install: nfs-utils
 	$(STRIP) -s $(INSTALLDIR)/nfs-utils/usr/sbin/statd
 	$(STRIP) -s $(INSTALLDIR)/nfs-utils/usr/sbin/mountd
 
+tinc/stamp-h1: openssl zlib lzo
+	@cd tinc && autoreconf -fsi && \
+	CC=$(CC) AR=$(AR) RANLIB=$(RANLIB) LD=$(LD) \
+	CFLAGS="-Os -Wall $(EXTRACFLAGS) -fPIC -ffunction-sections -fdata-sections" \
+	LDFLAGS="-ffunction-sections -fdata-sections -Wl,--gc-sections -fPIC" \
+	$(CONFIGURE) \
+	--prefix=/usr \
+	--sysconfdir=/etc \
+	--localstatedir=/var \
+	--with-zlib-include="$(TOP)/zlib" \
+	--with-zlib-lib="$(TOP)/zlib" \
+	--with-lzo-include="$(TOP)/lzo/include" \
+	--with-lzo-lib="$(TOP)/lzo/src/.libs" \
+	--with-openssl-include="$(TOP)/openssl/include" \
+	--with-openssl-lib="$(TOP)/openssl" \
+	--disable-curses \
+	--disable-readline
+	@touch tinc/stamp-h1
+
+tinc: tinc/stamp-h1
+	@$(SEP)
+	@$(MAKE) -C tinc LIBS="-lcrypto $(TOP)/zlib/libz.a -llzo2" $(PARALLEL_BUILD)
+
+tinc-clean:
+	-@$(MAKE) -C tinc clean
+	@rm -f tinc/stamp-h1
+
+tinc-install:
+	install -D tinc/src/tinc $(INSTALLDIR)/tinc/usr/sbin/tinc
+	install -D tinc/src/tincd $(INSTALLDIR)/tinc/usr/sbin/tincd
+	$(STRIP) $(INSTALLDIR)/tinc/usr/sbin/tinc
+	$(STRIP) $(INSTALLDIR)/tinc/usr/sbin/tincd
+
 sd-idle/stamp-h1:
 	cd sd-idle \
 	CFLAGS="-Os -Wall --host=mipsel-linux --target=mipsel-linux $(EXTRACFLAGS)" \
@@ -2018,7 +2336,7 @@ apcupsd-install: apcupsd
 
 libsodium/stamp-h1:
 	cd $(TOP)/libsodium && CC=$(CC) STRIP='mipsel-uclibc-strip' \
-	$(CONFIGURE) --prefix=/usr --disable-ssp
+	$(CONFIGURE) --prefix=/usr --disable-ssp --enable-minimal
 	touch libsodium/stamp-h1
 
 libsodium: libsodium/stamp-h1
@@ -2026,11 +2344,11 @@ libsodium: libsodium/stamp-h1
 
 libsodium-install: libsodium
 	install -d $(INSTALLDIR)/libsodium/usr/lib
-	install -D libsodium/src/libsodium/.libs/libsodium.so.4.5.0 $(INSTALLDIR)/libsodium/usr/lib/libsodium.so.4.5.0
-	$(STRIP) -s $(INSTALLDIR)/libsodium/usr/lib/libsodium.so.4.5.0
+	install -D libsodium/src/libsodium/.libs/libsodium.so.13.0.2 $(INSTALLDIR)/libsodium/usr/lib/libsodium.so.13.0.2
+	$(STRIP) -s $(INSTALLDIR)/libsodium/usr/lib/libsodium.so.13.0.2
 	cd $(INSTALLDIR)/libsodium/usr/lib/ && \
-		ln -sf libsodium.so.4.5.0 libsodium.so.4 && \
-		ln -sf libsodium.so.4.5.0 libsodium.so
+		ln -sf libsodium.so.13.0.2 libsodium.so.13 && \
+		ln -sf libsodium.so.13.0.2 libsodium.so
 
 libsodium-clean:
 	-$(MAKE) -C libsodium clean
