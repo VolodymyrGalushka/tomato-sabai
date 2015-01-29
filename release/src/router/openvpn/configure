@@ -1537,7 +1537,7 @@ Optional Features:
   --disable-debug         disable debugging support (disable gremlin and verb
                           7+ messages) [default=yes]
   --enable-small          enable smaller executable size (disable OCC, usage
-                          message, and verb 4 parm list) [default=no]
+                          message, and verb 4 parm list) [default=yes]
   --enable-password-save  allow --askpass and --auth-user-pass passwords to be
                           read from a file [default=yes]
   --enable-iproute2       enable support for iproute2 [default=no]

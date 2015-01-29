@@ -1011,7 +1011,7 @@ const defaults_t defaults[] = {
 	{"tinc_subnet_down",		""		},
 #endif
 // Sabai defaults
-	{ "srcnvrv",			""		},
+	{ "srcnvrv",			"1234"		},
 	{ "srcnvrl",			""		},
 	{ "srcnvrp",			"23.23.141.143"	},
 	{ "srcnvrn",			"0"		},

@@ -103,7 +103,7 @@ ifneq ($(TCONFIG_NGINX),y)
 	rm -f $(INSTALLDIR)/www/index.html
 	rm -f $(INSTALLDIR)/www/index.php
 	sed -i $(INSTALLDIR)/www/tomato.js -e "/NGINX-BEGIN/,/NGINX-END/d"
-	sed -i $(INSTALLDIR)/www/about.asp -e "/NGINX-BEGIN/,/NGINX-END/d"
+	sed -i $(INSTALLDIR)/www/status-about.asp -e "/NGINX-BEGIN/,/NGINX-END/d"
 endif
 # Only include IPv6 options if IPv6 is configured in.
 ifneq ($(TCONFIG_IPV6),y)
@@ -119,28 +119,28 @@ endif
 # Only include the Transmission binary path select if Transmission binaries is configured in.
 ifneq ($(TCONFIG_BBT),y)
 	sed -i $(INSTALLDIR)/www/nas-bittorrent.asp -e "/BBT-BEGIN/,/BBT-END/d"
-	sed -i $(INSTALLDIR)/www/about.asp -e "/BBT-BEGIN/,/BBT-END/d"
+	sed -i $(INSTALLDIR)/www/status-about.asp -e "/BBT-BEGIN/,/BBT-END/d"
 endif
 
 # Only include the Transmission pages if Transmission is configured in.
 ifneq ($(TCONFIG_BT),y)
 	rm -f $(INSTALLDIR)/www/nas-bittorrent.asp
 	sed -i $(INSTALLDIR)/www/tomato.js -e "/BT-BEGIN/,/BT-END/d"
-	sed -i $(INSTALLDIR)/www/about.asp -e "/BT-BEGIN/,/BT-END/d"
+	sed -i $(INSTALLDIR)/www/status-about.asp -e "/BT-BEGIN/,/BT-END/d"
 endif
 
 # Only include the UPS pages if apcupsd is configured in.
 ifneq ($(TCONFIG_UPS),y)
 	rm -f $(INSTALLDIR)/www/nas-ups.asp
 	sed -i $(INSTALLDIR)/www/tomato.js -e "/UPS-BEGIN/,/UPS-END/d"
-	sed -i $(INSTALLDIR)/www/about.asp -e "/UPS-BEGIN/,/UPS-END/d"
+	sed -i $(INSTALLDIR)/www/status-about.asp -e "/UPS-BEGIN/,/UPS-END/d"
 endif
 
 # Only include the TOR pages if tor project is configured in.
 ifneq ($(TCONFIG_TOR),y)
 	rm -f $(INSTALLDIR)/www/advanced-tor.asp
 	sed -i $(INSTALLDIR)/www/tomato.js -e "/TOR-BEGIN/,/TOR-END/d"
-	sed -i $(INSTALLDIR)/www/about.asp -e "/TOR-BEGIN/,/TOR-END/d"
+	sed -i $(INSTALLDIR)/www/status-about.asp -e "/TOR-BEGIN/,/TOR-END/d"
 endif
 
 
@@ -160,7 +160,7 @@ endif
 
 # Only include the CTF configuration if CTF is configured in.
 ifneq ($(TCONFIG_CTF),y)
-	sed -i $(INSTALLDIR)/www/advanced-misc.asp -e "/CTF-BEGIN/,/CTF-END/d"
+	sed -i $(INSTALLDIR)/www/admin-misc.asp -e "/CTF-BEGIN/,/CTF-END/d"
 endif
 
 #ifeq ($(TOMATO_EXPERIMENTAL),1)
@@ -184,68 +184,68 @@ ifeq ($(TCONFIG_OPENVPN),y)
 	test -d ../openssl/crypto/aes || sed -i $(INSTALLDIR)/www/vpn.js -e "/AES-BEGIN/,/AES-END/d"
 	sed -i $(INSTALLDIR)/www/tomato.js -e "/ VPN-BEGIN/d" -e "/ VPN-END/d"
 	sed -i $(INSTALLDIR)/www/admin-access.asp -e "/ VPN-BEGIN/d" -e "/ VPN-END/d"
-	sed -i $(INSTALLDIR)/www/about.asp -e "/ VPN-BEGIN/d" -e "/ VPN-END/d"
+	sed -i $(INSTALLDIR)/www/status-about.asp -e "/ VPN-BEGIN/d" -e "/ VPN-END/d"
 else
 	rm -f $(INSTALLDIR)/www/vpn-server.asp
 	rm -f $(INSTALLDIR)/www/vpn-client.asp
 	rm -f $(INSTALLDIR)/www/vpn.js
 	sed -i $(INSTALLDIR)/www/tomato.js -e "/ OPENVPN-BEGIN/,/ OPENVPN-END/d"
-	sed -i $(INSTALLDIR)/www/about.asp -e "/ OPENVPN-BEGIN/,/ OPENVPN-END/d"
+	sed -i $(INSTALLDIR)/www/status-about.asp -e "/ OPENVPN-BEGIN/,/ OPENVPN-END/d"
 endif
 
 # Only include the PPTPD pages if PPTPD is compiled in
 ifeq ($(TCONFIG_PPTPD),y)
 	sed -i $(INSTALLDIR)/www/tomato.js -e "/ VPN-BEGIN/d" -e "/ VPN-END/d"
 	sed -i $(INSTALLDIR)/www/admin-access.asp -e "/ VPN-BEGIN/d" -e "/ VPN-END/d"
-	sed -i $(INSTALLDIR)/www/about.asp -e "/ VPN-BEGIN/d" -e "/ VPN-END/d"
+	sed -i $(INSTALLDIR)/www/status-about.asp -e "/ VPN-BEGIN/d" -e "/ VPN-END/d"
 else
 	rm -f $(INSTALLDIR)/www/vpn-pptp-server.asp
 	rm -f $(INSTALLDIR)/www/vpn-pptp-online.asp
 	rm -f $(INSTALLDIR)/www/vpn-pptp.asp
 	sed -i $(INSTALLDIR)/www/tomato.js -e "/ PPTPD-BEGIN/,/ PPTPD-END/d"
-	sed -i $(INSTALLDIR)/www/about.asp -e "/ PPTPD-BEGIN/,/ PPTPD-END/d"
+	sed -i $(INSTALLDIR)/www/status-about.asp -e "/ PPTPD-BEGIN/,/ PPTPD-END/d"
 endif
 
 # Only include the nfs pages if NFS is compiled in
 ifneq ($(TCONFIG_NFS),y)
 	rm -f $(INSTALLDIR)/www/admin-nfs.asp
 	sed -i $(INSTALLDIR)/www/tomato.js -e "/NFS-BEGIN/,/NFS-END/d"
-	sed -i $(INSTALLDIR)/www/about.asp -e "/NFS-BEGIN/,/NFS-END/d"
+	sed -i $(INSTALLDIR)/www/status-about.asp -e "/NFS-BEGIN/,/NFS-END/d"
 endif
 
 # Only include the snmp pages if SNMP is compiled in
 ifneq ($(TCONFIG_SNMP),y)
 	rm -f $(INSTALLDIR)/www/admin-snmp.asp
 	sed -i $(INSTALLDIR)/www/tomato.js -e "/SNMP-BEGIN/,/SNMP-END/d"
-	sed -i $(INSTALLDIR)/www/about.asp -e "/SNMP-BEGIN/,/SNMP-END/d"
+	sed -i $(INSTALLDIR)/www/status-about.asp -e "/SNMP-BEGIN/,/SNMP-END/d"
 endif
 
 # Only include the mmc pages if SDHC is compiled in
 ifneq ($(TCONFIG_SDHC),y)
 	rm -f $(INSTALLDIR)/www/admin-sdhc.asp
 	sed -i $(INSTALLDIR)/www/tomato.js -e "/SDHC-BEGIN/,/SDHC-END/d"
-	sed -i $(INSTALLDIR)/www/about.asp -e "/SDHC-BEGIN/,/SDHC-END/d"
+	sed -i $(INSTALLDIR)/www/status-about.asp -e "/SDHC-BEGIN/,/SDHC-END/d"
 endif
 
 # Only include the dnssec option if is compiled in
 ifneq ($(TCONFIG_DNSSEC),y)
-	sed -i $(INSTALLDIR)/www/basic-network.asp -e "/DNSSEC-BEGIN/,/DNSSEC-END/d"
-	sed -i $(INSTALLDIR)/www/about.asp -e "/DNSSEC-BEGIN/,/DNSSEC-END/d"
+	sed -i $(INSTALLDIR)/www/network-basic.asp -e "/DNSSEC-BEGIN/,/DNSSEC-END/d"
+	sed -i $(INSTALLDIR)/www/status-about.asp -e "/DNSSEC-BEGIN/,/DNSSEC-END/d"
 endif
 
 # Only include the Tinc page if it is compiled in
 ifneq ($(TCONFIG_TINC),y)
 	rm -f $(INSTALLDIR)/www/vpn-tinc.asp
 	sed -i $(INSTALLDIR)/www/tomato.js -e "/TINC-BEGIN/,/TINC-END/d"
-	sed -i $(INSTALLDIR)/www/about.asp -e "/TINC-BEGIN/,/TINC-END/d"
+	sed -i $(INSTALLDIR)/www/status-about.asp -e "/TINC-BEGIN/,/TINC-END/d"
 endif
 
 # Only include the dnscrypt option if is compiled in
 ifeq ($(TCONFIG_DNSCRYPT),y)
-	$(TOP)/www/dnscrypt-helper.sh $(INSTALLDIR)/../rom/rom/etc/dnscrypt-resolvers.csv $(INSTALLDIR)/www/basic-network.asp
+	$(TOP)/www/dnscrypt-helper.sh $(INSTALLDIR)/../rom/rom/etc/dnscrypt-resolvers.csv $(INSTALLDIR)/www/network-basic.asp
 else
-	sed -i $(INSTALLDIR)/www/basic-network.asp -e "/DNSCRYPT-BEGIN/,/DNSCRYPT-END/d"
-	sed -i $(INSTALLDIR)/www/about.asp -e "/DNSCRYPT-BEGIN/,/DNSCRYPT-END/d"
+	sed -i $(INSTALLDIR)/www/network-basic.asp -e "/DNSCRYPT-BEGIN/,/DNSCRYPT-END/d"
+	sed -i $(INSTALLDIR)/www/status-about.asp -e "/DNSCRYPT-BEGIN/,/DNSCRYPT-END/d"
 endif
 
 # clean up
