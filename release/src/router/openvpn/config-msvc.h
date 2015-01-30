@@ -76,9 +76,6 @@
 
 #define HAVE_OPENSSL_ENGINE 1
 
-#define PATH_SEPARATOR     '\\'
-#define PATH_SEPARATOR_STR "\\"
-
 #ifndef __cplusplus
 #define inline __inline
 #endif

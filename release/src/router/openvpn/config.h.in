@@ -60,9 +60,6 @@
 /* Enable multi-homed UDP server capability */
 #undef ENABLE_MULTIHOME
 
-/* Enable OFB and CFB cipher modes */
-#undef ENABLE_OFB_CFB_MODE
-
 /* Allow --askpass and --auth-user-pass passwords to be read from a file */
 #undef ENABLE_PASSWORD_SAVE
 
@@ -93,7 +90,7 @@
 /* Enable strict options check between peers */
 #undef ENABLE_STRICT_OPTIONS_CHECK
 
-/* Enable systemd integration */
+/* Enable systemd support */
 #undef ENABLE_SYSTEMD
 
 /* Enable --x509-username-field feature */
@@ -397,9 +394,6 @@
 /* Define to 1 if you have the `res_init' function. */
 #undef HAVE_RES_INIT
 
-/* Define to 1 if you have the `sd_booted' function. */
-#undef HAVE_SD_BOOTED
-
 /* Define to 1 if you have the `select' function. */
 #undef HAVE_SELECT
 
@@ -477,9 +471,6 @@
 
 /* Define to 1 if you have the `system' function. */
 #undef HAVE_SYSTEM
-
-/* Define to 1 if you have the <systemd/sd-daemon.h> header file. */
-#undef HAVE_SYSTEMD_SD_DAEMON_H
 
 /* Define to 1 if you have the <sys/epoll.h> header file. */
 #undef HAVE_SYS_EPOLL_H
@@ -637,9 +628,6 @@
 
 /* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS
-
-/* Path to systemd-ask-password tool */
-#undef SYSTEMD_ASK_PASSWORD_PATH
 
 /* The tap-windows id */
 #undef TAP_WIN_COMPONENT_ID

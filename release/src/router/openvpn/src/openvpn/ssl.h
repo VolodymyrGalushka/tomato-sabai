@@ -61,7 +61,6 @@
 #define P_CONTROL_V1                   4     /* control channel packet (usually TLS ciphertext) */
 #define P_ACK_V1                       5     /* acknowledgement for packets received */
 #define P_DATA_V1                      6     /* data channel packet */
-#define P_DATA_V2                      9     /* data channel packet with peer-id */
 
 /* indicates key_method >= 2 */
 #define P_CONTROL_HARD_RESET_CLIENT_V2 7     /* initial key from client, forget previous state */
@@ -69,7 +68,7 @@
 
 /* define the range of legal opcodes */
 #define P_FIRST_OPCODE                 1
-#define P_LAST_OPCODE                  9
+#define P_LAST_OPCODE                  8
 
 /* Should we aggregate TLS
  * acknowledgements, and tack them onto

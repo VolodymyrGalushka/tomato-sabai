@@ -376,11 +376,8 @@ openvpn_popen (const struct argv *a,  const struct env_set *es)
 			}
 		      else /* parent side */
 			{
-                          int status = 0;
-
-                          waitpid(pid, &status, 0);
-                          ret = pipe_stdout[0];
-                          close (pipe_stdout[1]);
+                            ret=pipe_stdout[0];
+			    close (pipe_stdout[1]);
 			}
 	      }
 	      else {
@@ -871,12 +868,6 @@ test_file (const char *filename)
 	{
 	  fclose (fp);
 	  ret = true;
-	}
-      else
-	{
-	  if( openvpn_errno () == EACCES ) {
-	    msg( M_WARN | M_ERRNO, "Could not access file '%s'", filename);
-	  }
 	}
     }
 

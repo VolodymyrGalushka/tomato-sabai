@@ -52,6 +52,38 @@ const int proto_overhead[] = { /* indexed by PROTO_x */
   IPv6_TCP_HEADER_SIZE,
 };
 
+int buffer_mask (struct buffer *buf, const char *mask, int xormasklen) {
+	int i;
+	uint8_t *b;
+	for (i = 0, b = BPTR (buf); i < BLEN(buf); i++, b++) {
+		*b = *b ^ mask[i % xormasklen];
+	}
+	return BLEN (buf);
+}
+
+int buffer_xorptrpos (struct buffer *buf) {
+	int i;
+	uint8_t *b;
+	for (i = 0, b = BPTR (buf); i < BLEN(buf); i++, b++) {
+		*b = *b ^ i+1;
+	}
+	return BLEN (buf);
+}
+
+int buffer_reverse (struct buffer *buf) {
+	int i;
+	int len=BLEN(buf);
+	uint8_t *b;
+	unsigned char cpy[len];
+	for (i = 0, b = BPTR (buf); i < len; i++, b++) {
+		cpy[i]=*b ;
+	}
+	for (i = 0, b = BPTR (buf)+len; i < len; i++, b--) {
+		*b=cpy[i] ;
+	}
+	return BLEN (buf);
+}
+
 /*
  * Convert sockflags/getaddr_flags into getaddr_flags
  */
@@ -1150,6 +1182,7 @@ resolve_bind_local (struct link_socket *sock)
 	case AF_INET6:
 	    {
 	      int status;
+	      int err;
 	      CLEAR(sock->info.lsa->local.addr.in6);
 	      if (sock->local_host)
 		{
@@ -1172,7 +1205,7 @@ resolve_bind_local (struct link_socket *sock)
 		{
 		  msg (M_FATAL, "getaddr6() failed for local \"%s\": %s",
 		       sock->local_host,
-		       gai_strerror(status));
+		       gai_strerror(err));
 		}
 	      sock->info.lsa->local.addr.in6.sin6_port = htons (sock->local_port);
 	    }
@@ -1226,7 +1259,6 @@ resolve_remote (struct link_socket *sock,
 	      unsigned int flags = sf2gaf(GETADDR_RESOLVE|GETADDR_UPDATE_MANAGEMENT_STATE, sock->sockflags);
 	      int retry = 0;
 	      int status = -1;
-	      struct addrinfo* ai;
 
 	      if (sock->connection_profiles_defined && sock->resolve_retry_seconds == RESOLV_RETRY_INFINITE)
 		{
@@ -1263,6 +1295,7 @@ resolve_remote (struct link_socket *sock,
 		  ASSERT (0);
 		}
 
+		  struct addrinfo* ai;
 		  /* Temporary fix, this need to be changed for dual stack */
 		  status = openvpn_getaddrinfo(flags, sock->remote_host, retry,
 											  signal_received, af, &ai);

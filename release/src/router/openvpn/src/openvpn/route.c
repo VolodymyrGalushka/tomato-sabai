@@ -1318,18 +1318,15 @@ add_route (struct route_ipv4 *r,
 
 #if defined(TARGET_LINUX)
 #ifdef ENABLE_IPROUTE
-  argv_printf (&argv, "%s route add %s/%d",
+  /* FIXME -- add on-link support for ENABLE_IPROUTE */
+  argv_printf (&argv, "%s route add %s/%d via %s",
   	      iproute_path,
 	      network,
-             count_netmask_bits(netmask));
-
+	      count_netmask_bits(netmask),
+	      gateway);
   if (r->flags & RT_METRIC_DEFINED)
     argv_printf_cat (&argv, "metric %d", r->metric);
 
-  if (is_on_link (is_local_route, flags, rgi))
-    argv_printf_cat (&argv, "dev %s", rgi->iface);
-  else
-    argv_printf_cat (&argv, "via %s", gateway);
 #else
   argv_printf (&argv, "%s add -net %s netmask %s",
 	       ROUTE_PATH,

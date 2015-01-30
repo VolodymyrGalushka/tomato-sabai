@@ -674,7 +674,10 @@ read_incoming_link (struct context *c)
   status = link_socket_read (c->c2.link_socket,
 			     &c->c2.buf,
 			     MAX_RW_SIZE_LINK (&c->c2.frame),
-			     &c->c2.from);
+			     &c->c2.from,
+			     c->options.ce.xormethod,
+			     c->options.ce.xormask,
+			     c->options.ce.xormasklen);
 
   if (socket_connection_reset (c->c2.link_socket, status))
     {
@@ -952,15 +955,6 @@ read_incoming_tun (struct context *c)
       return;		  
     }
 
-  /* Was TUN/TAP I/O operation aborted? */
-  if (tuntap_abort(c->c2.buf.len))
-  {
-     register_signal(c, SIGTERM, "tun-abort");
-     msg(M_FATAL, "TUN/TAP I/O operation aborted, exiting");
-     perf_pop();
-     return;
-  }
-
   /* Check the status return from read() */
   check_status (c->c2.buf.len, "read from TUN/TAP", NULL, c->c1.tuntap);
 
@@ -1150,7 +1144,10 @@ process_outgoing_link (struct context *c)
 	    /* Send packet */
 	    size = link_socket_write (c->c2.link_socket,
 				      &c->c2.to_link,
-				      to_addr);
+				      to_addr,
+				      c->options.ce.xormethod,
+				      c->options.ce.xormask,
+				      c->options.ce.xormasklen);
 
 #ifdef ENABLE_SOCKS
 	    /* Undo effect of prepend */

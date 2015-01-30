@@ -463,7 +463,7 @@ ssl_put_auth_challenge (const char *cr_str)
  * return tls_version_max().
  */
 int
-tls_version_parse(const char *vstr, const char *extra)
+tls_version_min_parse(const char *vstr, const char *extra)
 {
   const int max_version = tls_version_max();
   if (!strcmp(vstr, "1.0") && TLS_VER_1_0 <= max_version)
@@ -632,8 +632,6 @@ packet_opcode_name (int op)
       return "P_ACK_V1";
     case P_DATA_V1:
       return "P_DATA_V1";
-    case P_DATA_V2:
-      return "P_DATA_V2";
     default:
       return "P_???";
     }
@@ -1059,9 +1057,6 @@ tls_multi_init (struct tls_options *tls_options)
   ret->key_scan[0] = &ret->session[TM_ACTIVE].key[KS_PRIMARY];
   ret->key_scan[1] = &ret->session[TM_ACTIVE].key[KS_LAME_DUCK];
   ret->key_scan[2] = &ret->session[TM_LAME_DUCK].key[KS_LAME_DUCK];
-
-  /* By default not use P_DATA_V2 */
-  ret->use_peer_id = false;
 
   return ret;
 }
@@ -1838,8 +1833,6 @@ push_peer_info(struct buffer *buf, struct tls_session *session)
 #ifdef ENABLE_LZO_STUB
       buf_printf (&out, "IV_LZO_STUB=1\n");
 #endif
-      /* support for P_DATA_V2 */
-      buf_printf(&out, "IV_PROTO=2\n");
 
       if (session->opt->push_peer_info_detail >= 2)
         {
@@ -2040,11 +2033,7 @@ key_method_2_read (struct buffer *buf, struct tls_multi *multi, struct tls_sessi
   ASSERT (session->opt->key_method == 2);
 
   /* discard leading uint32 */
-  if (!buf_advance (buf, 4)) {
-    msg (D_TLS_ERRORS, "TLS ERROR: Plaintext buffer too short (%d bytes).",
-	buf->len);
-    goto error;
-  }
+  ASSERT (buf_advance (buf, 4));
 
   /* get key method */
   key_method_flags = buf_read_u8 (buf);
@@ -2793,9 +2782,8 @@ tls_pre_decrypt (struct tls_multi *multi,
 	key_id = c & P_KEY_ID_MASK;
       }
 
-      if ((op == P_DATA_V1) || (op == P_DATA_V2))
-	{
-	  /* data channel packet */
+      if (op == P_DATA_V1)
+	{			/* data channel packet */
 	  for (i = 0; i < KEY_SCAN_SIZE; ++i)
 	    {
 	      struct key_state *ks = multi->key_scan[i];
@@ -2827,19 +2815,7 @@ tls_pre_decrypt (struct tls_multi *multi,
 		  opt->pid_persist = NULL;
 		  opt->flags &= multi->opt.crypto_flags_and;
 		  opt->flags |= multi->opt.crypto_flags_or;
-
 		  ASSERT (buf_advance (buf, 1));
-		  if (op == P_DATA_V2)
-		    {
-		      if (buf->len < 4)
-			{
-			  msg (D_TLS_ERRORS, "Protocol error: received P_DATA_V2 from %s but length is < 4",
-				print_link_socket_actual (from, &gc));
-			  goto error;
-			}
-		      ASSERT (buf_advance (buf, 3));
-		    }
-
 		  ++ks->n_packets;
 		  ks->n_bytes += buf->len;
 		  dmsg (D_TLS_KEYSELECT,
@@ -3404,24 +3380,14 @@ tls_post_encrypt (struct tls_multi *multi, struct buffer *buf)
 {
   struct key_state *ks;
   uint8_t *op;
-  uint32_t peer;
 
   ks = multi->save_ks;
   multi->save_ks = NULL;
   if (buf->len > 0)
     {
       ASSERT (ks);
-
-      if (!multi->opt.server && multi->use_peer_id)
-	{
-	  peer = htonl(((P_DATA_V2 << P_OPCODE_SHIFT) | ks->key_id) << 24 | (multi->peer_id & 0xFFFFFF));
-	  ASSERT (buf_write_prepend (buf, &peer, 4));
-	}
-      else
-	{
-	  ASSERT (op = buf_prepend (buf, 1));
-	  *op = (P_DATA_V1 << P_OPCODE_SHIFT) | ks->key_id;
-	}
+      ASSERT (op = buf_prepend (buf, 1));
+      *op = (P_DATA_V1 << P_OPCODE_SHIFT) | ks->key_id;
       ++ks->n_packets;
       ks->n_bytes += buf->len;
     }
@@ -3528,7 +3494,7 @@ protocol_dump (struct buffer *buffer, unsigned int flags, struct gc_arena *gc)
   key_id = c & P_KEY_ID_MASK;
   buf_printf (&out, "%s kid=%d", packet_opcode_name (op), key_id);
 
-  if ((op == P_DATA_V1) || (op == P_DATA_V2))
+  if (op == P_DATA_V1)
     goto print_data;
 
   /*

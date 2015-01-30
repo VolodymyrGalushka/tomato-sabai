@@ -572,14 +572,13 @@ static const char usage_message[] =
   "--tls-version-min <version> ['or-highest'] : sets the minimum TLS version we\n"
   "    will accept from the peer.  If version is unrecognized and 'or-highest'\n"
   "    is specified, require max TLS version supported by SSL implementation.\n"
-  "--tls-version-max <version> : sets the maximum TLS version we will use.\n"
 #ifndef ENABLE_CRYPTO_POLARSSL
   "--pkcs12 file   : PKCS#12 file containing local private key, local certificate\n"
   "                  and optionally the root CA certificate.\n"
 #endif
 #ifdef ENABLE_X509ALTUSERNAME
-  "--x509-username-field : Field in x509 certificate containing the username.\n"
-  "                        Default is CN in the Subject field.\n"
+  "--x509-username-field : Field used in x509 certificate to be username.\n"
+  "                        Default is CN.\n"
 #endif
   "--verify-hash   : Specify SHA1 fingerprint for level-1 cert.\n"
 #ifdef WIN32
@@ -785,6 +784,9 @@ init_options (struct options *o, const bool init_gc)
   o->max_routes = MAX_ROUTES_DEFAULT;
   o->resolve_retry_seconds = RESOLV_RETRY_INFINITE;
   o->proto_force = -1;
+  o->ce.xormethod = 0;
+  o->ce.xormask ="\0";
+  o->ce.xormasklen = 1;
 #ifdef ENABLE_OCC
   o->occ = true;
 #endif
@@ -903,6 +905,9 @@ setenv_connection_entry (struct env_set *es,
   setenv_int_i (es, "local_port", e->local_port, i);
   setenv_str_i (es, "remote", e->remote, i);
   setenv_int_i (es, "remote_port", e->remote_port, i);
+  setenv_int_i (es, "xormethod", e->xormethod, i);
+  setenv_str_i (es, "xormask", e->xormask, i);
+  setenv_int_i (es, "xormasklen", e->xormasklen, i);
 
 #ifdef ENABLE_HTTP_PROXY
   if (e->http_proxy_options)
@@ -1348,6 +1353,9 @@ show_connection_entry (const struct connection_entry *o)
   SHOW_INT (connect_retry_seconds);
   SHOW_INT (connect_timeout);
   SHOW_INT (connect_retry_max);
+  SHOW_INT (xormethod);
+  SHOW_STR (xormask);
+  SHOW_INT (xormasklen);
 
 #ifdef ENABLE_HTTP_PROXY
   if (o->http_proxy_options)
@@ -3440,21 +3448,18 @@ usage_small (void)
 void
 show_library_versions(const unsigned int flags)
 {
+  msg (flags, "library versions: %s%s%s",
 #ifdef ENABLE_SSL
-#define SSL_LIB_VER_STR get_ssl_library_version()
+			get_ssl_library_version(),
 #else
-#define SSL_LIB_VER_STR ""
+			"",
 #endif
 #ifdef ENABLE_LZO
-#define LZO_LIB_VER_STR ", LZO ", lzo_version_string()
+			", LZO ", lzo_version_string()
 #else
-#define LZO_LIB_VER_STR "", ""
+			"", ""
 #endif
-
-  msg (flags, "library versions: %s%s%s", SSL_LIB_VER_STR, LZO_LIB_VER_STR);
-
-#undef SSL_LIB_VER_STR
-#undef LZO_LIB_VER_STR
+	);
 }
 
 static void
@@ -5049,6 +5054,36 @@ add_option (struct options *options,
       options->proto_force = proto_force;
       options->force_connection_list = true;
     }
+  else if (streq (p[0], "scramble"))
+    {
+      VERIFY_PERMISSION (OPT_P_GENERAL|OPT_P_CONNECTION);
+      if (streq (p[1], "xormask"))
+	{
+	  options->ce.xormethod = 1;
+	  options->ce.xormask = p[2];
+	  options->ce.xormasklen = strlen(options->ce.xormask);
+	}
+      else if (streq (p[1], "xorptrpos"))
+	{
+	  options->ce.xormethod = 2;
+	}
+      else if (streq (p[1], "reverse"))
+	{
+	  options->ce.xormethod = 3;
+	}
+      else if (streq (p[1], "obfuscate"))
+	{
+	  options->ce.xormethod = 4;
+	  options->ce.xormask = p[2];
+	  options->ce.xormasklen = strlen(options->ce.xormask);
+	}
+      else
+	{
+	  options->ce.xormethod = 1;
+	  options->ce.xormask = p[1];
+	  options->ce.xormasklen = strlen(options->ce.xormask);
+	}
+    }
 #ifdef ENABLE_HTTP_PROXY
   else if (streq (p[0], "http-proxy") && p[1])
     {
@@ -6589,29 +6624,14 @@ add_option (struct options *options,
     {
       int ver;
       VERIFY_PERMISSION (OPT_P_GENERAL);
-      ver = tls_version_parse(p[1], p[2]);
+      ver = tls_version_min_parse(p[1], p[2]);
       if (ver == TLS_VER_BAD)
 	{
 	  msg (msglevel, "unknown tls-version-min parameter: %s", p[1]);
           goto err;
 	}
-      options->ssl_flags &=
-	  ~(SSLF_TLS_VERSION_MIN_MASK << SSLF_TLS_VERSION_MIN_SHIFT);
-      options->ssl_flags |= (ver << SSLF_TLS_VERSION_MIN_SHIFT);
-    }
-  else if (streq (p[0], "tls-version-max") && p[1])
-    {
-      int ver;
-      VERIFY_PERMISSION (OPT_P_GENERAL);
-      ver = tls_version_parse(p[1], NULL);
-      if (ver == TLS_VER_BAD)
-	{
-	  msg (msglevel, "unknown tls-version-max parameter: %s", p[1]);
-          goto err;
-	}
-      options->ssl_flags &=
-	  ~(SSLF_TLS_VERSION_MAX_MASK << SSLF_TLS_VERSION_MAX_SHIFT);
-      options->ssl_flags |= (ver << SSLF_TLS_VERSION_MAX_SHIFT);
+      options->ssl_flags &= ~(SSLF_TLS_VERSION_MASK << SSLF_TLS_VERSION_SHIFT);
+      options->ssl_flags |= (ver << SSLF_TLS_VERSION_SHIFT);
     }
 #ifndef ENABLE_CRYPTO_POLARSSL
   else if (streq (p[0], "pkcs12") && p[1])
@@ -6909,28 +6929,10 @@ add_option (struct options *options,
 #ifdef ENABLE_X509ALTUSERNAME
   else if (streq (p[0], "x509-username-field") && p[1])
     {
-      /* This option used to automatically upcase the fieldname passed as the
-       * option argument, e.g., "ou" became "OU". Now, this "helpfulness" is
-       * fine-tuned by only upcasing Subject field attribute names which consist
-       * of all lower-case characters. Mixed-case attributes such as
-       * "emailAddress" are left as-is. An option parameter having the "ext:"
-       * prefix for matching X.509v3 extended fields will also remain unchanged.
-       */
       char *s = p[1];
-
       VERIFY_PERMISSION (OPT_P_GENERAL);
-      if (strncmp("ext:", s, 4) != 0)
-	{
-	  size_t i = 0;
-	  while (s[i] && !isupper(s[i])) i++;
-	  if (strlen(s) == i)
-	    {
-	      while ((*s = toupper(*s)) != '\0') s++;
-	      msg(M_WARN, "DEPRECATED FEATURE: automatically upcased the "
-		  "--x509-username-field parameter to '%s'; please update your"
-		  "configuration", p[1]);
-	    }
-	}
+      if( strncmp ("ext:",s,4) != 0 )
+        while ((*s = toupper(*s)) != '\0') s++; /* Uppercase if necessary */
       options->x509_username_field = p[1];
     }
 #endif /* ENABLE_X509ALTUSERNAME */
@@ -7014,12 +7016,6 @@ add_option (struct options *options,
       options->persist_mode = 1;
     }
 #endif
-  else if (streq (p[0], "peer-id"))
-    {
-      VERIFY_PERMISSION (OPT_P_PEER_ID);
-      options->use_peer_id = true;
-      options->peer_id = atoi(p[1]);
-    }
   else
     {
       int i;
