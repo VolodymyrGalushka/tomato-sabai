@@ -27,15 +27,19 @@
 <script type='text/javascript'>
 
 var knownModels = {
+ 'RT-N66U':false,
+ 'RT-N10P':false,
  'E1550':false,
  'E2500':false,
  'E3200':false,
  'E3000':false,
  'E2000':false,
+ 'wnr3500lv2':false,
  'E4200':['E4200 v1'],
  'Netgear-3500Lv2':['WNR3500L v2'],
  'F7D3302':['F7D3302','F7D7302'],
- 'K26USB-NVRAM60K-MIPSR2':['RT-N16','RT-N66U','E3000']
+ 'K26USB-NVRAM60K-MIPSR2':['RT-N16','RT-N66U','E3000'],
+ 'K26USB-NVRAM60K-[0-9-.a-zA-Z]*MIPSR2':['RT-N16','RT-N66U','E3000'],
 }; //['E1550','E2500','E3200','E2000','E4200 v1']
 
 var fom, fileName, model, ext;
